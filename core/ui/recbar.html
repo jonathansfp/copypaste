@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    html, body { background: transparent; overflow: hidden; }
+    .r {
+      height: 100vh; display: flex; align-items: center; gap: 10px; padding: 0 6px 0 14px; border-radius: 22px;
+      background: rgba(24, 24, 28, 0.94); color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; user-select: none;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff453a; animation: blink 1.2s infinite; }
+    @keyframes blink { 50% { opacity: .35; } }
+    .time { flex: 1; cursor: move; }
+    button { display: flex; align-items: center; gap: 6px; border: 0; background: #ff453a; color: #fff; border-radius: 16px; padding: 6px 12px; cursor: pointer; font-weight: 600; }
+    button:hover { background: #ff6259; }
+  </style>
+</head>
+<body>
+  <div class="r">
+    <span class="dot"></span><span class="time" id="t" data-tauri-drag-region>00:00</span>
+    <button id="stop" title="Parar e salvar"></button>
+  </div>
+  <script type="module">
+    import { icon } from './js/icons.js';
+    const T = window.__TAURI__;
+    const stop = document.getElementById('stop');
+    stop.innerHTML = `${icon('stop', 14)}Parar`;
+    stop.addEventListener('click', () => T.core.invoke('stop_recording'));
+    const t = document.getElementById('t');
+    setInterval(async () => {
+      const s = await T.core.invoke('recording_elapsed');
+      if (s < 0) return;
+      const m = Math.floor(s / 60), r = Math.floor(s % 60);
+      t.textContent = `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+    }, 500);
+  </script>
+</body>
+</html>

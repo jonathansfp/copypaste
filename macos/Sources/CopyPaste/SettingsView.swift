@@ -165,6 +165,21 @@ struct SettingsView: View {
                 shortcut("⌘L", "Abrir biblioteca")
                 shortcut("⎋", "Fechar")
             }
+
+            Section("Apoie o projeto") {
+                Text("O CopyPaste é gratuito e de código aberto. Se ele te ajuda, considere uma doação via Pix — qualquer valor ajuda a manter o projeto.")
+                    .font(.callout).foregroundStyle(.secondary)
+                LabeledContent("Chave Pix") {
+                    HStack {
+                        Text(Donation.pixKey).font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+                        Button("Copiar") {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(Donation.pixKey, forType: .string)
+                            Toast.show("Chave Pix copiada — obrigado!", symbol: "heart.fill")
+                        }
+                    }
+                }
+            }
         }
         .formStyle(.grouped)
         .frame(width: 560)

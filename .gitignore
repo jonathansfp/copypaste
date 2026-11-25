@@ -3,3 +3,6 @@ build/
 dist/
 .backup/
 .DS_Store
+/target/
+node_modules/
+core/src-tauri/gen/

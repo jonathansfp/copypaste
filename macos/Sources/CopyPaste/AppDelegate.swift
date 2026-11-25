@@ -150,6 +150,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(pause)
         menu.addItem(withTitle: "Limpar histórico…", action: #selector(clearHistory), keyEquivalent: "").target = self
         menu.addItem(withTitle: "Configurações…", action: #selector(openSettings), keyEquivalent: ",").target = self
+        menu.addItem(withTitle: "Doar via Pix ♥", action: #selector(donatePix), keyEquivalent: "").target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: "Sair do CopyPaste", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     }
@@ -169,6 +170,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
     @objc private func openLibrary() { WindowManager.shared.showLibrary() }
     @objc private func openSettings() { WindowManager.shared.showSettings() }
+    @objc private func donatePix() {
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(Donation.pixKey, forType: .string)
+        Toast.show("Chave Pix copiada — obrigado pelo apoio!", symbol: "heart.fill", duration: 2.6)
+    }
     @objc private func togglePause() { ClipboardStore.shared.paused.toggle() }
 
     @objc private func copyRecent(_ sender: NSMenuItem) {
@@ -243,4 +250,9 @@ final class WindowManager: NSObject, NSWindowDelegate {
             if !anyOpen { NSApp.setActivationPolicy(.accessory) }
         }
     }
+}
+
+/// Doação voluntária para apoiar o projeto.
+enum Donation {
+    static let pixKey = "586cb2d1-8a6e-4bed-8cdb-1f413e8f3e38"
 }

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>CopyPaste — captura</title>
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    html, body { background: #000; overflow: hidden; }
+    #c { position: fixed; inset: 0; display: block; touch-action: none; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="hint" hidden></div>
+  <div id="tools" class="bar vertical" hidden></div>
+  <div id="actions" class="bar" hidden></div>
+  <div id="recbar" class="bar" hidden></div>
+  <div id="boardbar" class="bar" hidden></div>
+  <div id="pop" class="popover" hidden></div>
+  <textarea id="ed" hidden spellcheck="false"></textarea>
+  <script type="module" src="js/editor.js"></script>
+</body>
+</html>

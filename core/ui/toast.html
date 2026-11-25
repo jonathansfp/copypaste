@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    html, body { background: transparent; overflow: hidden; }
+    body { display: grid; place-items: center; height: 100vh; }
+    .t {
+      display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 16px); padding: 11px 18px; border-radius: 14px;
+      background: rgba(24, 24, 28, 0.93); color: #fff; font-weight: 500; box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35);
+      opacity: 0; transform: translateY(8px); transition: opacity .16s, transform .16s;
+    }
+    .t.show { opacity: 1; transform: none; }
+    .t svg { color: #4ade80; }
+    .t span { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  </style>
+</head>
+<body>
+  <div class="t" id="t"></div>
+  <script type="module">
+    import { icon } from './js/icons.js';
+    const t = document.getElementById('t');
+    window.__TAURI__.event.listen('toast', e => {
+      const ok = !/falh|não |erro|instale|ative/i.test(e.payload.text);
+      t.innerHTML = `${icon(ok ? 'check' : 'more', 18)}<span></span>`;
+      t.querySelector('span').textContent = e.payload.text;
+      t.querySelector('svg').style.color = ok ? '#4ade80' : '#fbbf24';
+      t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+    });
+  </script>
+</body>
+</html>

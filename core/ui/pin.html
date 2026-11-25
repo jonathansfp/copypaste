@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>CopyPaste — imagem fixada</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+    img { width: 100%; height: 100%; display: block; object-fit: contain; user-select: none; -webkit-user-drag: none; cursor: move; }
+    #menu { position: fixed; display: none; background: rgba(28, 28, 32, 0.96); color: #fff; border-radius: 9px; padding: 4px; font: 13px "Segoe UI", Ubuntu, system-ui, sans-serif; box-shadow: 0 8px 24px rgba(0, 0, 0, .4); }
+    #menu button { display: block; width: 100%; text-align: left; border: 0; background: none; color: inherit; padding: 6px 12px; border-radius: 6px; cursor: pointer; font: inherit; }
+    #menu button:hover { background: #2f7cf6; }
+  </style>
+</head>
+<body>
+  <img id="img" data-tauri-drag-region alt="">
+  <div id="menu">
+    <button data-a="copy">Copiar imagem</button>
+    <button data-a="zoom100">Tamanho original</button>
+    <button data-a="close">Fechar</button>
+  </div>
+  <script>
+    const T = window.__TAURI__;
+    const win = T.window.getCurrentWindow();
+    const PROTO = /Windows/i.test(navigator.userAgent) ? 'http://cpframe.localhost' : 'cpframe://localhost';
+    const params = new URLSearchParams(location.search);
+    const n = params.get('n'), ow = +params.get('w'), oh = +params.get('h');
+    const img = document.getElementById('img');
+    img.src = `${PROTO}/pin/${n}`;
+    let opacity = 1;
+    // Duplo clique fecha · rolar muda a transparência · botão direito abre o menu.
+    img.addEventListener('dblclick', () => win.close());
+    addEventListener('wheel', e => {
+      opacity = Math.max(0.2, Math.min(1, opacity - Math.sign(e.deltaY) * 0.08));
+      document.body.style.opacity = opacity;
+    }, { passive: true });
+    addEventListener('keydown', e => { if (e.key === 'Escape') win.close(); });
+    const menu = document.getElementById('menu');
+    addEventListener('contextmenu', e => { e.preventDefault(); menu.style.display = 'block'; menu.style.left = `${Math.min(e.clientX, innerWidth - 160)}px`; menu.style.top = `${Math.min(e.clientY, innerHeight - 110)}px`; });
+    addEventListener('click', () => { menu.style.display = 'none'; });
+    menu.addEventListener('click', async e => {
+      const a = e.target.dataset.a;
+      if (a === 'close') win.close();
+      if (a === 'zoom100') win.setSize(new T.window.LogicalSize(ow, oh));
+      if (a === 'copy') {
+        const blob = await (await fetch(img.src)).blob();
+        const png = new Uint8Array(await blob.arrayBuffer());
+        T.core.invoke('editor_finish', png, { headers: { 'x-action': 'copy', 'x-keep': '1' } });
+      }
+    });
+  </script>
+</body>
+</html>

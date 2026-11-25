@@ -3,13 +3,16 @@
 # 📋 CopyPaste
 
 **Histórico de cópias, captura de tela com anotações, quadro de apresentação e gravação de tela.**
-**Tudo em um app nativo de barra de menus para macOS: leve, rápido e sem nada rodando à toa.**
+**Para macOS, Windows e Linux: leve, rápido, gratuito e sem nada rodando à toa.**
 
 ![macOS](https://img.shields.io/badge/macOS-14%2B-000?logo=apple&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-X11%20%7C%20Wayland-FCC624?logo=linux&logoColor=black)
 ![Swift](https://img.shields.io/badge/Swift-5.9%2B-F05138?logo=swift&logoColor=white)
-![Apple Silicon + Intel](https://img.shields.io/badge/universal-arm64%20%2B%20x86__64-555)
-![Dependências](https://img.shields.io/badge/depend%C3%AAncias-zero-2ea44f)
+![Rust](https://img.shields.io/badge/Rust-Tauri%202-DEA584?logo=rust&logoColor=white)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-GPL--3.0-blue)
+
+### ⬇️ [Baixar](#-download) · 💚 [Apoiar com Pix](#-apoie-o-projeto)
 
 <img src="docs/componentes.png" width="820" alt="Formas, componentes e estilos de anotação do CopyPaste">
 
@@ -19,8 +22,83 @@
 
 ---
 
+## ⬇️ Download
+
+Baixe só o instalador, sem precisar do código:
+
+| Sistema | Arquivo | |
+|---|---|---|
+| 🪟 **Windows 10/11** | [**CopyPaste-Windows-Setup.exe**](https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Windows-Setup.exe) | Instalador (recomendado) |
+| | [CopyPaste-Windows.msi](https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Windows.msi) | Para empresas / implantação |
+| | [CopyPaste-Windows-Portable.zip](https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Windows-Portable.zip) | Portátil, sem instalar |
+| 🐧 **Linux** | [**CopyPaste-Linux-x86_64.AppImage**](https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Linux-x86_64.AppImage) | Qualquer distro: `chmod +x` e abrir |
+| | [CopyPaste-Linux-amd64.deb](https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Linux-amd64.deb) | Ubuntu, Debian, Mint, Pop!_OS |
+| | [CopyPaste-Linux-x86_64.rpm](https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Linux-x86_64.rpm) | Fedora, openSUSE |
+| 🍎 **macOS 14+** | [**CopyPaste-macOS.dmg**](https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-macOS.dmg) | Apple Silicon e Intel |
+| | [CopyPaste-macOS.zip](https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-macOS.zip) | O mesmo app, compactado |
+
+Todas as versões ficam em [**Releases**](https://github.com/jonathansfp/copypaste/releases). Os arquivos são gerados automaticamente pelo GitHub Actions a partir deste código.
+
+> **Primeira vez abrindo?** O app não é assinado por uma loja, então o sistema pede confirmação uma vez:
+> **Windows:** "O Windows protegeu o computador" → *Mais informações* → *Executar assim mesmo*.
+> **macOS:** botão direito no app → *Abrir* → *Abrir* (ou `xattr -dr com.apple.quarantine /Applications/CopyPaste.app`).
+> **Linux (AppImage):** `chmod +x CopyPaste-Linux-x86_64.AppImage && ./CopyPaste-Linux-x86_64.AppImage`.
+
+---
+
+## 💚 Apoie o projeto
+
+O CopyPaste é **gratuito e de código aberto**. Se ele poupa seu tempo, considere uma doação via **Pix**. Qualquer valor ajuda a manter o projeto vivo e com novidades.
+
+<table><tr><td>
+
+**Chave Pix (aleatória)**
+
+```
+586cb2d1-8a6e-4bed-8cdb-1f413e8f3e38
+```
+
+</td></tr></table>
+
+No app do seu banco: **Pix → Pagar → Chave aleatória** e cole a chave. A opção também está dentro do app: **menu do ícone → Doar via Pix ♥** (copia a chave).
+
+---
+
+## 🗂️ Estrutura do repositório
+
+Cada sistema tem a sua pasta. O Mac usa um app 100% nativo em Swift; Windows e Linux compartilham um núcleo em Rust, com o código específico de cada sistema na sua pasta.
+
+```
+copypaste/
+├── macos/     🍎 App nativo do Mac (Swift, AppKit + SwiftUI, ScreenCaptureKit) — build.sh, package.sh
+├── windows/   🪟 Código nativo do Windows (Rust: colar com SendInput, OCR do Windows, janela fora da gravação) — build.ps1
+├── linux/     🐧 Código nativo do Linux (Rust: X11/Wayland, xdotool/wtype, Tesseract, PulseAudio/PipeWire) — build.sh
+├── core/      ⚙️ Núcleo compartilhado de Windows e Linux (Tauri 2: Rust + interface em canvas acelerado por GPU)
+├── docs/      Imagens do README
+└── .github/workflows/release.yml   Gera e publica os instaladores dos três sistemas
+```
+
+| | macOS | Windows | Linux |
+|---|---|---|---|
+| Histórico de cópias com busca e filtros | ✅ | ✅ | ✅ |
+| Colar no app anterior (Enter / duplo clique) | ✅ | ✅ | ✅ (X11: xdotool · Wayland: wtype/ydotool) |
+| Captura congelada, lupa, destaque de janelas | ✅ | ✅ | ✅ |
+| Anotações (setas, formas, texto nítido, passos, desfoque, marca-texto) | ✅ | ✅ | ✅ |
+| Fixar captura na tela | ✅ | ✅ | ✅ |
+| Copiar texto da imagem (OCR) | ✅ Vision | ✅ OCR do Windows | ✅ Tesseract |
+| Quadro de apresentação estilo Excalidraw + laser | ✅ | ✅ | ✅ |
+| Gravação de tela MP4 + microfone + áudio do sistema | ✅ | ✅ (ffmpeg) | ✅ (ffmpeg) |
+| Atalhos globais configuráveis | ✅ | ✅ | ✅ (Wayland: atalho do sistema → `copypaste --capture-area`) |
+
+Detalhes de cada sistema: [`macos/`](macos/README.md) · [`windows/`](windows/README.md) · [`linux/`](linux/README.md) · [`core/`](core/README.md).
+
+---
+
 ## Sumário
 
+- [Download](#-download)
+- [Apoie o projeto](#-apoie-o-projeto)
+- [Estrutura do repositório](#️-estrutura-do-repositório)
 - [Por que o CopyPaste?](#por-que-o-copypaste)
   - [As dores do Mac que o CopyPaste resolve](#-as-dores-do-mac-que-o-copypaste-resolve)
 - [Recursos](#recursos)
@@ -29,7 +107,8 @@
   - [Modo apresentação (quadro)](#-modo-apresentação-quadro)
   - [Gravação de tela](#-gravação-de-tela)
 - [Atalhos](#atalhos)
-- [Instalação](#instalação)
+- [Windows e Linux](#-windows-e-linux)
+- [Instalação no Mac](#instalação-no-mac)
 - [Permissões](#permissões)
 - [Compilando do código-fonte](#compilando-do-código-fonte)
 - [Arquitetura](#arquitetura)
@@ -212,11 +291,44 @@ Em **Configurações › Atalhos globais**: clique no atalho e pressione a nova 
 
 ---
 
-## Instalação
+## 🪟🐧 Windows e Linux
+
+Os mesmos recursos, com a mesma ideia de qualidade: a tela congela no instante do atalho, as anotações são vetores renderizados na **resolução nativa** do monitor (texto e setas nítidos em telas 4K com escala de 150%/200%) e a interface roda num canvas acelerado por GPU.
+
+**Atalhos padrão** (todos configuráveis em *Configurações › Atalhos*):
+
+| Atalho | Ação |
+|---|---|
+| `Ctrl` `Shift` `V` | Histórico de cópias |
+| `PrtSc` | Capturar área ou janela (como o Lightshot) |
+| `Shift` `PrtSc` | Capturar a tela inteira |
+| `Ctrl` `Shift` `D` | Modo apresentação (quadro) |
+| `Ctrl` `Shift` `R` | Gravar a tela (de novo para parar) |
+
+> **Windows 11:** se o `PrtSc` abrir a Ferramenta de Captura do sistema, desligue em *Configurações › Acessibilidade › Teclado › "Usar a tecla Print Screen para abrir a captura de tela"*, ou escolha outro atalho.
+
+**Extras opcionais:**
+
+| Para | Windows | Linux |
+|---|---|---|
+| Gravar a tela | `winget install Gyan.FFmpeg` | `sudo apt install ffmpeg` |
+| Colar sozinho | (nativo) | `sudo apt install xdotool` (X11) · `wtype` ou `ydotool` (Wayland) |
+| OCR | (nativo, OCR do Windows) | `sudo apt install tesseract-ocr tesseract-ocr-por` |
+| Áudio do sistema | Ativar "Mixagem estéreo" nas configurações de som | `pulseaudio-utils` (pactl) |
+
+**Wayland (GNOME/KDE):** se um atalho global não responder, crie um atalho do sistema que rode `copypaste --capture-area` (ou `--capture-screen`, `--history`, `--board`, `--record`). O app já aberto recebe o comando na hora.
+
+**Dados:** o histórico e as configurações ficam em `%APPDATA%\io.github.jonathansfp.copypaste` (Windows) ou `~/.local/share/io.github.jonathansfp.copypaste` e `~/.config/io.github.jonathansfp.copypaste` (Linux). Nada sai do seu computador.
+
+**Compilar:** veja [`windows/README.md`](windows/README.md) e [`linux/README.md`](linux/README.md).
+
+---
+
+## Instalação no Mac
 
 ### Pelo `.dmg`
 
-1. Gere o instalador com `./package.sh`. Ele cria `dist/CopyPaste-<versão>.dmg` e um `.zip`.
+1. Baixe o [`CopyPaste-macOS.dmg`](https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-macOS.dmg) ou gere com `cd macos && ./package.sh` (cria `macos/dist/CopyPaste-<versão>.dmg` e um `.zip`).
 2. Arraste o **CopyPaste** para **Aplicativos**.
 3. Na primeira vez, clique com o botão direito no app, depois em **Abrir** e **Abrir** de novo. Se aparecer "está danificado":
    ```bash
@@ -226,8 +338,8 @@ Em **Configurações › Atalhos globais**: clique no atalho e pressione a nova 
 ### Direto do código
 
 ```bash
-git clone git@github.com:jonathansfp/copypaste.git
-cd copypaste
+git clone https://github.com/jonathansfp/copypaste.git
+cd copypaste/macos
 ./install.sh   # compila, instala em /Applications e abre
 ```
 
@@ -254,6 +366,7 @@ O status de cada permissão aparece em **Configurações**, com botões que leva
 **Requisitos:** macOS 14+, Xcode 15+ (as macros do SwiftUI precisam do Xcode completo, não só das Command Line Tools).
 
 ```bash
+cd macos
 ./build.sh     # gera build/CopyPaste.app (universal: Apple Silicon + Intel)
 ./install.sh   # compila, instala em /Applications e abre
 ./package.sh   # gera dist/CopyPaste-<versão>.dmg e .zip
@@ -272,7 +385,7 @@ O macOS prende as permissões de privacidade à **assinatura** do app:
 ### Autoteste de desenho
 
 ```bash
-build/CopyPaste.app/Contents/MacOS/CopyPaste --selftest /tmp/teste.png
+macos/build/CopyPaste.app/Contents/MacOS/CopyPaste --selftest /tmp/teste.png
 ```
 
 Desenha todas as formas e estilos num PNG e confere a detecção de cliques e o desfazer/refazer. A imagem no topo deste README é gerada assim.
@@ -281,11 +394,11 @@ Desenha todas as formas e estilos num PNG e confere a detecção de cliques e o 
 
 ## Arquitetura
 
-App 100% nativo em **Swift**, com **AppKit + SwiftUI**, sem dependências externas. Usa só frameworks do sistema:
+**Mac:** app 100% nativo em **Swift**, com **AppKit + SwiftUI**, sem dependências externas. Usa só frameworks do sistema:
 **ScreenCaptureKit** (captura e gravação), **CoreGraphics / CoreImage** (desenho e desfoque), **Vision** (OCR), **Carbon** (atalhos globais, sem precisar de Acessibilidade) e **ServiceManagement** (iniciar com o Mac).
 
 ```
-Sources/CopyPaste/
+macos/Sources/CopyPaste/
 ├── main.swift, AppDelegate.swift      # Ciclo de vida, menu da barra, janelas
 ├── HotKeyManager.swift                # Atalhos globais (Carbon) por ação
 ├── Settings.swift, SettingsView.swift # Preferências e tela de configurações
@@ -306,7 +419,9 @@ Sources/CopyPaste/
 └── SelfTest.swift                     # --selftest
 ```
 
-**Como a captura funciona**
+**Windows e Linux:** núcleo em **Rust** com **Tauri 2** (janelas leves usando o WebView do sistema, sem Electron). A captura usa a biblioteca `xcap` (DXGI no Windows; X11/PipeWire no Linux), a área de transferência usa `arboard` e os atalhos globais usam `global-hotkey`. O desenho é o mesmo motor vetorial do Mac, portado para um canvas acelerado por GPU. Veja [`core/README.md`](core/README.md).
+
+**Como a captura funciona (Mac)**
 1. O atalho dispara o `CaptureController`, que pede ao ScreenCaptureKit uma imagem de cada monitor, em resolução Retina e sem cursor.
 2. Cada monitor ganha uma janela sem bordas que mostra a imagem congelada numa camada da GPU. Por cima dela fica o `CaptureCanvasView`, que desenha o escurecimento, a seleção e as anotações.
 3. As anotações são **vetores** (`Shape`). Ao copiar ou salvar, o recorte da imagem original é combinado com as formas desenhadas na resolução real dos pixels, por isso o texto e as setas ficam perfeitamente nítidos.
@@ -383,4 +498,4 @@ open -n /Applications/CopyPaste.app --args --diagnose --save /tmp/tela.png
 
 Distribuído sob a licença **GNU GPL v3.0**. Veja [`LICENSE`](LICENSE).
 
-<div align="center"><sub>Feito com Swift, para quem copia, captura e explica coisas o dia inteiro.</sub></div>
+<div align="center"><sub>Feito com Swift e Rust, para quem copia, captura e explica coisas o dia inteiro. 💚 Pix: <code>586cb2d1-8a6e-4bed-8cdb-1f413e8f3e38</code></sub></div>
