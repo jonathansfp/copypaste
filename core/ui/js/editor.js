@@ -669,8 +669,10 @@ function buildBars() {
     bb.append(btn('library', 'Biblioteca de componentes', b => togglePopover('library', b)));
     bb.append(toolButton('eraser'), toolButton('laser'), sep(), colorButton(), sep());
     bb.append(btn('undo', 'Desfazer (Ctrl+Z)', undo), btn('redo', 'Refazer (Ctrl+Shift+Z)', redo), sep());
-    bb.append(btn('layers', 'Fundo do quadro (G)', b => togglePopover('bg', b)));
-    bb.append(btn('more', 'Exportar e limpar', b => togglePopover('more', b)));
+    bb.append(btn('layers', 'Fundo do quadro (G)', b => togglePopover('bg', b)), sep());
+    bb.append(btn('copy', 'Copiar o quadro como imagem (Ctrl+C) — depois é só colar no chat ou e-mail', () => finish('copy')));
+    bb.append(btn('save', 'Salvar o quadro na pasta (Ctrl+S)', () => finish('save')));
+    bb.append(btn('more', 'Mais: salvar como, colar, limpar', b => togglePopover('more', b)));
     bb.append(btn('close', 'Fechar o quadro (Esc) — o desenho fica guardado', close, 'danger'));
     bb.hidden = false;
     placeBoardBar();
@@ -842,8 +844,6 @@ function togglePopover(kind, anchor) {
   }
   if (kind === 'more') {
     const row = (ic, label, fn) => { const b = document.createElement('button'); b.className = 'row'; b.innerHTML = `${icon(ic, 16)}${label}`; b.addEventListener('click', () => { closePopover(); fn(); }); pop.append(b); };
-    row('copy', 'Copiar o quadro como imagem (Ctrl+C)', () => finish('copy'));
-    row('save', 'Salvar o quadro na pasta (Ctrl+S)', () => finish('save'));
     row('saveAs', 'Salvar como… (Ctrl+Shift+S)', () => finish('saveAs'));
     row('image', 'Colar imagem ou texto (Ctrl+V)', pasteFromClipboard);
     row('trash', 'Limpar o quadro', () => { if (docShapes().length) { checkpoint(); st.doc.shapes = []; st.selected.clear(); render(); } });

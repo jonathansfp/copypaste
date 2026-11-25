@@ -166,7 +166,8 @@ final class BoardController: ObservableObject {
 
     // MARK: Export
 
-    func export(_ action: CaptureAction) {
+    /// Desenha o quadro como imagem, com a tela de fundo quando o fundo é "Tela".
+    private func renderBoard(_ done: @escaping @MainActor (NSImage, BoardWindow, NSScreen) -> Void) {
         guard let w = window else { return }
         w.root.canvas.commitText()
         let screen = w.screen ?? ScreenGrabber.screenUnderMouse()
@@ -178,6 +179,12 @@ final class BoardController: ObservableObject {
                 }
             }
             guard let image = w.root.render(base: base) else { return }
+            done(image, w, screen)
+        }
+    }
+
+    func export(_ action: CaptureAction) {
+        renderBoard { image, w, screen in
             switch action {
             case .copy:
                 ImageOutput.copy(image); Toast.show("Quadro copiado")
@@ -194,6 +201,22 @@ final class BoardController: ObservableObject {
             default: break
             }
         }
+    }
+
+    /// Abre o menu de compartilhar do macOS (AirDrop, Mensagens, Mail…) com o quadro como PNG.
+    func share() {
+        renderBoard { [weak self] image, w, _ in self?.share(image, from: w) }
+    }
+
+    private func share(_ image: NSImage, from w: BoardWindow) {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("CopyPaste-Quadro", isDirectory: true)
+        try? FileManager.default.removeItem(at: dir)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let url = dir.appendingPathComponent(ImageOutput.fileName(prefix: "Quadro", ext: "png"))
+        guard let d = ImageOutput.data(image, format: .png), (try? d.write(to: url)) != nil else { return }
+        w.makeKeyAndOrderFront(nil)
+        let anchor = w.root.shareAnchor
+        NSSharingServicePicker(items: [url]).show(relativeTo: anchor.bounds, of: anchor, preferredEdge: toolbarVertical ? .maxX : .maxY)
     }
 }
 
@@ -323,6 +346,9 @@ final class BoardRootView: NSView {
     }
 
     /// A barra fica na metade direita da tela? (o painel de estilo abre para o lado de dentro).
+    /// Ponto de onde sai o menu de compartilhar: a própria barra.
+    var shareAnchor: NSView { toolbar }
+
     var toolbarOnRightHalf: Bool { (toolbar?.frame.midX ?? 0) > bounds.midX }
 
     func applyBackground() {
@@ -434,6 +460,7 @@ final class BoardCanvasView: CanvasView {
             }
         }
         if flags == [.command, .shift], chars == "s" { controller.export(.saveAs); return true }
+        if flags == [.command, .shift], chars == "e" { controller.share(); return true }
         if flags.isEmpty, chars == "g" { cycleBackground(); return true }
         if flags.isEmpty, chars == "i" { controller.passthrough = true; return true }
         if flags.isEmpty, chars == "f" { model.bringToFront(); return true }
@@ -532,9 +559,11 @@ struct BoardToolbar: View {
             IconButton(symbol: "hand.point.up.left", help: "Interagir com os apps sem apagar o desenho (I)") {
                 controller.passthrough = true
             }
+            separator
+            IconButton(symbol: "doc.on.doc", help: "Copiar o quadro como imagem (⌘C) — depois é só colar no chat ou e-mail") { controller.export(.copy) }
+            IconButton(symbol: "square.and.arrow.down", help: "Salvar o quadro na pasta (⌘S)") { controller.export(.save) }
+            IconButton(symbol: "square.and.arrow.up", help: "Enviar: AirDrop, Mensagens, Mail… (⇧⌘E)") { controller.share() }
             Menu {
-                Button("Copiar imagem (⌘C)") { controller.export(.copy) }
-                Button("Salvar na pasta (⌘S)") { controller.export(.save) }
                 Button("Salvar como… (⇧⌘S)") { controller.export(.saveAs) }
                 Button("Fixar na tela") { controller.export(.pin) }
                 Divider()
@@ -545,10 +574,10 @@ struct BoardToolbar: View {
                 Divider()
                 Button("Apagar tudo", role: .destructive) { model.clear() }
             } label: {
-                Image(systemName: "square.and.arrow.up").font(.system(size: 14, weight: .medium)).frame(width: 30, height: 30)
+                Image(systemName: "ellipsis.circle").font(.system(size: 14, weight: .medium)).frame(width: 30, height: 30)
             }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Exportar, gravar, posição da barra, limpar")
+            .help("Mais: salvar como, fixar, gravar, posição da barra, limpar")
             IconButton(symbol: "xmark", help: "Fechar quadro (⎋) — o desenho fica guardado") { controller.close() }
         }
         .padding(4)

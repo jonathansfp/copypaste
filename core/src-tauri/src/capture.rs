@@ -219,15 +219,17 @@ pub fn finish(app: &AppHandle, action: &str, png: Vec<u8>, pin_at: Option<(f64, 
     if !keep || action == "saveAs" {
         hide_editor(app);
     }
+    // `keep` means the image came from the board, which stays open.
+    let saved = if keep { "Quadro salvo" } else { "Captura salva" };
     match action {
         "copy" => {
             copy_png(app, &png)?;
-            ui::toast(app, "Captura copiada");
+            ui::toast(app, if keep { "Quadro copiado — cole no chat ou e-mail" } else { "Captura copiada" });
             Ok("ok".into())
         }
         "save" => {
             let p = save_to_folder(app, &png)?;
-            ui::toast_path(app, "Captura salva", &p);
+            ui::toast_path(app, saved, &p);
             Ok(p.to_string_lossy().into())
         }
         "copyAndSave" => {
@@ -258,7 +260,7 @@ pub fn finish(app: &AppHandle, action: &str, png: Vec<u8>, pin_at: Option<(f64, 
             let is_jpg = path.extension().map(|e| e.eq_ignore_ascii_case("jpg") || e.eq_ignore_ascii_case("jpeg")).unwrap_or(false);
             let (bytes, _) = encode(&png, if is_jpg { "jpg" } else { "png" })?;
             std::fs::write(&path, bytes).map_err(|e| e.to_string())?;
-            ui::toast_path(app, "Captura salva", &path);
+            ui::toast_path(app, saved, &path);
             Ok(path.to_string_lossy().into())
         }
         "pin" => {
