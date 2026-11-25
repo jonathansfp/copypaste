@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key><string>CopyPaste</string>
+    <key>CFBundleDisplayName</key><string>CopyPaste</string>
+    <key>CFBundleIdentifier</key><string>local.copypaste.app</string>
+    <key>CFBundleExecutable</key><string>CopyPaste</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>CFBundleShortVersionString</key><string>1.1</string>
+    <key>CFBundleVersion</key><string>2</string>
+    <key>CFBundleDevelopmentRegion</key><string>pt-BR</string>
+    <key>LSMinimumSystemVersion</key><string>14.0</string>
+    <key>LSUIElement</key><true/>
+    <key>NSHighResolutionCapable</key><true/>
+    <key>NSMicrophoneUsageDescription</key><string>O CopyPaste usa o microfone para gravar a sua voz junto com a gravação de tela.</string>
+    <key>NSHumanReadableCopyright</key><string>Uso pessoal</string>
+</dict>
+</plist>
