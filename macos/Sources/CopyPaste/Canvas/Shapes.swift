@@ -653,6 +653,25 @@ enum ShapeRenderer {
         }
     }
 
+    /// Point on a quadratic Bézier (split up so the compiler type-checks it quickly).
+    private static func quadPoint(_ a: CGPoint, _ c: CGPoint, _ b: CGPoint, _ t: CGFloat) -> CGPoint {
+        let mt: CGFloat = 1 - t
+        let k0: CGFloat = mt * mt, k1: CGFloat = 2 * mt * t, k2: CGFloat = t * t
+        let x: CGFloat = k0 * a.x + k1 * c.x + k2 * b.x
+        let y: CGFloat = k0 * a.y + k1 * c.y + k2 * b.y
+        return CGPoint(x: x, y: y)
+    }
+
+    /// Point on a cubic Bézier.
+    private static func cubicPoint(_ a: CGPoint, _ c1: CGPoint, _ c2: CGPoint, _ b: CGPoint, _ t: CGFloat) -> CGPoint {
+        let mt: CGFloat = 1 - t
+        let k0: CGFloat = mt * mt * mt, k1: CGFloat = 3 * mt * mt * t
+        let k2: CGFloat = 3 * mt * t * t, k3: CGFloat = t * t * t
+        let x: CGFloat = k0 * a.x + k1 * c1.x + k2 * c2.x + k3 * b.x
+        let y: CGFloat = k0 * a.y + k1 * c1.y + k2 * c2.y + k3 * b.y
+        return CGPoint(x: x, y: y)
+    }
+
     private struct Polyline { var points: [CGPoint]; var closed: Bool }
 
     private static func flatten(_ path: CGPath, step: CGFloat) -> [Polyline] {
@@ -683,22 +702,15 @@ enum ShapeRenderer {
             case .addQuadCurveToPoint:
                 let c = e.points[0], b = e.points[1], a = last
                 let n = max(4, Int((hypot(c.x - a.x, c.y - a.y) + hypot(b.x - c.x, b.y - c.y)) / step))
-                for i in 1...n {
-                    let t = CGFloat(i) / CGFloat(n), mt = 1 - t
-                    cur.append(CGPoint(x: mt * mt * a.x + 2 * mt * t * c.x + t * t * b.x,
-                                       y: mt * mt * a.y + 2 * mt * t * c.y + t * t * b.y))
-                }
+                for i in 1...n { cur.append(quadPoint(a, c, b, CGFloat(i) / CGFloat(n))) }
                 last = b
             case .addCurveToPoint:
                 let c1 = e.points[0], c2 = e.points[1], b = e.points[2], a = last
-                let approx = hypot(c1.x - a.x, c1.y - a.y) + hypot(c2.x - c1.x, c2.y - c1.y) + hypot(b.x - c2.x, b.y - c2.y)
-                let n = max(4, Int(approx / step))
-                for i in 1...n {
-                    let t = CGFloat(i) / CGFloat(n), mt = 1 - t
-                    let x = mt * mt * mt * a.x + 3 * mt * mt * t * c1.x + 3 * mt * t * t * c2.x + t * t * t * b.x
-                    let y = mt * mt * mt * a.y + 3 * mt * mt * t * c1.y + 3 * mt * t * t * c2.y + t * t * t * b.y
-                    cur.append(CGPoint(x: x, y: y))
-                }
+                let d1: CGFloat = hypot(c1.x - a.x, c1.y - a.y)
+                let d2: CGFloat = hypot(c2.x - c1.x, c2.y - c1.y)
+                let d3: CGFloat = hypot(b.x - c2.x, b.y - c2.y)
+                let n = max(4, Int((d1 + d2 + d3) / step))
+                for i in 1...n { cur.append(cubicPoint(a, c1, c2, b, CGFloat(i) / CGFloat(n))) }
                 last = b
             case .closeSubpath:
                 if hypot(start.x - last.x, start.y - last.y) > 0.5 { addSeg(to: start) }
