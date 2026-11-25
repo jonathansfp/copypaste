@@ -43,6 +43,31 @@ final class BoardController: ObservableObject {
     @Published var background: BoardBackground = .screen { didSet { window?.root.applyBackground() } }
     @Published var passthrough = false { didSet { applyPassthrough() } }
     @Published var toolbarHidden = false { didSet { window?.root.layoutToolbar() } }
+    /// Barra na vertical (presa numa lateral) ou horizontal. Lembrado entre aberturas.
+    @Published var toolbarVertical = UserDefaults.standard.bool(forKey: "boardToolbarVertical") {
+        didSet {
+            UserDefaults.standard.set(toolbarVertical, forKey: "boardToolbarVertical")
+            DispatchQueue.main.async { self.window?.root.layoutToolbar() }
+        }
+    }
+    /// Posição escolhida pelo usuário (canto superior esquerdo, coordenadas da tela). nil = padrão.
+    var toolbarOrigin: CGPoint? {
+        get {
+            guard let s = UserDefaults.standard.string(forKey: "boardToolbarOrigin") else { return nil }
+            let p = NSPointFromString(s)
+            return p == .zero ? nil : p
+        }
+        set {
+            if let p = newValue { UserDefaults.standard.set(NSStringFromPoint(p), forKey: "boardToolbarOrigin") }
+            else { UserDefaults.standard.removeObject(forKey: "boardToolbarOrigin") }
+        }
+    }
+
+    func resetToolbarPosition() {
+        toolbarOrigin = nil
+        toolbarVertical = false
+        window?.root.layoutToolbar()
+    }
 
     private var window: BoardWindow?
     private var pill: NSPanel?
@@ -216,6 +241,8 @@ final class BoardRootView: NSView {
         canvas.controller = controller
         addSubview(canvas)
         toolbar = NSHostingView(rootView: BoardToolbar(controller: controller, model: controller.model, ui: controller.ui))
+        toolbar.rootView.onDrag = { [weak self] t, ended in self?.dragToolbar(by: t, ended: ended) }
+        toolbar.rootView.panelOnLeading = { [weak self] in self?.toolbarOnRightHalf ?? false }
         addSubview(toolbar)
         controller.ui.objectWillChange.sink { [weak self] _ in DispatchQueue.main.async { self?.layoutToolbar() } }.store(in: &bag)
         layoutToolbar()
@@ -229,12 +256,74 @@ final class BoardRootView: NSView {
         layoutToolbar()
     }
 
+    /// Altura da área do notch/câmera (0 em telas sem notch).
+    private var safeTop: CGFloat {
+        guard let screen = window?.screen else { return 0 }
+        return max(screen.safeAreaInsets.top, 0)
+    }
+
+    private var dragStart: CGPoint?
+
     func layoutToolbar() {
         guard let toolbar else { return }
         toolbar.isHidden = controller.passthrough
         let size = toolbar.fittingSize
-        toolbar.frame = CGRect(x: (bounds.width - size.width) / 2, y: 12, width: size.width, height: size.height)
+        let origin = controller.toolbarOrigin ?? defaultToolbarOrigin(size)
+        toolbar.frame = CGRect(origin: clampToolbar(origin, size: size), size: size)
     }
+
+    private func defaultToolbarOrigin(_ size: CGSize) -> CGPoint {
+        if controller.toolbarVertical {
+            return CGPoint(x: 12, y: max(safeTop + 12, (bounds.height - size.height) / 2))
+        }
+        return CGPoint(x: (bounds.width - size.width) / 2, y: safeTop + 10)
+    }
+
+    /// Mantém a barra inteira na tela e sempre abaixo do notch.
+    private func clampToolbar(_ p: CGPoint, size: CGSize) -> CGPoint {
+        let minY = safeTop + 6
+        return CGPoint(x: min(max(4, p.x), max(4, bounds.width - size.width - 4)),
+                       y: min(max(minY, p.y), max(minY, bounds.height - size.height - 4)))
+    }
+
+    /// Chamado pela alça da barra enquanto arrasta.
+    func dragToolbar(by t: CGSize, ended: Bool) {
+        guard let toolbar else { return }
+        let start = dragStart ?? toolbar.frame.origin
+        dragStart = start
+        let size = toolbar.frame.size
+        let p = clampToolbar(CGPoint(x: start.x + t.width, y: start.y + t.height), size: size)
+        toolbar.setFrameOrigin(p)
+        guard ended else { return }
+        dragStart = nil
+
+        // Encaixe: perto das laterais vira vertical; perto do topo/base volta a ser horizontal.
+        let edge: CGFloat = 70
+        let nearLeft = p.x < edge, nearRight = p.x + size.width > bounds.width - edge
+        let nearTop = p.y < safeTop + edge, nearBottom = p.y + size.height > bounds.height - edge
+        var vertical = controller.toolbarVertical
+        if (nearLeft || nearRight) && !(nearTop || nearBottom) { vertical = true }
+        else if (nearTop || nearBottom) && !(nearLeft || nearRight) { vertical = false }
+
+        if vertical != controller.toolbarVertical {
+            controller.toolbarVertical = vertical
+            toolbar.layoutSubtreeIfNeeded()
+        }
+        let newSize = toolbar.fittingSize
+        var o = p
+        if vertical {
+            if nearLeft { o.x = 8 } else if nearRight { o.x = bounds.width - newSize.width - 8 }
+            o.y = min(o.y, bounds.height - newSize.height - 4)
+        } else {
+            if nearTop { o.y = safeTop + 10 } else if nearBottom { o.y = bounds.height - newSize.height - 8 }
+            o.x = min(max(4, o.x + size.width / 2 - newSize.width / 2), bounds.width - newSize.width - 4)
+        }
+        controller.toolbarOrigin = clampToolbar(o, size: newSize)
+        layoutToolbar()
+    }
+
+    /// A barra fica na metade direita da tela? (o painel de estilo abre para o lado de dentro).
+    var toolbarOnRightHalf: Bool { (toolbar?.frame.midX ?? 0) > bounds.midX }
 
     func applyBackground() {
         canvas.boardBackground = controller.background
@@ -390,57 +479,103 @@ struct BoardToolbar: View {
     @ObservedObject var controller: BoardController
     @ObservedObject var model: CanvasModel
     @ObservedObject var ui: CanvasUIState
+    /// Recebe o deslocamento do arraste da alça (coordenadas da janela, y para baixo).
+    var onDrag: (CGSize, Bool) -> Void = { _, _ in }
+    var panelOnLeading: () -> Bool = { false }
 
     private let tools: [Tool] = [.select, .draw(.pen), .draw(.highlighter), .laser, .draw(.line), .draw(.arrow),
                                  .draw(.rect), .draw(.ellipse), .draw(.diamond), .draw(.text), .draw(.sticky), .draw(.step)]
 
+    private var vertical: Bool { controller.toolbarVertical }
+
     var body: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 2) {
-                ForEach(tools, id: \.self) { ToolButton(model: model, tool: $0) }
-                LibraryMenu(model: model)
-                ToolButton(model: model, tool: .eraser)
-                Divider().frame(height: 20).padding(.horizontal, 3)
-                StyleToggle(model: model, ui: ui)
-                IconButton(symbol: "arrow.uturn.backward", help: "Desfazer (⌘Z)", disabled: !model.canUndo) { model.undo() }
-                IconButton(symbol: "arrow.uturn.forward", help: "Refazer (⇧⌘Z)", disabled: !model.canRedo) { model.redo() }
-                Divider().frame(height: 20).padding(.horizontal, 3)
-                Menu {
-                    ForEach(BoardBackground.allCases) { b in
-                        Button { controller.background = b } label: {
-                            Label(b.label, systemImage: controller.background == b ? "checkmark" : b.symbol)
-                        }
-                    }
-                } label: {
-                    Image(systemName: controller.background.symbol).font(.system(size: 14, weight: .medium)).frame(width: 30, height: 30)
+        Group {
+            if vertical {
+                HStack(alignment: .top, spacing: 6) {
+                    if ui.showStyle && panelOnLeading() { StylePanel(model: model) }
+                    bar
+                    if ui.showStyle && !panelOnLeading() { StylePanel(model: model) }
                 }
-                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                .help("Fundo (G)")
-                IconButton(symbol: "hand.point.up.left", help: "Interagir com os apps sem apagar o desenho (I)") {
-                    controller.passthrough = true
+            } else {
+                VStack(spacing: 6) {
+                    bar
+                    if ui.showStyle { StylePanel(model: model, columns: 12) }
                 }
-                Menu {
-                    Button("Copiar imagem (⌘C)") { controller.export(.copy) }
-                    Button("Salvar na pasta (⌘S)") { controller.export(.save) }
-                    Button("Salvar como… (⇧⌘S)") { controller.export(.saveAs) }
-                    Button("Fixar na tela") { controller.export(.pin) }
-                    Divider()
-                    Button("Gravar a tela com o quadro") { ScreenRecorder.shared.toggleFromHotKey() }
-                    Divider()
-                    Button("Apagar tudo", role: .destructive) { model.clear() }
-                } label: {
-                    Image(systemName: "square.and.arrow.up").font(.system(size: 14, weight: .medium)).frame(width: 30, height: 30)
-                }
-                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                .help("Exportar, gravar, limpar")
-                IconButton(symbol: "xmark", help: "Fechar quadro (⎋) — o desenho fica guardado") { controller.close() }
-            }
-            .padding(4)
-            .floatingBar()
-            if ui.showStyle {
-                StylePanel(model: model, columns: 12)
             }
         }
         .fixedSize()
+    }
+
+    private var bar: some View {
+        let layout = vertical ? AnyLayout(VStackLayout(spacing: 2)) : AnyLayout(HStackLayout(spacing: 2))
+        return layout {
+            grip
+            ForEach(tools, id: \.self) { ToolButton(model: model, tool: $0) }
+            LibraryMenu(model: model)
+            ToolButton(model: model, tool: .eraser)
+            separator
+            StyleToggle(model: model, ui: ui)
+            IconButton(symbol: "arrow.uturn.backward", help: "Desfazer (⌘Z)", disabled: !model.canUndo) { model.undo() }
+            IconButton(symbol: "arrow.uturn.forward", help: "Refazer (⇧⌘Z)", disabled: !model.canRedo) { model.redo() }
+            separator
+            Menu {
+                ForEach(BoardBackground.allCases) { b in
+                    Button { controller.background = b } label: {
+                        Label(b.label, systemImage: controller.background == b ? "checkmark" : b.symbol)
+                    }
+                }
+            } label: {
+                Image(systemName: controller.background.symbol).font(.system(size: 14, weight: .medium)).frame(width: 30, height: 30)
+            }
+            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+            .help("Fundo (G)")
+            IconButton(symbol: "hand.point.up.left", help: "Interagir com os apps sem apagar o desenho (I)") {
+                controller.passthrough = true
+            }
+            Menu {
+                Button("Copiar imagem (⌘C)") { controller.export(.copy) }
+                Button("Salvar na pasta (⌘S)") { controller.export(.save) }
+                Button("Salvar como… (⇧⌘S)") { controller.export(.saveAs) }
+                Button("Fixar na tela") { controller.export(.pin) }
+                Divider()
+                Button("Gravar a tela com o quadro") { ScreenRecorder.shared.toggleFromHotKey() }
+                Divider()
+                Button(vertical ? "Barra na horizontal" : "Barra na vertical") { controller.toolbarVertical.toggle() }
+                Button("Barra na posição padrão") { controller.resetToolbarPosition() }
+                Divider()
+                Button("Apagar tudo", role: .destructive) { model.clear() }
+            } label: {
+                Image(systemName: "square.and.arrow.up").font(.system(size: 14, weight: .medium)).frame(width: 30, height: 30)
+            }
+            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+            .help("Exportar, gravar, posição da barra, limpar")
+            IconButton(symbol: "xmark", help: "Fechar quadro (⎋) — o desenho fica guardado") { controller.close() }
+        }
+        .padding(4)
+        .floatingBar()
+    }
+
+    private var separator: some View {
+        Rectangle().fill(Color.white.opacity(0.18))
+            .frame(width: vertical ? 22 : 1, height: vertical ? 1 : 20)
+            .padding(vertical ? .vertical : .horizontal, 4)
+    }
+
+    /// Alça para arrastar a barra. Perto das laterais ela fica vertical; duplo clique volta ao padrão.
+    private var grip: some View {
+        Image(systemName: vertical ? "line.3.horizontal" : "line.3.horizontal")
+            .rotationEffect(.degrees(vertical ? 0 : 90))
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(.white.opacity(0.5))
+            .frame(width: vertical ? 30 : 16, height: vertical ? 16 : 30)
+            .contentShape(Rectangle())
+            .onHover { inside in (inside ? NSCursor.openHand : NSCursor.arrow).set() }
+            .gesture(
+                DragGesture(minimumDistance: 1, coordinateSpace: .global)
+                    .onChanged { v in NSCursor.closedHand.set(); onDrag(v.translation, false) }
+                    .onEnded { v in NSCursor.openHand.set(); onDrag(v.translation, true) }
+            )
+            .onTapGesture(count: 2) { controller.resetToolbarPosition() }
+            .help("Arraste para mover a barra. Solte numa lateral para deixá-la na vertical. Duplo clique: posição padrão.")
     }
 }

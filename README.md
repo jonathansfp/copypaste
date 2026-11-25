@@ -148,6 +148,7 @@ Desenhe **por cima de qualquer coisa na tela** durante uma reunião, aula ou gra
 - **Colar (`⌘V`):** imagens e textos da área de transferência viram itens do quadro.
 - **Exportar:** copiar, salvar, salvar como ou fixar na tela. Com fundo transparente, a exportação inclui o que estava na tela, em Retina.
 - O desenho **fica guardado** ao fechar o quadro, até você apagar.
+- **Barra móvel:** arraste pela alça (☰) para onde quiser. Solte numa lateral e ela fica **vertical**; perto do topo ou da base, horizontal. Ela nunca fica atrás do notch da câmera e lembra a posição (duplo clique na alça volta ao padrão).
 
 ### 🎬 Gravação de tela
 
@@ -371,6 +372,8 @@ Ele registra os atalhos (se foram registrados e quando dispararam), o estado das
 
 ```bash
 open -n /Applications/CopyPaste.app --args --diagnose
+# e para salvar também uma imagem da tela principal:
+open -n /Applications/CopyPaste.app --args --diagnose --save /tmp/tela.png
 ```
 </details>
 

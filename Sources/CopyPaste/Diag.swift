@@ -42,6 +42,13 @@ enum Diag {
                 log("diagnose: SCShareableContent ok, telas=\(content.displays.count), janelas=\(content.windows.count)")
                 let shots = try await ScreenGrabber.captureAll()
                 for s in shots { log("diagnose: captura ok \(s.image.width)x\(s.image.height) escala=\(s.scale)") }
+                // --save <arquivo.png>: grava a tela principal (útil para conferir a interface).
+                let args = CommandLine.arguments
+                if let i = args.firstIndex(of: "--save"), i + 1 < args.count, let first = shots.first(where: { $0.screen == NSScreen.screens.first }) ?? shots.first {
+                    let rep = NSBitmapImageRep(cgImage: first.image)
+                    try rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: args[i + 1]))
+                    log("diagnose: salvo em \(args[i + 1])")
+                }
             } catch {
                 log("diagnose: ERRO \(error) (\((error as NSError).domain) \((error as NSError).code))")
             }

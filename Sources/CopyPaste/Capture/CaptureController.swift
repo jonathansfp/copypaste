@@ -222,13 +222,15 @@ final class CaptureRootView: NSView {
     func layoutBars() {
         guard let sel = canvas.selection else { return }
         let margin: CGFloat = 8
+        // Área do notch/câmera: as barras nunca ficam atrás dela.
+        let top = max(4, frozen.screen.safeAreaInsets.top + 4)
         if let t = toolsHost {
             let size = t.fittingSize
             var x = sel.maxX + margin
             if x + size.width > bounds.maxX - 4 { x = sel.minX - margin - size.width }
             if x < 4 { x = sel.maxX - size.width - margin }
             var y = sel.minY
-            y = min(max(4, y), bounds.maxY - size.height - 4)
+            y = min(max(top, y), bounds.maxY - size.height - 4)
             t.frame = CGRect(x: x, y: y, width: size.width, height: size.height)
         }
         if let a = actionsHost {
@@ -237,7 +239,7 @@ final class CaptureRootView: NSView {
             x = min(max(4, x), bounds.maxX - size.width - 4)
             var y = sel.maxY + margin
             if y + size.height > bounds.maxY - 4 { y = sel.minY - margin - size.height }
-            if y < 4 { y = sel.maxY - size.height - margin }
+            if y < top { y = sel.maxY - size.height - margin }
             a.frame = CGRect(x: x, y: y, width: size.width, height: size.height)
         }
     }
