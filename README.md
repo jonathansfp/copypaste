@@ -12,7 +12,7 @@
 ![Rust](https://img.shields.io/badge/Rust-Tauri%202-DEA584?logo=rust&logoColor=white)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-GPL--3.0-blue)
 
-### ⬇️ [Baixar](#-download) · 💚 [Apoiar com Pix](#-apoie-o-projeto)
+### 🌐 [Página do projeto](https://jonathansfp.github.io/copypaste/) · ⬇️ [Baixar](#-download) · 💚 [Apoiar com Pix](#-apoie-o-projeto)
 
 <img src="docs/componentes.png" width="820" alt="Formas, componentes e estilos de anotação do CopyPaste">
 
@@ -74,7 +74,7 @@ copypaste/
 ├── windows/   🪟 Código nativo do Windows (Rust: colar com SendInput, OCR do Windows, janela fora da gravação) — build.ps1
 ├── linux/     🐧 Código nativo do Linux (Rust: X11/Wayland, xdotool/wtype, Tesseract, PulseAudio/PipeWire) — build.sh
 ├── core/      ⚙️ Núcleo compartilhado de Windows e Linux (Tauri 2: Rust + interface em canvas acelerado por GPU)
-├── docs/      Imagens do README
+├── docs/      Página do projeto (GitHub Pages) e imagens do README
 └── .github/workflows/release.yml   Gera e publica os instaladores dos três sistemas
 ```
 
@@ -225,7 +225,7 @@ Desenhe **por cima de qualquer coisa na tela** durante uma reunião, aula ou gra
 - **Laser:** um traço vermelho que some sozinho, para apontar sem sujar o quadro.
 - **Modo interagir (`I`):** os cliques passam para os apps de baixo e o desenho continua visível. Volte a desenhar pelo atalho do quadro ou pela pílula no topo da tela.
 - **Colar (`⌘V`):** imagens e textos da área de transferência viram itens do quadro.
-- **Exportar:** copiar, salvar, salvar como ou fixar na tela. Com fundo transparente, a exportação inclui o que estava na tela, em Retina.
+- **Exportar e enviar:** botões na própria barra para **copiar** (cole direto no WhatsApp, Teams, Slack ou e-mail), **salvar** e, no Mac, **enviar** pelo AirDrop, Mensagens ou Mail (`⇧⌘E`). No menu ⋯ ficam salvar como e fixar na tela. Com fundo transparente, a exportação inclui o que estava na tela, em Retina.
 - O desenho **fica guardado** ao fechar o quadro, até você apagar.
 - **Barra móvel:** arraste pela alça (☰) para onde quiser. Solte numa lateral e ela fica **vertical**; perto do topo ou da base, horizontal. Ela nunca fica atrás do notch da câmera e lembra a posição (duplo clique na alça volta ao padrão).
 
