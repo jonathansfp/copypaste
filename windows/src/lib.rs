@@ -36,6 +36,38 @@ pub fn remember_foreground() {
     }
 }
 
+/// Sends Ctrl+C to the window in front (copies the selected text, for voice commands).
+pub fn copy_selection() -> Result<(), String> {
+    #[cfg(windows)]
+    unsafe {
+        use windows::Win32::UI::Input::KeyboardAndMouse::*;
+        fn key(vk: VIRTUAL_KEY, up: bool) -> INPUT {
+            INPUT {
+                r#type: INPUT_KEYBOARD,
+                Anonymous: INPUT_0 {
+                    ki: KEYBDINPUT { wVk: vk, wScan: 0, dwFlags: if up { KEYEVENTF_KEYUP } else { KEYBD_EVENT_FLAGS(0) }, time: 0, dwExtraInfo: 0 },
+                },
+            }
+        }
+        let inputs = [
+            key(VK_SHIFT, true),
+            key(VK_MENU, true),
+            key(VK_LWIN, true),
+            key(VK_CONTROL, false),
+            key(VK_C, false),
+            key(VK_C, true),
+            key(VK_CONTROL, true),
+        ];
+        let sent = SendInput(&inputs, std::mem::size_of::<INPUT>() as i32);
+        if sent as usize != inputs.len() {
+            return Err("o Windows bloqueou o Ctrl+C".into());
+        }
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    Err("indisponível".into())
+}
+
 /// Brings the previous window back to the front and sends Ctrl+V.
 pub fn restore_and_paste() -> Result<(), String> {
     #[cfg(windows)]

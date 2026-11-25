@@ -8,13 +8,14 @@
     <key>CFBundleExecutable</key><string>CopyPaste</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>1.1</string>
-    <key>CFBundleVersion</key><string>2</string>
+    <key>CFBundleShortVersionString</key><string>1.2</string>
+    <key>CFBundleVersion</key><string>3</string>
     <key>CFBundleDevelopmentRegion</key><string>pt-BR</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>
-    <key>NSMicrophoneUsageDescription</key><string>O CopyPaste usa o microfone para gravar a sua voz junto com a gravação de tela.</string>
+    <key>NSMicrophoneUsageDescription</key><string>O CopyPaste usa o microfone para o ditado por voz e para gravar a sua voz junto com a gravação de tela.</string>
+    <key>NSSpeechRecognitionUsageDescription</key><string>O CopyPaste transforma a sua fala em texto no próprio Mac quando você usa o ditado por voz.</string>
     <key>NSHumanReadableCopyright</key><string>Uso pessoal</string>
 </dict>
 </plist>

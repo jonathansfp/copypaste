@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 /// Actions that can have a global shortcut.
-pub const ACTIONS: [&str; 5] = ["clipboard", "captureArea", "captureScreen", "board", "record"];
+pub const ACTIONS: [&str; 7] = ["clipboard", "captureArea", "captureScreen", "board", "record", "dictate", "voiceCommand"];
 
 pub fn default_hotkey(action: &str) -> &'static str {
     match action {
@@ -12,6 +12,8 @@ pub fn default_hotkey(action: &str) -> &'static str {
         "captureScreen" => "Shift+PrintScreen",
         "board" => "Ctrl+Shift+D",
         "record" => "Ctrl+Shift+R",
+        "dictate" => "Ctrl+Shift+Space",
+        "voiceCommand" => "Ctrl+Alt+Space",
         _ => "",
     }
 }
@@ -38,6 +40,22 @@ pub struct Settings {
     pub paused: bool,
     pub autostart: bool,
     pub first_run_done: bool,
+    /// Who transcribes the voice: "openai" or "gemini".
+    pub dict_engine: String,
+    /// "pt-BR", "en-US"… or "auto".
+    pub dict_language: String,
+    /// "natural", "formal", "casual" or "literal" (no AI cleanup).
+    pub dict_style: String,
+    /// AI that cleans up the text and runs voice commands ("" = none).
+    pub dict_polish: String,
+    pub dict_terms: String,
+    /// provider → chosen text model.
+    pub ai_models: BTreeMap<String, String>,
+    /// provider → chosen transcription model.
+    pub ai_stt_models: BTreeMap<String, String>,
+    /// provider → models available with the saved key.
+    pub ai_model_lists: BTreeMap<String, Vec<String>>,
+    pub ai_stt_lists: BTreeMap<String, Vec<String>>,
 }
 
 fn user_dir(base: Option<PathBuf>, fallback: &str) -> String {
@@ -66,6 +84,15 @@ impl Default for Settings {
             paused: false,
             autostart: true,
             first_run_done: false,
+            dict_engine: "openai".into(),
+            dict_language: "pt-BR".into(),
+            dict_style: "natural".into(),
+            dict_polish: String::new(),
+            dict_terms: String::new(),
+            ai_models: BTreeMap::new(),
+            ai_stt_models: BTreeMap::new(),
+            ai_model_lists: BTreeMap::new(),
+            ai_stt_lists: BTreeMap::new(),
         }
     }
 }

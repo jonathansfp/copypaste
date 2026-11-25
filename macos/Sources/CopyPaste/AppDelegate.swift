@@ -17,6 +17,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             .captureScreen: { CaptureController.shared.start(fullScreen: true) },
             .board: { BoardController.shared.toggle() },
             .record: { ScreenRecorder.shared.toggleFromHotKey() },
+            .dictate: { DictationController.shared.keyDown(.dictate) },
+            .voiceCommand: { DictationController.shared.keyDown(.command) },
+        ]
+        HotKeyManager.shared.releaseHandlers = [
+            .dictate: { DictationController.shared.keyUp(.dictate) },
+            .voiceCommand: { DictationController.shared.keyUp(.command) },
         ]
         HotKeyManager.shared.registerFromSettings()
         setupStatusItem()
@@ -112,6 +118,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if !ScreenRecorder.shared.isRecording {
             menu.addItem(hotKeyItem("Gravar tela…", .record, #selector(toggleRecording)))
         }
+        menu.addItem(hotKeyItem("Ditado por voz", .dictate, #selector(startDictation)))
+        menu.addItem(hotKeyItem("Comando de voz", .voiceCommand, #selector(startVoiceCommand)))
         menu.addItem(.separator())
 
         let open = NSMenuItem(title: "Abrir histórico   \(AppSettings.shared.hotKeyDisplay)",
@@ -170,6 +178,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
     @objc private func openLibrary() { WindowManager.shared.showLibrary() }
     @objc private func openSettings() { WindowManager.shared.showSettings() }
+    @objc private func startDictation() { DictationController.shared.start(.dictate) }
+    @objc private func startVoiceCommand() { DictationController.shared.start(.command) }
     @objc private func donatePix() {
         let pb = NSPasteboard.general
         pb.clearContents()

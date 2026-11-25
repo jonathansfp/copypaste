@@ -3,7 +3,7 @@ import Carbon
 
 /// Everything that can be bound to a global shortcut.
 enum HotKeyAction: String, CaseIterable, Identifiable {
-    case clipboard, captureArea, captureScreen, board, record
+    case clipboard, captureArea, captureScreen, board, record, dictate, voiceCommand
 
     var id: String { rawValue }
 
@@ -14,6 +14,8 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
         case .captureScreen: return "Capturar tela inteira"
         case .board: return "Modo apresentação (quadro)"
         case .record: return "Gravar tela (iniciar / parar)"
+        case .dictate: return "Ditado por voz (segure ou toque)"
+        case .voiceCommand: return "Comando de voz sobre o texto selecionado"
         }
     }
 
@@ -24,6 +26,8 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
         case .captureScreen: return "macwindow"
         case .board: return "pencil.and.scribble"
         case .record: return "record.circle"
+        case .dictate: return "mic.fill"
+        case .voiceCommand: return "wand.and.stars"
         }
     }
 
@@ -36,6 +40,8 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
         case .captureScreen: return HotKey(code: kVK_ANSI_2, mods: cmdKey | shiftKey, display: "⇧⌘2")
         case .board: return HotKey(code: kVK_ANSI_D, mods: cmdKey | shiftKey | optionKey, display: "⌥⇧⌘D")
         case .record: return HotKey(code: kVK_ANSI_R, mods: cmdKey | shiftKey | optionKey, display: "⌥⇧⌘R")
+        case .dictate: return HotKey(code: kVK_Space, mods: optionKey, display: "⌥Espaço")
+        case .voiceCommand: return HotKey(code: kVK_Space, mods: optionKey | shiftKey, display: "⌥⇧Espaço")
         }
     }
 }
@@ -51,6 +57,8 @@ final class HotKeyManager: ObservableObject {
     static let shared = HotKeyManager()
 
     var handlers: [HotKeyAction: @MainActor () -> Void] = [:]
+    /// Called when the shortcut's key is released (push-to-talk).
+    var releaseHandlers: [HotKeyAction: @MainActor () -> Void] = [:]
     /// Actions whose shortcut could not be registered (usually taken by another app).
     @Published private(set) var failed: Set<HotKeyAction> = []
 
@@ -89,24 +97,32 @@ final class HotKeyManager: ObservableObject {
         HotKeyAction.allCases.forEach(unregister)
     }
 
-    @MainActor fileprivate func fire(_ id: UInt32) {
+    @MainActor fileprivate func fire(_ id: UInt32, released: Bool) {
         guard let action = HotKeyAction.allCases.first(where: { $0.hotKeyID == id }) else { return }
+        if released {
+            releaseHandlers[action]?()
+            return
+        }
         Diag.log("atalho disparado: \(action.rawValue)")
         handlers[action]?()
     }
 
     private func installHandlerIfNeeded() {
         guard !handlerInstalled else { return }
-        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        var specs = [
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed)),
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyReleased)),
+        ]
         InstallEventHandler(GetApplicationEventTarget(), { _, event, _ in
             var hk = EventHotKeyID()
             let err = GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
                                         nil, MemoryLayout<EventHotKeyID>.size, nil, &hk)
             guard err == noErr else { return noErr }
             let id = hk.id
-            DispatchQueue.main.async { MainActor.assumeIsolated { HotKeyManager.shared.fire(id) } }
+            let released = GetEventKind(event) == UInt32(kEventHotKeyReleased)
+            DispatchQueue.main.async { MainActor.assumeIsolated { HotKeyManager.shared.fire(id, released: released) } }
             return noErr
-        }, 1, &spec, nil, nil)
+        }, 2, &specs, nil, nil)
         handlerInstalled = true
     }
 }

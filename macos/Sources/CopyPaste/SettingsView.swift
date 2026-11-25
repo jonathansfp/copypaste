@@ -85,6 +85,8 @@ struct SettingsView: View {
                 }
             }
 
+            DictationSettingsSections()
+
             Section("Histórico") {
                 Picker("Guardar itens copiados por", selection: $settings.retentionHours) {
                     ForEach(RetentionOption.all) { Text($0.label).tag($0.hours) }

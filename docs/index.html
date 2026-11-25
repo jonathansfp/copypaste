@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CopyPaste — histórico de cópias, captura e quadro</title>
-<meta name="description" content="Histórico de cópias, captura de tela com anotações, quadro de apresentação e gravação de tela. Gratuito e de código aberto para macOS, Windows e Linux.">
+<meta name="description" content="Histórico de cópias, captura de tela com anotações, quadro de apresentação, gravação de tela e ditado por voz com IA. Gratuito e de código aberto para macOS, Windows e Linux.">
 <meta property="og:title" content="CopyPaste">
-<meta property="og:description" content="Histórico de cópias, captura com anotações, quadro de apresentação e gravação de tela. Gratuito para macOS, Windows e Linux.">
+<meta property="og:description" content="Histórico de cópias, captura com anotações, quadro, gravação de tela e ditado por voz com IA. Gratuito para macOS, Windows e Linux.">
 <meta property="og:image" content="https://jonathansfp.github.io/copypaste/componentes.png">
 <meta property="og:type" content="website">
 <link rel="icon" href="icon.png">
@@ -79,6 +79,27 @@ nav .links a.navpix:hover { background: var(--pixbg); }
 .free { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0 0 22px; font-size: 15px; color: var(--ink2); }
 .free b { background: var(--ok); color: var(--bg); font-size: 14px; font-weight: 700; letter-spacing: .02em; padding: 3px 10px; border-radius: 5px; }
 .freeline { font-weight: 700; color: var(--ok); }
+
+/* ditado */
+.voice { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start; }
+.voice .intro { grid-template-columns: 1fr; gap: 12px; }
+.voice ul { margin: 18px 0 0; padding: 0; list-style: none; }
+.voice li { padding: 10px 0; border-top: 1px dashed var(--line); color: var(--ink2); font-size: 15.5px; }
+.voice li b { color: var(--ink); }
+.ais { border: 1px solid var(--line); border-radius: 10px; padding: 22px 24px; }
+.ais h3 { margin: 0 0 4px; font-size: 17px; }
+.ais > p { margin: 0 0 14px; color: var(--ink2); font-size: 14.5px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; font-weight: 600; font-size: 14.5px; }
+.chip small { font-weight: 500; color: var(--ink2); margin-left: 4px; }
+.pilldemo { margin: 20px 0 0; display: flex; align-items: center; gap: 12px; background: #141418; color: #fff; border-radius: 99px; padding: 10px 14px; max-width: 360px; }
+.pilldemo .bars { display: flex; align-items: center; gap: 3px; height: 22px; flex: 1; }
+.pilldemo .bars i { width: 3px; border-radius: 2px; background: #fff; animation: vb 1.1s ease-in-out infinite; }
+.pilldemo .bars i:nth-child(3n) { animation-delay: -.3s; } .pilldemo .bars i:nth-child(3n+1) { animation-delay: -.7s; } .pilldemo .bars i:nth-child(4n) { animation-delay: -.5s; }
+@keyframes vb { 0%, 100% { height: 4px; } 50% { height: 20px; } }
+.pilldemo span { font-size: 12.5px; color: rgba(255,255,255,.7); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .pilldemo .bars i { animation: none; height: 10px; } }
+@media (max-width: 900px) { .voice { grid-template-columns: 1fr; } }
 
 /* hero */
 .hero { padding: 64px 0 56px; }
@@ -207,6 +228,7 @@ footer a { color: var(--ink2); }
     <a class="brand" href="#"><img src="icon.png" alt="">CopyPaste</a>
     <div class="links">
       <a href="#recursos">Recursos</a>
+      <a href="#ditado">Ditado IA</a>
       <a href="#atalhos">Atalhos</a>
       <a href="#codigo">Código</a>
       <a href="#download" class="keep">Download</a>
@@ -222,7 +244,7 @@ footer a { color: var(--ink2); }
   <div class="wrap">
     <p class="free"><b>100% GRATUITO</b><span>sem anúncios · sem cadastro · sem assinatura · código aberto</span></p>
     <h1>Copie, capture, anote e <mark>apresente</mark>. Fácil e simples.</h1>
-    <p class="lead">Histórico de cópias, captura de tela com anotações nítidas, quadro de apresentação e gravação de tela num app só. Leve, gratuito, offline e de código aberto.</p>
+    <p class="lead">Histórico de cópias, captura de tela com anotações nítidas, quadro de apresentação, gravação de tela e ditado por voz com a sua IA, num app só. Leve, gratuito e de código aberto.</p>
     <div class="cta">
       <a class="btn primary" id="hero-dl" href="#download"><svg><use href="#i-dl"/></svg><span>Baixar grátis</span></a>
       <a class="btn ghost" href="https://github.com/jonathansfp/copypaste"><svg><use href="#i-gh"/></svg>Código no GitHub</a>
@@ -275,6 +297,36 @@ footer a { color: var(--ink2); }
         <p>Grave uma área ou a tela inteira em MP4, com o microfone e o som do computador.</p>
         <ul><li>Cliques destacados</li><li>24, 30 ou 60 fps</li><li>O quadro aparece no vídeo</li></ul>
       </article>
+    </div>
+  </div>
+</section>
+
+<section id="ditado">
+  <div class="wrap voice">
+    <div>
+      <div class="intro" style="margin-bottom:0">
+        <h2>Novo: fale e o texto aparece, em qualquer app</h2>
+        <p>Segure o atalho, fale e solte. O CopyPaste transcreve e a <b>sua</b> IA limpa o texto: tira os "é", "hã" e "tipo", pontua, monta listas e aplica as suas correções ("às três, não, às quatro" vira "às quatro").</p>
+      </div>
+      <ul>
+        <li><b>Segure ou toque:</b> <kbd>⌥</kbd> <kbd>Espaço</kbd> no Mac, <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Espaço</kbd> no Windows e no Linux.</li>
+        <li><b>Comando de voz:</b> selecione um texto e diga "traduza para inglês", "deixe mais formal" ou "resuma em tópicos".</li>
+        <li><b>Estilos:</b> natural, formal para e-mails, descontraído para chats ou literal, sem IA.</li>
+        <li><b>Vocabulário próprio:</b> nomes, siglas e termos técnicos com a grafia certa.</li>
+      </ul>
+      <div class="pilldemo" aria-hidden="true"><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span>Ouvindo · solte para terminar</span></div>
+    </div>
+    <div class="ais">
+      <h3>Conecte a sua própria IA</h3>
+      <p>Cole a chave de API em Configurações e escolha o modelo. Sem servidor do CopyPaste e sem mensalidade: você paga só o uso na sua conta, normalmente centavos por mês.</p>
+      <div class="chips">
+        <span class="chip">Claude<small>Anthropic</small></span>
+        <span class="chip">ChatGPT<small>OpenAI · texto e voz</small></span>
+        <span class="chip">Gemini<small>Google · texto e voz</small></span>
+        <span class="chip">DeepSeek</span>
+        <span class="chip">Grok<small>xAI</small></span>
+      </div>
+      <p style="margin:16px 0 0">No Mac, a transcrição pode ser a da <b>Apple</b>, grátis e no próprio computador. No Windows e no Linux, a voz é transcrita pela OpenAI ou pelo Gemini, com a sua chave.</p>
     </div>
   </div>
 </section>
@@ -344,6 +396,8 @@ footer a { color: var(--ink2); }
       <div class="key"><span>Gravar a tela</span><span><kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>R</kbd></span></div>
       <div class="key"><span>Capturar a tela inteira</span><span><kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>2</kbd></span></div>
       <div class="key"><span>Enviar o quadro</span><span><kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>E</kbd></span></div>
+      <div class="key"><span>Ditado por voz</span><span><kbd>⌥</kbd> <kbd>Espaço</kbd></span></div>
+      <div class="key"><span>Comando de voz</span><span><kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>Espaço</kbd></span></div>
     </div>
     <div class="panel keys" data-os="win" hidden>
       <div class="key"><span>Histórico de cópias</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>V</kbd></span></div>
@@ -352,6 +406,8 @@ footer a { color: var(--ink2); }
       <div class="key"><span>Gravar a tela</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd></span></div>
       <div class="key"><span>Capturar a tela inteira</span><span><kbd>Shift</kbd> <kbd>PrtSc</kbd></span></div>
       <div class="key"><span>Copiar · salvar</span><span><kbd>Ctrl</kbd> <kbd>C</kbd> · <kbd>Ctrl</kbd> <kbd>S</kbd></span></div>
+      <div class="key"><span>Ditado por voz</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Espaço</kbd></span></div>
+      <div class="key"><span>Comando de voz</span><span><kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>Espaço</kbd></span></div>
     </div>
     <div class="panel keys" data-os="linux" hidden>
       <div class="key"><span>Histórico de cópias</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>V</kbd></span></div>
@@ -359,6 +415,7 @@ footer a { color: var(--ink2); }
       <div class="key"><span>Capturar área ou janela</span><span><kbd>PrtSc</kbd></span></div>
       <div class="key"><span>Gravar a tela</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd></span></div>
       <div class="key"><span>Capturar a tela inteira</span><span><kbd>Shift</kbd> <kbd>PrtSc</kbd></span></div>
+      <div class="key"><span>Ditado por voz</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Espaço</kbd></span></div>
       <div class="key"><span>No Wayland, atalho do sistema</span><span><code>copypaste --capture-area</code></span></div>
     </div>
   </div>
@@ -452,11 +509,13 @@ footer a { color: var(--ink2); }
   <div class="wrap faq">
     <h2 style="margin-bottom:24px">Perguntas frequentes</h2>
     <details><summary>É gratuito mesmo?</summary><p>Sim. Sem anúncios, sem cadastro e sem limites. O código é aberto sob a licença GPL-3.0. Se quiser apoiar, há a opção de <a href="#apoie">doar via Pix</a>.</p></details>
-    <details><summary>Meus dados saem do computador?</summary><p>Não. O histórico, as capturas e o OCR ficam e rodam só no seu computador, sem internet. O que gerenciadores de senha marcam como confidencial nunca é salvo.</p></details>
+    <details><summary>Meus dados saem do computador?</summary><p>Não. O histórico, as capturas e o OCR ficam e rodam só no seu computador, sem internet. O que gerenciadores de senha marcam como confidencial nunca é salvo. A única exceção é o ditado por voz quando você conecta uma IA: aí só o áudio do ditado e o texto vão, direto do seu computador, para o provedor que você escolheu.</p></details>
+    <details><summary>Preciso pagar pela IA do ditado?</summary><p>O CopyPaste não cobra nada. Você usa a sua própria chave de API (Claude, ChatGPT, Gemini, DeepSeek ou Grok) e paga só o que usar na conta do provedor, em geral centavos por mês. No Mac, dá para ditar sem chave nenhuma, com a transcrição gratuita da Apple.</p></details>
+    <details><summary>Onde consigo a chave de API?</summary><p>No painel de cada provedor: <a href="https://platform.claude.com/settings/keys">Claude</a>, <a href="https://platform.openai.com/api-keys">OpenAI</a>, <a href="https://aistudio.google.com/apikey">Gemini</a>, <a href="https://platform.deepseek.com/api_keys">DeepSeek</a> e <a href="https://console.x.ai">Grok</a>. Em Configurações, o link "Obter chave" leva direto à página certa. A chave fica guardada só no seu computador.</p></details>
     <details><summary>Por que o sistema pede confirmação ao abrir?</summary><p>O app não é distribuído por uma loja. No Windows, clique em <b>Mais informações → Executar assim mesmo</b>. No Mac, clique com o botão direito no app → <b>Abrir</b>. Isso só acontece na primeira vez.</p></details>
     <details><summary>Como envio o que desenhei no quadro?</summary><p>Pelos botões da barra do quadro: <b>Copiar</b> (cole direto no WhatsApp, Teams, Slack ou e-mail), <b>Salvar</b> na pasta de capturas ou, no Mac, <b>Enviar</b> pelo AirDrop, Mensagens ou Mail.</p></details>
     <details><summary>O que preciso para gravar a tela no Windows e no Linux?</summary><p>O ffmpeg, que é gratuito. No Windows: <code>winget install Gyan.FFmpeg</code>. No Linux: <code>sudo apt install ffmpeg</code>. O app avisa se estiver faltando.</p></details>
-    <details><summary>Os atalhos não funcionam no Wayland.</summary><p>O Wayland não deixa apps registrarem atalhos globais. Crie um atalho do sistema que rode <code>copypaste --capture-area</code> (ou <code>--history</code>, <code>--board</code>, <code>--record</code>). O app já aberto recebe o comando na hora.</p></details>
+    <details><summary>Os atalhos não funcionam no Wayland.</summary><p>O Wayland não deixa apps registrarem atalhos globais. Crie um atalho do sistema que rode <code>copypaste --capture-area</code> (ou <code>--history</code>, <code>--board</code>, <code>--record</code>, <code>--dictate</code>). O app já aberto recebe o comando na hora.</p></details>
     <details><summary>O Print Screen do Windows 11 abre outra ferramenta.</summary><p>Desligue em <b>Configurações › Acessibilidade › Teclado › "Usar a tecla Print Screen para abrir a captura de tela"</b>, ou escolha outro atalho no CopyPaste.</p></details>
   </div>
 </section>

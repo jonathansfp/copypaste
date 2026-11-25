@@ -4,13 +4,15 @@ use std::collections::BTreeMap;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
-use crate::{capture, settings::ACTIONS, ui, AppState};
+use crate::{capture, dictation, settings::ACTIONS, ui, AppState};
 
 /// Runs an action. Capture work goes to a separate thread so the event loop never stalls.
 pub fn run(app: &AppHandle, action: &str) {
     crate::diag(app, &format!("ação {action}"));
     match action {
         "clipboard" => ui::toggle_history(app),
+        "dictate" => dictation::toggle(app, dictation::Mode::Dictate),
+        "voiceCommand" => dictation::toggle(app, dictation::Mode::Command),
         "captureArea" | "captureScreen" | "board" | "record" => {
             let mode = match action {
                 "captureArea" => "area",
@@ -33,6 +35,8 @@ pub fn from_args(app: &AppHandle, args: &[String]) -> bool {
         ("--capture-screen", "captureScreen"),
         ("--board", "board"),
         ("--record", "record"),
+        ("--dictate", "dictate"),
+        ("--voice-command", "voiceCommand"),
     ];
     let mut any = false;
     for a in args {
@@ -69,7 +73,15 @@ pub fn register_all(app: &AppHandle) -> BTreeMap<String, String> {
         let act = action.to_string();
         let res = gs.on_shortcut(shortcut, move |app, _sc, ev| {
             if ev.state == ShortcutState::Pressed {
-                run(app, &act);
+                match act.as_str() {
+                    "dictate" => dictation::key_down(app, dictation::Mode::Dictate),
+                    "voiceCommand" => dictation::key_down(app, dictation::Mode::Command),
+                    _ => run(app, &act),
+                }
+            } else if act == "dictate" {
+                dictation::key_up(app, dictation::Mode::Dictate);
+            } else if act == "voiceCommand" {
+                dictation::key_up(app, dictation::Mode::Command);
             }
         });
         if let Err(e) = res {

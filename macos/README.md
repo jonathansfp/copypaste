@@ -15,4 +15,6 @@ cd macos
 ./package.sh   # dist/CopyPaste-<versão>.dmg e .zip
 ```
 
+**Ditado por voz:** código em `Sources/CopyPaste/Dictation/`: `AIProviders.swift` (Claude, OpenAI, Gemini, DeepSeek e Grok via HTTPS, chaves no Porta-chaves), `DictationController.swift` (microfone, transcrição da Apple ou da nuvem, ajuste pela IA, colagem e a pílula flutuante) e `DictationSettingsView.swift`.
+
 Requer o Xcode 15+. Com um certificado Apple Development no Keychain, o `build.sh` assina com ele, e as permissões de Gravação de Tela e Acessibilidade continuam valendo entre compilações.

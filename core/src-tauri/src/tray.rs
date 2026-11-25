@@ -29,6 +29,9 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     if !recording {
         m = m.item(&item(app, "record", "Gravar tela…", hk("record"))?);
     }
+    m = m
+        .item(&item(app, "dictate", "Ditado por voz", hk("dictate"))?)
+        .item(&item(app, "voiceCommand", "Comando de voz", hk("voiceCommand"))?);
     m.item(&PredefinedMenuItem::separator(app)?)
         .item(&MenuItem::with_id(app, "pause", if s.paused { "Retomar histórico" } else { "Pausar histórico" }, true, None::<&str>)?)
         .item(&MenuItem::with_id(app, "settings", "Configurações…", true, None::<&str>)?)

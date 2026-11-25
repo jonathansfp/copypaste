@@ -25,6 +25,9 @@ mod dev_stub {
     pub fn restore_and_paste() -> Result<(), String> {
         Err("Copiado! (colar automático só no Windows e no Linux; no Mac use o app nativo)".into())
     }
+    pub fn copy_selection() -> Result<(), String> {
+        Err("indisponível".into())
+    }
     pub fn clipboard_change_count() -> Option<u64> {
         None
     }

@@ -2,7 +2,9 @@
 //! The native code of each system lives in `windows/` and `linux/` at the root of the repository.
 
 mod actions;
+mod ai;
 mod capture;
+mod dictation;
 mod history;
 mod platform;
 mod recorder;
@@ -30,6 +32,7 @@ pub struct Paths {
     pub data: PathBuf,
     pub settings: PathBuf,
     pub pins: PathBuf,
+    pub ai_keys: PathBuf,
 }
 
 pub struct AppState {
@@ -46,6 +49,8 @@ pub struct AppState {
     pub editor_gen: AtomicU64,
     pub editor_shown: AtomicBool,
     pub pin_seq: AtomicU64,
+    /// provider → API key of the user's own AI.
+    pub ai_keys: Mutex<BTreeMap<String, String>>,
     pub paths: Paths,
 }
 
@@ -89,6 +94,7 @@ struct SettingsView {
     version: String,
     pix_key: String,
     ffmpeg: bool,
+    ai_connected: Vec<String>,
 }
 
 #[tauri::command]
@@ -102,6 +108,7 @@ fn get_settings(app: AppHandle, state: State<AppState>) -> SettingsView {
         version: app.package_info().version.to_string(),
         pix_key: PIX_KEY.into(),
         ffmpeg: recorder::find_ffmpeg().is_some(),
+        ai_connected: state.ai_keys.lock().unwrap().keys().cloned().collect(),
     }
 }
 
@@ -110,7 +117,11 @@ fn save_settings(app: AppHandle, state: State<AppState>, settings: Settings) -> 
     let autostart = settings.autostart;
     {
         let mut s = state.settings.lock().unwrap();
+        // Model lists are kept by the app (ai_connect), not by the settings page.
+        let (lists, stt) = (s.ai_model_lists.clone(), s.ai_stt_lists.clone());
         *s = settings;
+        s.ai_model_lists = lists;
+        s.ai_stt_lists = stt;
         s.history_limit = s.history_limit.clamp(20, 5000);
         s.record_fps = s.record_fps.clamp(10, 60);
         s.save(&state.paths.settings);
@@ -330,6 +341,80 @@ fn toast(app: AppHandle, text: String) {
     ui::toast(&app, &text);
 }
 
+/// Validates the key by listing the provider's models, then saves it (only on this computer).
+#[tauri::command]
+async fn ai_connect(app: AppHandle, provider: String, key: String) -> Result<Settings, String> {
+    let key = key.trim().to_string();
+    if !ai::PROVIDERS.contains(&provider.as_str()) {
+        return Err("provedor desconhecido".into());
+    }
+    if key.is_empty() {
+        return Err("Cole a chave da API.".into());
+    }
+    let p = provider.clone();
+    let k = key.clone();
+    let list = tauri::async_runtime::spawn_blocking(move || ai::list_models(&p, &k)).await.map_err(|e| e.to_string())??;
+    if list.chat.is_empty() {
+        return Err("A chave funciona, mas nenhum modelo de texto está disponível nela.".into());
+    }
+    let state = app.state::<AppState>();
+    {
+        let mut keys = state.ai_keys.lock().unwrap();
+        keys.insert(provider.clone(), key);
+        ai::save_keys(&state.paths.ai_keys, &keys);
+    }
+    let mut s = state.settings.lock().unwrap();
+    if s.ai_models.get(&provider).map(|m| !list.chat.contains(m)).unwrap_or(true) {
+        if let Some(m) = ai::preferred_chat(&provider, &list.chat) {
+            s.ai_models.insert(provider.clone(), m);
+        }
+    }
+    if s.ai_stt_models.get(&provider).map(|m| !list.transcription.contains(m)).unwrap_or(true) {
+        if let Some(m) = ai::preferred_stt(&provider, &list.transcription) {
+            s.ai_stt_models.insert(provider.clone(), m);
+        }
+    }
+    s.ai_model_lists.insert(provider.clone(), list.chat);
+    s.ai_stt_lists.insert(provider.clone(), list.transcription);
+    if s.dict_polish.is_empty() {
+        s.dict_polish = provider.clone();
+    }
+    let has_engine = state.ai_keys.lock().unwrap().contains_key(&s.dict_engine);
+    if !has_engine && (provider == "openai" || provider == "gemini") {
+        s.dict_engine = provider.clone();
+    }
+    s.save(&state.paths.settings);
+    Ok(s.clone())
+}
+
+#[tauri::command]
+fn ai_disconnect(state: State<AppState>, provider: String) -> Settings {
+    let mut keys = state.ai_keys.lock().unwrap();
+    keys.remove(&provider);
+    ai::save_keys(&state.paths.ai_keys, &keys);
+    let mut s = state.settings.lock().unwrap();
+    if s.dict_polish == provider {
+        s.dict_polish = keys.keys().next().cloned().unwrap_or_default();
+    }
+    s.save(&state.paths.settings);
+    s.clone()
+}
+
+#[tauri::command]
+fn dictation_finish() {
+    dictation::finish();
+}
+
+#[tauri::command]
+fn dictation_cancel() {
+    dictation::cancel();
+}
+
+#[tauri::command]
+fn dictation_start(app: AppHandle, command: bool) {
+    dictation::start(&app, if command { dictation::Mode::Command } else { dictation::Mode::Dictate }, false);
+}
+
 #[tauri::command]
 fn log(app: AppHandle, msg: String) {
     diag(&app, &format!("[ui] {msg}"));
@@ -417,6 +502,11 @@ pub fn run() {
             open_settings,
             toast,
             log,
+            ai_connect,
+            ai_disconnect,
+            dictation_finish,
+            dictation_cancel,
+            dictation_start,
         ])
         .setup(|app| {
             #[cfg(target_os = "macos")]
@@ -450,7 +540,8 @@ pub fn run() {
                 editor_gen: AtomicU64::new(0),
                 editor_shown: AtomicBool::new(true),
                 pin_seq: AtomicU64::new(0),
-                paths: Paths { data, settings: settings_path, pins },
+                ai_keys: Mutex::new(ai::load_keys(&config.join("ai-keys.json"))),
+                paths: Paths { data, settings: settings_path, pins, ai_keys: config.join("ai-keys.json") },
             });
             diag(&handle, &format!("início — {} v{}", platform::SYSTEM, handle.package_info().version));
 

@@ -85,6 +85,23 @@ pub fn restore_and_paste() -> Result<(), String> {
     Err("Copiado! No Wayland, para colar sozinho instale o wtype (KDE/Sway) ou o ydotool (GNOME).".into())
 }
 
+/// Sends Ctrl+C to the window in front (copies the selected text, for voice commands).
+pub fn copy_selection() -> Result<(), String> {
+    if !is_wayland() {
+        if !has("xdotool") {
+            return Err("instale o xdotool".into());
+        }
+        return run("xdotool", &["key", "--clearmodifiers", "ctrl+c"]).map(|_| ());
+    }
+    if has("wtype") && run("wtype", &["-M", "ctrl", "-k", "c", "-m", "ctrl"]).is_ok() {
+        return Ok(());
+    }
+    if has("ydotool") && run("ydotool", &["key", "29:1", "46:1", "46:0", "29:0"]).is_ok() {
+        return Ok(());
+    }
+    Err("instale o wtype ou o ydotool".into())
+}
+
 /// Linux has no cheap clipboard change counter: the core reads it periodically.
 pub fn clipboard_change_count() -> Option<u64> {
     None

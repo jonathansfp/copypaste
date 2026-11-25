@@ -31,6 +31,9 @@ sudo apt install ydotool    # GNOME
 | OCR | Tesseract (por + eng + spa, conforme instalado) | igual |
 | Áudio da gravação | PulseAudio/PipeWire: `default` (microfone) e `<saída>.monitor` (sistema) | igual |
 | Pastas padrão | lidas de `~/.config/user-dirs.dirs` (ex.: `~/Imagens/CopyPaste`) | igual |
+| Comando de voz sobre a seleção | `xdotool key ctrl+c` | `wtype` ou `ydotool` |
+
+**Ditado por voz:** o microfone é lido pelo ALSA/PipeWire (`cpal`, no núcleo), a transcrição usa a sua chave da OpenAI ou do Gemini e o texto é ajustado pela IA que você conectar (Claude, GPT, Gemini, DeepSeek ou Grok) em *Configurações › IA e ditado*. As chaves ficam em `~/.config/io.github.jonathansfp.copypaste/ai-keys.json`, com permissão só para o seu usuário (0600).
 
 ## Atalhos no Wayland
 
@@ -43,6 +46,8 @@ O Wayland não deixa apps registrarem atalhos globais. Se um atalho não respond
 | `copypaste --history` | Histórico de cópias |
 | `copypaste --board` | Quadro de apresentação |
 | `copypaste --record` | Iniciar/parar gravação |
+| `copypaste --dictate` | Ditado por voz (de novo para terminar) |
+| `copypaste --voice-command` | Comando de voz sobre o texto selecionado |
 
 **GNOME:** *Configurações › Teclado › Atalhos de teclado › Ver e personalizar › Atalhos personalizados › +*.
 **KDE:** *Configurações do sistema › Atalhos › Adicionar novo › Comando*.

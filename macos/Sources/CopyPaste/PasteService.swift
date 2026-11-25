@@ -55,4 +55,60 @@ enum PasteService {
         return NSRect(x: rect.origin.x, y: primaryHeight - rect.origin.y - rect.height,
                       width: max(rect.width, 1), height: rect.height)
     }
+
+    /// Waits (up to ~1.5 s) until the user lets go of ⌘⌥⇧⌃, so a synthetic ⌘V/⌘C is not mixed with them.
+    static func waitForModifiersReleased() async {
+        let mask: NSEvent.ModifierFlags = [.command, .option, .shift, .control]
+        for _ in 0..<30 {
+            if NSEvent.modifierFlags.intersection(mask).isEmpty { break }
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+    }
+
+    /// Text selected in the focused app: via Accessibility, or by sending ⌘C and restoring the clipboard.
+    @MainActor
+    static func selectedText() async -> String? {
+        guard isTrusted else { return nil }
+        let system = AXUIElementCreateSystemWide()
+        AXUIElementSetMessagingTimeout(system, 0.2)
+        var focused: CFTypeRef?
+        if AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
+           let ref = focused, CFGetTypeID(ref) == AXUIElementGetTypeID() {
+            var value: CFTypeRef?
+            if AXUIElementCopyAttributeValue(ref as! AXUIElement, kAXSelectedTextAttribute as CFString, &value) == .success,
+               let text = value as? String, !text.isEmpty {
+                return text
+            }
+        }
+        // Fallback for apps without AX text (browsers, Electron): copy and restore.
+        let pb = NSPasteboard.general
+        let saved = pb.pasteboardItems?.map { item -> [(NSPasteboard.PasteboardType, Data)] in
+            item.types.compactMap { t in item.data(forType: t).map { (t, $0) } }
+        } ?? []
+        let before = pb.changeCount
+        let src = CGEventSource(stateID: .combinedSessionState)
+        let c = CGKeyCode(8) // kVK_ANSI_C
+        let down = CGEvent(keyboardEventSource: src, virtualKey: c, keyDown: true)
+        down?.flags = .maskCommand
+        let up = CGEvent(keyboardEventSource: src, virtualKey: c, keyDown: false)
+        up?.flags = .maskCommand
+        down?.post(tap: .cgSessionEventTap)
+        up?.post(tap: .cgSessionEventTap)
+        for _ in 0..<10 {
+            try? await Task.sleep(nanoseconds: 40_000_000)
+            if pb.changeCount != before { break }
+        }
+        guard pb.changeCount != before else { return nil }
+        let text = pb.string(forType: .string)
+        pb.clearContents()
+        if !saved.isEmpty {
+            let items = saved.map { pairs -> NSPasteboardItem in
+                let it = NSPasteboardItem()
+                for (t, d) in pairs { it.setData(d, forType: t) }
+                return it
+            }
+            pb.writeObjects(items)
+        }
+        return (text?.isEmpty ?? true) ? nil : text
+    }
 }

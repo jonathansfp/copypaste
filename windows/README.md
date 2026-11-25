@@ -20,6 +20,9 @@ Na primeira execução, o SmartScreen pode mostrar "O Windows protegeu o computa
 | Barra de gravação invisível no vídeo | `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` |
 | Áudio da gravação | Lista os dispositivos DirectShow do ffmpeg, escolhe o microfone e, se existir, a "Mixagem estéreo" para o áudio do sistema |
 | Sem janela de console | `CREATE_NO_WINDOW` ao chamar o ffmpeg |
+| Comando de voz sobre a seleção | Envia `Ctrl+C` com `SendInput` para ler o texto selecionado |
+
+**Ditado por voz:** o microfone é lido pelo WASAPI (`cpal`, no núcleo), a transcrição usa a sua chave da OpenAI ou do Gemini e o texto é ajustado pela IA que você conectar (Claude, GPT, Gemini, DeepSeek ou Grok) em *Configurações › IA e ditado*. As chaves ficam em `%APPDATA%\io.github.jonathansfp.copypaste\ai-keys.json`, só no seu computador.
 
 ## Compilar
 

@@ -11,10 +11,12 @@ const ACTIONS = [
   ['captureScreen', 'Capturar a tela inteira', 'fullscreen'],
   ['board', 'Modo apresentação (quadro)', 'pen'],
   ['record', 'Gravar a tela (de novo para parar)', 'record'],
+  ['dictate', 'Ditado por voz (segure e fale, ou toque)', 'mic'],
+  ['voiceCommand', 'Comando de voz sobre o texto selecionado', 'style'],
 ];
 const TABS = [
   ['inicio', 'Início', 'heart'], ['atalhos', 'Atalhos', 'more'], ['captura', 'Captura', 'select'],
-  ['gravacao', 'Gravação', 'record'], ['historico', 'Histórico', 'copy'], ['apoie', 'Sobre e apoio', 'heart'],
+  ['gravacao', 'Gravação', 'record'], ['ia', 'IA e ditado', 'mic'], ['historico', 'Histórico', 'copy'], ['apoie', 'Sobre e apoio', 'heart'],
 ];
 
 let data = null, s = null, recording = null;
@@ -53,6 +55,7 @@ function build() {
       <div class="feat"><b>${icon('select')}Captura com anotações</b><p>${hk('captureArea')} congela a tela na hora: selecione uma área ou janela, anote com setas, texto, desfoque e números, e copie com Enter.</p></div>
       <div class="feat"><b>${icon('pen')}Modo apresentação</b><p>${hk('board')} desenha por cima da tela ou num quadro branco, com formas no estilo Excalidraw, notas adesivas e laser.</p></div>
       <div class="feat"><b>${icon('record')}Gravação de tela</b><p>${hk('record')} grava uma área ou a tela inteira em MP4, com microfone e áudio do sistema. O mesmo atalho para.</p></div>
+      <div class="feat"><b>${icon('mic')}Ditado por voz com IA</b><p>Segure ${hk('dictate')} e fale: o texto aparece onde está o cursor, limpo e pontuado pela IA que você conectar (Claude, GPT, Gemini, DeepSeek ou Grok).</p></div>
     </div>
     <div class="note" id="notes"></div>
   </section>
@@ -107,6 +110,25 @@ function build() {
     </div>
   </section>
 
+  <section data-tab="ia">
+    <h1>IA e ditado por voz</h1>
+    <p class="sub">Segure ${hk('dictate')} e fale; solte para o texto aparecer onde está o cursor, em qualquer app. Um toque rápido deixa ouvindo até o próximo toque. Com um texto selecionado, ${hk('voiceCommand')} aplica o que você pedir ("traduza para inglês", "deixe mais formal").</p>
+    <div class="card">
+      <div class="row"><div class="l">Transcrição da voz<small>Precisa de uma chave da OpenAI ou do Gemini</small></div><select data-k="dictEngine"><option value="openai">OpenAI (mais preciso)</option><option value="gemini">Gemini</option></select></div>
+      <div class="row"><div class="l">Idioma</div><select data-k="dictLanguage">
+        <option value="pt-BR">Português (Brasil)</option><option value="pt-PT">Português (Portugal)</option><option value="en-US">Inglês</option>
+        <option value="es-ES">Espanhol</option><option value="fr-FR">Francês</option><option value="it-IT">Italiano</option><option value="de-DE">Alemão</option>
+        <option value="auto">Detectar automaticamente</option></select></div>
+      <div class="row"><div class="l">IA que ajusta o texto<small>Tira vícios de fala, pontua e formata</small></div><select id="polish"></select></div>
+      <div class="row"><div class="l">Estilo</div><select data-k="dictStyle">
+        <option value="natural">Natural: limpo, com o seu jeito de falar</option><option value="formal">Formal: e-mails e documentos</option>
+        <option value="casual">Descontraído: chats e mensagens</option><option value="literal">Literal: só a transcrição, sem IA</option></select></div>
+      <div class="row"><div class="l">Vocabulário<small>Nomes, siglas e termos, separados por vírgula</small></div><input type="text" data-k="dictTerms" placeholder="Ex.: CopyPaste, Kubernetes, Dra. Ana Souza" style="width:260px"></div>
+    </div>
+    <div class="card" id="aicards"><h3>Conexões de IA</h3></div>
+    <p style="color:var(--muted);font-size:12px">Use a sua própria chave de API: o CopyPaste não tem servidor e não cobra nada. A chave fica só neste computador, e o áudio e o texto vão direto para a IA escolhida, cobrados na sua conta dela.</p>
+  </section>
+
   <section data-tab="historico">
     <h1>Histórico de cópias</h1>
     <p class="sub">Fica só no seu computador. Nada é enviado para a internet.</p>
@@ -132,6 +154,8 @@ function build() {
       <p style="margin:0">Código, novidades e downloads: <a href="#" id="repo">github.com/jonathansfp/copypaste</a></p>
     </div>
   </section>`;
+
+  renderAI();
 
   // valores
   $('#capdir').textContent = s.captureDir;
@@ -159,6 +183,74 @@ function build() {
   const notes = $('#notes');
   notes.innerHTML = data.notes.length ? data.notes.map(n => `• ${n.replace(/`([^`]+)`/g, '<kbd>$1</kbd>')}`).join('<br>') : `${icon('check', 16)} Tudo pronto. Dica: clique com o botão direito no ícone perto do relógio para ver o menu.`;
   renderErrors();
+}
+
+const PROVIDERS = [
+  ['claude', 'Claude (Anthropic)', 'https://platform.claude.com/settings/keys', 'sk-ant-…'],
+  ['openai', 'ChatGPT (OpenAI)', 'https://platform.openai.com/api-keys', 'sk-…'],
+  ['gemini', 'Gemini (Google)', 'https://aistudio.google.com/apikey', 'AIza…'],
+  ['deepseek', 'DeepSeek', 'https://platform.deepseek.com/api_keys', 'sk-…'],
+  ['grok', 'Grok (xAI)', 'https://console.x.ai', 'xai-…'],
+];
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const openUrl = url => T.opener ? T.opener.openUrl(url) : invoke('plugin:opener|open_url', { url });
+
+function renderAI() {
+  const connected = new Set(data.aiConnected || []);
+  const polish = $('#polish');
+  polish.innerHTML = `<option value="">Nenhuma (texto como foi transcrito)</option>` +
+    PROVIDERS.filter(([p]) => connected.has(p)).map(([p, n]) => `<option value="${p}">${n}</option>`).join('');
+  polish.value = connected.has(s.dictPolish) ? s.dictPolish : '';
+  polish.onchange = () => { s.dictPolish = polish.value; save(); };
+  const box = $('#aicards');
+  box.querySelectorAll('.row').forEach(r => r.remove());
+  for (const [p, n, url, ph] of PROVIDERS) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const voice = p === 'openai' || p === 'gemini' ? 'Texto e voz' : 'Texto';
+    if (connected.has(p)) {
+      const models = (s.aiModelLists || {})[p] || [];
+      const stt = (s.aiSttLists || {})[p] || [];
+      row.innerHTML = `<div class="l" style="min-width:150px"><b>${n}</b><small style="color:#16a34a">Conectado · ${voice.toLowerCase()}</small></div>
+        <select data-model="${p}" title="Modelo de texto">${models.map(m => `<option>${esc(m)}</option>`).join('')}</select>
+        ${stt.length ? `<select data-stt="${p}" title="Modelo de transcrição">${stt.map(m => `<option>${esc(m)}</option>`).join('')}</select>` : ''}
+        <button class="btn danger" data-remove="${p}">Remover</button>`;
+      const sel = row.querySelector('[data-model]');
+      sel.value = (s.aiModels || {})[p] || models[0] || '';
+      sel.onchange = () => { s.aiModels = { ...s.aiModels, [p]: sel.value }; save(); };
+      const ss = row.querySelector('[data-stt]');
+      if (ss) { ss.value = (s.aiSttModels || {})[p] || stt[0] || ''; ss.onchange = () => { s.aiSttModels = { ...s.aiSttModels, [p]: ss.value }; save(); }; }
+      row.querySelector('[data-remove]').onclick = async () => {
+        const ns = await invoke('ai_disconnect', { provider: p });
+        data.aiConnected = (data.aiConnected || []).filter(x => x !== p);
+        s.dictPolish = ns.dictPolish;
+        renderAI();
+      };
+    } else {
+      row.innerHTML = `<div class="l" style="min-width:150px"><b>${n}</b><small>${voice} · <a href="#" class="getkey">obter chave</a></small><span class="err"></span></div>
+        <input type="password" placeholder="${ph}" style="width:170px;min-width:0;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel)">
+        <button class="btn primary">Conectar</button>`;
+      const input = row.querySelector('input'), btn = row.querySelector('button'), err = row.querySelector('.err');
+      row.querySelector('.getkey').onclick = e => { e.preventDefault(); openUrl(url); };
+      const go = async () => {
+        if (!input.value.trim()) return;
+        btn.disabled = true; btn.textContent = 'Verificando…'; err.textContent = '';
+        try {
+          const ns = await invoke('ai_connect', { provider: p, key: input.value });
+          data.aiConnected = [...new Set([...(data.aiConnected || []), p])];
+          for (const k of ['aiModels', 'aiSttModels', 'aiModelLists', 'aiSttLists', 'dictPolish', 'dictEngine']) s[k] = ns[k];
+          document.querySelector('[data-k="dictEngine"]').value = s.dictEngine;
+          renderAI();
+        } catch (e) {
+          err.textContent = String(e);
+          btn.disabled = false; btn.textContent = 'Conectar';
+        }
+      };
+      btn.onclick = go;
+      input.onkeydown = e => { if (e.key === 'Enter') go(); };
+    }
+    box.append(row);
+  }
 }
 
 function renderErrors() {

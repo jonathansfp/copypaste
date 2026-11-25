@@ -4,7 +4,7 @@
 
 ### 100% gratuito · sem anúncios · sem cadastro · código aberto
 
-**Histórico de cópias, captura de tela com anotações, quadro de apresentação e gravação de tela.**
+**Histórico de cópias, captura de tela com anotações, quadro de apresentação, gravação de tela e ditado por voz com IA.**
 **Para macOS, Windows e Linux: leve, rápido, gratuito e sem nada rodando à toa.**
 
 ![Gratuito](https://img.shields.io/badge/pre%C3%A7o-100%25%20gratuito-15803d)
@@ -91,6 +91,8 @@ copypaste/
 | Copiar texto da imagem (OCR) | ✅ Vision | ✅ OCR do Windows | ✅ Tesseract |
 | Quadro de apresentação estilo Excalidraw + laser | ✅ | ✅ | ✅ |
 | Gravação de tela MP4 + microfone + áudio do sistema | ✅ | ✅ (ffmpeg) | ✅ (ffmpeg) |
+| Ditado por voz com a sua IA (Claude, GPT, Gemini, DeepSeek, Grok) | ✅ (transcrição da Apple, grátis, ou OpenAI/Gemini) | ✅ (OpenAI/Gemini) | ✅ (OpenAI/Gemini) |
+| Comando de voz sobre o texto selecionado | ✅ | ✅ | ✅ (X11: xdotool · Wayland: wtype/ydotool) |
 | Atalhos globais configuráveis | ✅ | ✅ | ✅ (Wayland: atalho do sistema → `copypaste --capture-area`) |
 
 Detalhes de cada sistema: [`macos/`](macos/README.md) · [`windows/`](windows/README.md) · [`linux/`](linux/README.md) · [`core/`](core/README.md).
@@ -109,6 +111,7 @@ Detalhes de cada sistema: [`macos/`](macos/README.md) · [`windows/`](windows/RE
   - [Captura de tela](#-captura-de-tela)
   - [Modo apresentação (quadro)](#-modo-apresentação-quadro)
   - [Gravação de tela](#-gravação-de-tela)
+  - [Ditado por voz com IA](#️-ditado-por-voz-com-ia)
 - [Atalhos](#atalhos)
 - [Windows e Linux](#-windows-e-linux)
 - [Instalação no Mac](#instalação-no-mac)
@@ -244,6 +247,20 @@ Desenhe **por cima de qualquer coisa na tela** durante uma reunião, aula ou gra
 
 > A gravação requer **macOS 15** ou mais recente. As demais funções rodam a partir do macOS 14.
 
+### 🎙️ Ditado por voz com IA
+
+Fale em vez de digitar, **em qualquer app**: segure o atalho, fale e solte. O texto aparece onde está o cursor, já **sem "é", "hã", "tipo", com pontuação, acentos e listas**, e com as suas autocorreções aplicadas ("às três, não, quer dizer, às quatro" vira "às quatro").
+
+- **Segure e fale** (`⌥Espaço` no Mac, `Ctrl+Shift+Espaço` no Windows e no Linux), ou **toque uma vez** para ficar ouvindo e toque de novo para terminar. `Esc` ou o ✕ cancela.
+- **Comando de voz** (`⌥⇧Espaço` / `Ctrl+Alt+Espaço`): selecione um texto e diga o que fazer, como "traduza para inglês", "deixe mais formal" ou "resuma em três tópicos". O resultado substitui a seleção. Sem seleção, a IA escreve o que você pedir.
+- **Use a sua própria IA.** Conecte a sua chave de API em **Configurações**: **Claude** (Anthropic), **ChatGPT** (OpenAI), **Gemini** (Google), **DeepSeek** ou **Grok** (xAI). Escolha o modelo de cada uma; o app já sugere um rápido.
+- **Transcrição:** no Mac, a da **Apple**, grátis e no próprio computador, ou a da **OpenAI** ou do **Gemini** (mais precisas, com a sua chave). No Windows e no Linux, OpenAI ou Gemini.
+- **Estilos:** natural, formal (e-mails), descontraído (chats) ou literal (só a transcrição, sem IA). No Mac, o tom se adapta ao app em uso.
+- **Vocabulário:** cadastre nomes, siglas e termos técnicos para saírem com a grafia certa.
+- Uma pílula discreta na parte de baixo da tela mostra o nível da voz e o andamento, e **não aparece em capturas nem gravações**.
+
+> 🔑 **Sem servidor e sem mensalidade:** o CopyPaste não cobra nada pela IA. A chave fica no **Porta-chaves** do Mac (no Windows e no Linux, num arquivo só seu na pasta de configurações), e o áudio e o texto vão direto do seu computador para a IA escolhida, cobrados na sua conta dela, normalmente centavos por mês.
+
 ---
 
 ## Atalhos
@@ -259,6 +276,8 @@ Em **Configurações › Atalhos globais**: clique no atalho e pressione a nova 
 | Capturar tela inteira | `⇧⌘2` |
 | Modo apresentação (quadro) | `⌥⇧⌘D` |
 | Gravar tela (iniciar / parar) | `⌥⇧⌘R` |
+| Ditado por voz (segure ou toque) | `⌥Espaço` |
+| Comando de voz sobre o texto selecionado | `⌥⇧Espaço` |
 
 > 💡 **Vindo do Lightshot?** Defina a captura de área como `F13`, a mesma tecla dele.
 > ⚠️ Atalhos globais valem em **todos** os apps. Evite combinações como `⌘G` ou `⌘F`, que tirariam o "Buscar" dos outros programas.
@@ -307,6 +326,8 @@ Os mesmos recursos, com a mesma ideia de qualidade: a tela congela no instante d
 | `Shift` `PrtSc` | Capturar a tela inteira |
 | `Ctrl` `Shift` `D` | Modo apresentação (quadro) |
 | `Ctrl` `Shift` `R` | Gravar a tela (de novo para parar) |
+| `Ctrl` `Shift` `Espaço` | Ditado por voz (segure e fale, ou toque) |
+| `Ctrl` `Alt` `Espaço` | Comando de voz sobre o texto selecionado |
 
 > **Windows 11:** se o `PrtSc` abrir a Ferramenta de Captura do sistema, desligue em *Configurações › Acessibilidade › Teclado › "Usar a tecla Print Screen para abrir a captura de tela"*, ou escolha outro atalho.
 
@@ -356,7 +377,8 @@ O CopyPaste fica **só na barra de menus**, sem ícone no Dock. Na primeira exec
 |---|---|---|
 | **Acessibilidade** | Colar automaticamente onde está o cursor | Ajustes › Privacidade e Segurança › Acessibilidade |
 | **Gravação de Tela e Áudio do Sistema** | Capturar e gravar a tela | Ajustes › Privacidade e Segurança › Gravação de Tela |
-| **Microfone** | Gravar a sua voz junto com a tela | O macOS pede na primeira gravação |
+| **Microfone** | Ditado por voz e gravar a sua voz junto com a tela | O macOS pede no primeiro uso |
+| **Reconhecimento de Fala** | Transcrição da Apple no próprio Mac (ditado) | O macOS pede no primeiro ditado |
 
 O status de cada permissão aparece em **Configurações**, com botões que levam direto ao lugar certo.
 
@@ -443,7 +465,8 @@ macos/Sources/CopyPaste/
 
 ## Privacidade
 
-- **Nada sai do seu Mac.** Não há rede, telemetria nem conta. O OCR roda localmente pelo Vision.
+- **Nada sai do seu Mac.** Não há telemetria nem conta. O OCR roda localmente pelo Vision.
+- **Ditado por voz:** com a transcrição da Apple e sem IA conectada, tudo fica no Mac. Ao conectar uma IA, só o áudio do ditado e o texto vão, direto do seu Mac, para o provedor que **você** escolheu, com a **sua** chave. Não há servidor do CopyPaste no meio.
 - O histórico fica em `~/Library/Application Support/CopyPaste/`.
 - Conteúdo marcado como confidencial por gerenciadores de senha **nunca é salvo**.
 - A única ação que abre algo na internet é **Pesquisar no Google Lens**, e só quando você clica: ela abre o navegador e a imagem fica copiada para você colar.
