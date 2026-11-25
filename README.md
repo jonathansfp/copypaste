@@ -2,9 +2,12 @@
 
 # 📋 CopyPaste
 
+### 100% gratuito · sem anúncios · sem cadastro · código aberto
+
 **Histórico de cópias, captura de tela com anotações, quadro de apresentação e gravação de tela.**
 **Para macOS, Windows e Linux: leve, rápido, gratuito e sem nada rodando à toa.**
 
+![Gratuito](https://img.shields.io/badge/pre%C3%A7o-100%25%20gratuito-15803d)
 ![macOS](https://img.shields.io/badge/macOS-14%2B-000?logo=apple&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white)
 ![Linux](https://img.shields.io/badge/Linux-X11%20%7C%20Wayland-FCC624?logo=linux&logoColor=black)
