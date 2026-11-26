@@ -205,7 +205,8 @@ enum AIClient {
             let undated = sorted.filter { $0.hasPrefix("gpt-") && $0.range(of: #"\d{4}-\d{2}-\d{2}"#, options: .regularExpression) == nil }
             return undated.first { $0.hasSuffix("-mini") } ?? undated.first ?? sorted.first
         case .gemini:
-            // "gemini-flash-latest" always points to the current Flash; otherwise the newest stable Flash.
+            // Flash-Lite is the fastest and is plenty for cleaning up dictated text; the "latest" aliases follow new releases.
+            if let alias = ids.first(where: { $0 == "gemini-flash-lite-latest" }) { return alias }
             if let alias = ids.first(where: { $0 == "gemini-flash-latest" }) { return alias }
             let byVersion = ids.sorted { version($0) > version($1) }
             let stable = byVersion.filter { !$0.contains("preview") && !$0.contains("exp") && !$0.contains("lite") && !$0.contains("latest") }
@@ -271,12 +272,16 @@ enum AIClient {
             return try nonEmpty(text, p)
         case .gemini:
             let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
-            func request(separateSystem: Bool) throws -> URLRequest {
+            func request(separateSystem: Bool, thinking: Bool = true) throws -> URLRequest {
                 var r = URLRequest(url: url)
                 r.httpMethod = "POST"
+                r.timeoutInterval = 30
                 r.setValue("application/json", forHTTPHeaderField: "content-type")
                 r.setValue(key, forHTTPHeaderField: "x-goog-api-key")
-                var body: [String: Any] = ["generationConfig": ["temperature": 0.2]]
+                var config: [String: Any] = ["temperature": 0.2]
+                // Cleaning up dictation needs no "thinking": it only makes the answer slow.
+                if thinking { config["thinkingConfig"] = geminiThinkingOff(model) }
+                var body: [String: Any] = ["generationConfig": config]
                 if separateSystem {
                     body["systemInstruction"] = ["parts": [["text": system]]]
                     body["contents"] = [["role": "user", "parts": [["text": user]]]]
@@ -286,12 +291,17 @@ enum AIClient {
                 r.httpBody = try JSONSerialization.data(withJSONObject: body)
                 return r
             }
-            do {
-                return try nonEmpty(geminiText(try await send(try request(separateSystem: true), p)), p)
-            } catch let e as AIError where e.message.localizedCaseInsensitiveContains("instruction") {
-                // Some models (Gemma, transcription models) take no system instruction: send it inline.
-                return try nonEmpty(geminiText(try await send(try request(separateSystem: false), p)), p)
+            var separate = true, thinking = true
+            for _ in 0..<3 {
+                do {
+                    return try nonEmpty(geminiText(try await send(try request(separateSystem: separate, thinking: thinking), p)), p)
+                } catch let e as AIError where thinking && e.message.localizedCaseInsensitiveContains("thinking") {
+                    thinking = false // the model does not take this thinking setting
+                } catch let e as AIError where separate && e.message.localizedCaseInsensitiveContains("instruction") {
+                    separate = false // some models (Gemma, transcription) take no system instruction: send it inline
+                }
             }
+            return try nonEmpty(geminiText(try await send(try request(separateSystem: false, thinking: false), p)), p)
         case .local:
             let base = try await LocalAI.shared.ensureRunning()
             var r = URLRequest(url: base.appendingPathComponent("chat/completions"))
@@ -313,12 +323,24 @@ enum AIClient {
             r.httpMethod = "POST"
             r.setValue("application/json", forHTTPHeaderField: "content-type")
             r.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
-            let body: [String: Any] = [
+            r.timeoutInterval = 30
+            var body: [String: Any] = [
                 "model": model,
                 "messages": [["role": "system", "content": system], ["role": "user", "content": user]],
             ]
+            // Reasoning models: as little reasoning as possible, so dictation stays fast.
+            if p == .openai, model.hasPrefix("gpt-5") || model.hasPrefix("o") {
+                body["reasoning_effort"] = model.hasPrefix("gpt-5") ? "minimal" : "low"
+            }
             r.httpBody = try JSONSerialization.data(withJSONObject: body)
-            let json = try await send(r, p)
+            let json: [String: Any]
+            do {
+                json = try await send(r, p)
+            } catch let e as AIError where body["reasoning_effort"] != nil && e.message.localizedCaseInsensitiveContains("reasoning") {
+                body["reasoning_effort"] = nil
+                r.httpBody = try JSONSerialization.data(withJSONObject: body)
+                json = try await send(r, p)
+            }
             let msg = ((json["choices"] as? [[String: Any]])?.first?["message"] as? [String: Any])
             return try nonEmpty(msg?["content"] as? String ?? "", p)
         }
@@ -385,6 +407,14 @@ enum AIClient {
     }
 
     // MARK: Helpers
+
+    /// The lowest thinking setting each Gemini generation accepts.
+    private static func geminiThinkingOff(_ model: String) -> [String: Any] {
+        if model.contains("2.5") || model.contains("2.0") {
+            return ["thinkingBudget": model.contains("pro") ? 128 : 0]
+        }
+        return ["thinkingLevel": "minimal"]
+    }
 
     private static func geminiText(_ json: [String: Any]) -> String {
         let parts = (((json["candidates"] as? [[String: Any]])?.first?["content"] as? [String: Any])?["parts"] as? [[String: Any]]) ?? []

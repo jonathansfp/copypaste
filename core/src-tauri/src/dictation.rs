@@ -341,8 +341,10 @@ fn process(app: &AppHandle, cfg: &Config, mode: Mode, wav: &[u8]) -> Result<Opti
     });
     let lang = if cfg.language == "auto" { None } else { Some(cfg.language.chars().take(2).collect::<String>()) };
     let terms: Vec<&str> = cfg.terms.split([',', ';', '\n']).map(str::trim).filter(|t| !t.is_empty()).collect();
+    let t0 = std::time::Instant::now();
     let raw = ai::transcribe(&cfg.engine, key, &stt, wav, lang.as_deref(), &terms.join(", "))?;
     let raw = raw.trim().to_string();
+    crate::diag(app, &format!("ditado: transcrição ({}) em {:.1} s, {} caracteres", cfg.engine, t0.elapsed().as_secs_f32(), raw.chars().count()));
     if raw.is_empty() {
         return Ok(None);
     }
@@ -372,7 +374,7 @@ fn process(app: &AppHandle, cfg: &Config, mode: Mode, wav: &[u8]) -> Result<Opti
         } else {
             user.push_str(&format!("Texto selecionado:\n<texto>\n{selected}\n</texto>"));
         }
-        let out = ai::complete(&p, &k, &model, &command_prompt(), &user)?;
+        let out = ai::complete(&p, &k, &model, &command_prompt(), &user, if p == "local" { 90 } else { 45 })?;
         return Ok(Some(strip(&out)));
     }
     let Some(p) = polish.filter(|_| cfg.style != "literal") else { return Ok(Some(raw)) };
@@ -385,7 +387,12 @@ fn process(app: &AppHandle, cfg: &Config, mode: Mode, wav: &[u8]) -> Result<Opti
             return Ok(Some(raw));
         }
     };
-    match ai::complete(&p, &k, &model, &cleanup_prompt(&cfg.style, &terms), &format!("<transcricao>\n{raw}\n</transcricao>")) {
+    // A slow answer is worse than no cleanup: past the limit the raw text is pasted.
+    let limit = if p == "local" { 40 } else { 15 };
+    let t1 = std::time::Instant::now();
+    let res = ai::complete(&p, &k, &model, &cleanup_prompt(&cfg.style, &terms), &format!("<transcricao>\n{raw}\n</transcricao>"), limit);
+    crate::diag(app, &format!("ditado: ajuste ({p}, {model}) em {:.1} s{}", t1.elapsed().as_secs_f32(), if res.is_ok() { "" } else { ", falhou" }));
+    match res {
         Ok(out) => Ok(Some(strip(&out))),
         Err(e) => {
             // The words were captured: better to paste them unpolished than lose them.

@@ -28,6 +28,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         HotKeyManager.shared.registerFromSettings()
         setupStatusItem()
         UpdateChecker.start()
+        // `--testar-ia-local [arquivo.wav]`: checks the local AI and writes the result to the diagnostics log.
+        let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--testar-ia-local") {
+            let wav = i + 1 < args.count ? URL(fileURLWithPath: args[i + 1]) : nil
+            Task { await LocalAI.shared.selfTest(wav: wav) }
+        }
         ScreenRecorder.shared.$isRecording
             .receive(on: RunLoop.main)
             .sink { [weak self] on in self?.updateRecordingIndicator(on) }

@@ -198,6 +198,7 @@ const PROVIDERS = [
 ];
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const openUrl = url => T.opener ? T.opener.openUrl(url) : invoke('plugin:opener|open_url', { url });
+document.addEventListener('click', e => { const a = e.target.closest('a[href^="mailto:"]'); if (a) { e.preventDefault(); openUrl(a.getAttribute('href')); } });
 
 const gb = b => (b / 1e9).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' GB';
 

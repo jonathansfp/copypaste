@@ -148,7 +148,9 @@ final class DictationController: ObservableObject {
         work = Task { [weak self] in
             guard let self else { return }
             do {
+                let t0 = Date()
                 let raw = try await self.transcribe(rec)
+                Diag.log(String(format: "ditado: transcrição (%@) em %.1f s, %d caracteres", self.settings.engine.rawValue, Date().timeIntervalSince(t0), raw.count))
                 rec.discard()
                 try Task.checkCancellation()
                 let clean = raw.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -227,11 +229,18 @@ final class DictationController: ObservableObject {
         guard settings.style != .literal, let (p, key, model) = aiConfig() else { return text }
         phase = .processing("Ajustando com \(p.shortName)…")
         let system = DictationPrompts.cleanup(style: settings.style, app: appContext(target), terms: settings.termList)
+        let t0 = Date()
         do {
-            let out = try await AIClient.complete(p, key: key, model: model, system: system,
-                                                  user: "<transcricao>\n\(text)\n</transcricao>")
+            // Dictation must feel instant: a slow AI never holds the text hostage.
+            let limit: Double = p == .local ? (LocalAI.shared.running ? 25 : 60) : 15
+            let user = "<transcricao>\n\(text)\n</transcricao>"
+            let out = try await withTimeout(limit, name: p.shortName) {
+                try await AIClient.complete(p, key: key, model: model, system: system, user: user)
+            }
+            Diag.log(String(format: "ditado: ajuste (%@ %@) em %.1f s", p.rawValue, model, Date().timeIntervalSince(t0)))
             return DictationPrompts.stripWrappers(out)
         } catch {
+            Diag.log(String(format: "ditado: ajuste (%@ %@) falhou em %.1f s: %@", p.rawValue, model, Date().timeIntervalSince(t0), "\(error)"))
             // The words were captured; better to paste them raw than lose them.
             Toast.show("\(error.localizedDescription) Colei o texto sem ajuste.", symbol: "exclamationmark.triangle", duration: 3.5)
             return text
@@ -295,6 +304,20 @@ final class DictationController: ObservableObject {
             return false
         }
         return true
+    }
+}
+
+/// Runs `op`, failing with a clear message if it takes longer than `seconds`.
+func withTimeout<T: Sendable>(_ seconds: Double, name: String, _ op: @escaping @Sendable () async throws -> T) async throws -> T {
+    try await withThrowingTaskGroup(of: T.self) { g in
+        g.addTask { try await op() }
+        g.addTask {
+            try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            throw AIError(message: "\(name) demorou mais de \(Int(seconds)) s para responder.")
+        }
+        defer { g.cancelAll() }
+        guard let r = try await g.next() else { throw CancellationError() }
+        return r
     }
 }
 

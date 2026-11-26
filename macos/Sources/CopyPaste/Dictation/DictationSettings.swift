@@ -107,6 +107,12 @@ final class DictationSettings: ObservableObject {
                 if let better = AIClient.preferredChatModel(p, from: chatModels[p] ?? []) { d.set(better, forKey: "ai.model.\(p.rawValue)") }
             }
         }
+        // 1.3.0 picked gemini-flash-latest automatically; Flash-Lite answers much faster for dictation.
+        if !d.bool(forKey: "ai.migrated.geminiLite"), model(for: .gemini) == "gemini-flash-latest",
+           chatModels[.gemini]?.contains("gemini-flash-lite-latest") == true {
+            d.set("gemini-flash-lite-latest", forKey: "ai.model.gemini")
+        }
+        d.set(true, forKey: "ai.migrated.geminiLite")
         chatModels[.local] = [LocalAI.modelName]
         sttModels[.local] = [LocalAI.modelName]
     }

@@ -188,8 +188,19 @@ private struct LocalAIRow: View {
             case .failed(let msg):
                 Text(msg).font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
             case .installed:
-                Text("Usando \(Self.gb(local.diskUsage)) em ~/Library/Application Support/CopyPaste/IA local")
-                    .font(.caption).foregroundStyle(.secondary)
+                HStack {
+                    Text("Usando \(Self.gb(local.diskUsage)) em ~/Library/Application Support/CopyPaste/IA local")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    if local.testing {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        Button("Testar") { Task { await local.selfTest() } }.font(.caption)
+                    }
+                }
+                if let r = local.testResult {
+                    Text(r).font(.caption).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                }
             case .notInstalled:
                 EmptyView()
             }

@@ -114,6 +114,8 @@ final class LocalAI: ObservableObject {
 
     func install() {
         guard downloadTask == nil else { return }
+        state = .downloading(0, "Preparando…")
+        Diag.log("IA local: instalação iniciada")
         downloadTask = Task { [weak self] in
             guard let self else { return }
             do {
@@ -190,6 +192,42 @@ final class LocalAI: ObservableObject {
             hasher.update(data: chunk)
         }
         return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+    }
+
+    // MARK: Self-test
+
+    @Published private(set) var testResult: String?
+    @Published private(set) var testing = false
+
+    /// Loads the model, cleans up a sample dictation (and transcribes `wav`, if given), timing each step.
+    @discardableResult
+    func selfTest(wav: URL? = nil) async -> String {
+        testing = true
+        testResult = nil
+        defer { testing = false }
+        var lines: [String] = []
+        do {
+            var t = Date()
+            _ = try await ensureRunning()
+            lines.append(String(format: "Modelo carregado em %.1f s", Date().timeIntervalSince(t)))
+            if let wav {
+                t = Date()
+                let text = try await AIClient.transcribe(.local, key: "local", model: Self.modelName, wav: wav, language: "pt", hint: "")
+                lines.append(String(format: "Transcrição em %.1f s: \"%@\"", Date().timeIntervalSince(t), text))
+            }
+            t = Date()
+            let sample = "é então tipo amanhã a gente se fala às três não quer dizer às quatro e aí vírgula leva o relatório né"
+            let out = try await AIClient.complete(.local, key: "local", model: Self.modelName,
+                                                  system: DictationPrompts.cleanup(style: .natural, app: nil, terms: []),
+                                                  user: "<transcricao>\n\(sample)\n</transcricao>")
+            lines.append(String(format: "Ajuste do texto em %.1f s: \"%@\"", Date().timeIntervalSince(t), DictationPrompts.stripWrappers(out)))
+        } catch {
+            lines.append("Falhou: \(error.localizedDescription)")
+        }
+        let report = lines.joined(separator: "\n")
+        Diag.log("IA local, teste:\n\(report)")
+        testResult = report
+        return report
     }
 
     // MARK: Server

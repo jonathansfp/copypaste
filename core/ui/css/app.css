@@ -110,3 +110,6 @@ kbd {
   border-bottom-width: 2px; background: var(--panel); font: 600 12px var(--font); text-align: center;
 }
 .kind { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; flex: none; background: var(--bg); color: var(--muted); }
+
+.credit { font-size: 11px; line-height: 1.4; color: var(--muted); padding: 0 10px 16px; margin-top: -10px; }
+.credit a { color: inherit; }

@@ -14,6 +14,17 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            Section {
+                HStack(spacing: 12) {
+                    Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 40, height: 40)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("CopyPaste \(UpdateChecker.current)").font(.headline)
+                        Text("Desenvolvido por Jonathan Felix · gratuito e de código aberto").font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Link("jonathansfp@gmail.com", destination: URL(string: "mailto:jonathansfp@gmail.com")!).font(.caption)
+                }
+            }
             Section("Geral") {
                 Toggle("Abrir ao ligar o Mac", isOn: $settings.launchAtLogin)
                     .onChange(of: settings.launchAtLogin) { _, _ in

@@ -125,6 +125,7 @@ fn read(p: &str, r: Result<ureq::Response, ureq::Error>) -> Result<Value, String
     match r {
         Ok(resp) => resp.into_json::<Value>().map_err(|e| format!("{}: resposta inválida ({e})", name(p))),
         Err(ureq::Error::Status(code, resp)) => Err(friendly(p, code, &resp.into_string().unwrap_or_default())),
+        Err(e) if e.to_string().to_lowercase().contains("timed out") => Err(format!("{} demorou demais para responder.", name(p))),
         Err(e) => Err(format!("Sem conexão com {}: {e}", name(p))),
     }
 }
@@ -233,9 +234,11 @@ pub fn preferred_chat(p: &str, all: &[String]) -> Option<String> {
     }
     let ids: Vec<String> = all.iter().filter(|m| is_text_model(m)).cloned().collect();
     if p == "gemini" {
-        // "gemini-flash-latest" always points to the current Flash; otherwise the newest stable Flash.
-        if ids.iter().any(|m| m == "gemini-flash-latest") {
-            return Some("gemini-flash-latest".into());
+        // Flash-Lite answers fastest, which is what dictation needs; then the current Flash.
+        for m in ["gemini-flash-lite-latest", "gemini-flash-latest"] {
+            if ids.iter().any(|x| x == m) {
+                return Some(m.into());
+            }
         }
         let mut v = ids.clone();
         v.sort_by(|a, b| version(b).partial_cmp(&version(a)).unwrap_or(std::cmp::Ordering::Equal));
@@ -284,8 +287,9 @@ pub fn preferred_stt(p: &str, ids: &[String]) -> Option<String> {
 // ───────────────────────────── Text ─────────────────────────────
 
 /// For "local", `key` is the base URL of the local server (`local::ensure_running`).
-pub fn complete(p: &str, key: &str, model: &str, system: &str, user: &str) -> Result<String, String> {
-    let a = agent();
+/// `limit_s` caps how long one request may take, so dictation never hangs on a slow answer.
+pub fn complete(p: &str, key: &str, model: &str, system: &str, user: &str, limit_s: u64) -> Result<String, String> {
+    let a = agent_builder().timeout_connect(Duration::from_secs(10)).timeout(Duration::from_secs(limit_s)).build();
     match p {
         "local" => {
             let body = json!({
@@ -330,24 +334,43 @@ pub fn complete(p: &str, key: &str, model: &str, system: &str, user: &str) -> Re
         }
         "gemini" => {
             let url = format!("https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent");
-            let body = json!({
-                "system_instruction": {"parts": [{"text": system}]},
-                "contents": [{"role": "user", "parts": [{"text": user}]}],
-                "generationConfig": {"temperature": 0.2},
-            });
-            match send(p, || a.post(&url).set("x-goog-api-key", key).send_json(body.clone())) {
-                Ok(v) => Ok(gemini_text(&v)),
-                // Some models (Gemma, transcription models) take no system instruction: send it inline.
-                Err(e) if e.to_lowercase().contains("instruction") => {
-                    let inline = json!({
+            // Thinking makes Flash take many seconds for a one-line cleanup: turn it down, and drop
+            // the setting if the model rejects it. Some models (Gemma, transcription) take no system
+            // instruction: send it inline then.
+            let (mut separate, mut thinking) = (true, true);
+            let mut last = String::new();
+            for _ in 0..3 {
+                let mut body = if separate {
+                    json!({
+                        "system_instruction": {"parts": [{"text": system}]},
+                        "contents": [{"role": "user", "parts": [{"text": user}]}],
+                        "generationConfig": {"temperature": 0.2},
+                    })
+                } else {
+                    json!({
                         "contents": [{"role": "user", "parts": [{"text": format!("{system}\n\n{user}")}]}],
                         "generationConfig": {"temperature": 0.2},
-                    });
-                    let v = send(p, || a.post(&url).set("x-goog-api-key", key).send_json(inline.clone()))?;
-                    Ok(gemini_text(&v))
+                    })
+                };
+                if thinking {
+                    body["generationConfig"]["thinkingConfig"] = gemini_thinking_off(model);
                 }
-                Err(e) => Err(e),
+                match send(p, || a.post(&url).set("x-goog-api-key", key).send_json(body.clone())) {
+                    Ok(v) => return Ok(gemini_text(&v)),
+                    Err(e) => {
+                        let low = e.to_lowercase();
+                        if thinking && low.contains("thinking") {
+                            thinking = false;
+                        } else if separate && low.contains("instruction") {
+                            separate = false;
+                        } else {
+                            return Err(e);
+                        }
+                        last = e;
+                    }
+                }
             }
+            Err(last)
         }
         _ => {
             let base = chat_base(p).ok_or("provedor desconhecido")?;
@@ -359,10 +382,29 @@ pub fn complete(p: &str, key: &str, model: &str, system: &str, user: &str) -> Re
             let reasoning = model.starts_with('o') || model.starts_with("gpt-5") || model.contains("reasoner");
             if !reasoning {
                 body["temperature"] = json!(0.2);
+            } else if p == "openai" {
+                // Little reasoning keeps the answer quick; retried without it if the model refuses.
+                body["reasoning_effort"] = json!(if model.starts_with("gpt-5") { "minimal" } else { "low" });
             }
-            let v = send(p, || a.post(&format!("{base}/chat/completions")).set("Authorization", &format!("Bearer {key}")).send_json(body.clone()))?;
+            let url = format!("{base}/chat/completions");
+            let auth = format!("Bearer {key}");
+            let v = match send(p, || a.post(&url).set("Authorization", &auth).send_json(body.clone())) {
+                Err(e) if body.get("reasoning_effort").is_some() && e.to_lowercase().contains("reasoning") => {
+                    body.as_object_mut().unwrap().remove("reasoning_effort");
+                    send(p, || a.post(&url).set("Authorization", &auth).send_json(body.clone()))?
+                }
+                r => r?,
+            };
             Ok(v.pointer("/choices/0/message/content").and_then(|c| c.as_str()).unwrap_or("").to_string())
         }
+    }
+}
+
+fn gemini_thinking_off(model: &str) -> Value {
+    if model.contains("2.5") || model.contains("2.0") {
+        json!({"thinkingBudget": if model.contains("pro") { 128 } else { 0 }})
+    } else {
+        json!({"thinkingLevel": "minimal"})
     }
 }
 

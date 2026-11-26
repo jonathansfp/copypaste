@@ -4,6 +4,8 @@
 
 ### 100% gratuito · sem anúncios · sem cadastro · código aberto
 
+Desenvolvido por **Jonathan Felix** · contato: [jonathansfp@gmail.com](mailto:jonathansfp@gmail.com)
+
 **Histórico de cópias, captura de tela com anotações, quadro de apresentação, gravação de tela e ditado por voz com IA.**
 **Para macOS, Windows e Linux: leve, rápido, gratuito e sem nada rodando à toa.**
 
