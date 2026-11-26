@@ -327,7 +327,7 @@ Os mesmos recursos, com a mesma ideia de qualidade: a tela congela no instante d
 
 | Atalho | Ação |
 |---|---|
-| `Ctrl` `Shift` `V` | Histórico de cópias |
+| `Win` `Alt` `V` | Histórico de cópias (no Windows; no Linux, `Ctrl` `Shift` `V`) |
 | `PrtSc` | Capturar área ou janela (como o Lightshot) |
 | `Shift` `PrtSc` | Capturar a tela inteira |
 | `Ctrl` `Shift` `D` | Modo apresentação (quadro) |

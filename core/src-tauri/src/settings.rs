@@ -7,6 +7,8 @@ pub const ACTIONS: [&str; 7] = ["clipboard", "captureArea", "captureScreen", "bo
 
 pub fn default_hotkey(action: &str) -> &'static str {
     match action {
+        // On Windows, Ctrl+Shift+V is "paste as plain text" in many apps; Win+Alt+V is free.
+        "clipboard" if cfg!(windows) => "Super+Alt+V",
         "clipboard" => "Ctrl+Shift+V",
         "captureArea" => "PrintScreen",
         "captureScreen" => "Shift+PrintScreen",
@@ -44,6 +46,8 @@ pub struct Settings {
     pub first_run_done: bool,
     /// The manual ("Como usar") was opened once by itself.
     pub manual_shown: bool,
+    /// The Windows history shortcut moved from Ctrl+Shift+V to Win+Alt+V (done once).
+    pub clipboard_key_moved: bool,
     /// Who transcribes the voice: "openai" or "gemini".
     pub dict_engine: String,
     /// "pt-BR", "en-US"… or "auto".
@@ -92,6 +96,7 @@ impl Default for Settings {
             autostart: true,
             first_run_done: false,
             manual_shown: false,
+            clipboard_key_moved: false,
             dict_engine: "local".into(),
             // A fresh install dictates in the system's language; a saved choice is kept.
             dict_language: crate::i18n::default_dict_language(),
@@ -150,6 +155,13 @@ impl Settings {
         }
         for list in s.ai_model_lists.values_mut() {
             list.retain(|m| crate::ai::is_text_model(m));
+        }
+        if cfg!(windows) && !s.clipboard_key_moved {
+            if s.hotkeys.get("clipboard").map(|k| k == "Ctrl+Shift+V").unwrap_or(false) {
+                s.hotkeys.insert("clipboard".into(), default_hotkey("clipboard").into());
+            }
+            s.clipboard_key_moved = true;
+            s.save(path);
         }
         s.record_fps = s.record_fps.clamp(10, 60);
         s.history_limit = s.history_limit.clamp(20, 5000);

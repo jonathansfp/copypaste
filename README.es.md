@@ -327,7 +327,7 @@ Las mismas funciones, con la misma idea de calidad: la pantalla se congela en el
 
 | Atajo | Acción |
 |---|---|
-| `Ctrl` `Shift` `V` | Historial del portapapeles |
+| `Win` `Alt` `V` | Historial del portapapeles (en Windows; en Linux, `Ctrl` `Shift` `V`) |
 | `PrtSc` | Capturar área o ventana (como Lightshot) |
 | `Shift` `PrtSc` | Capturar la pantalla completa |
 | `Ctrl` `Shift` `D` | Modo presentación (pizarra) |

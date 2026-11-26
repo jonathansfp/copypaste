@@ -327,7 +327,7 @@ The same features, with the same focus on quality: the screen freezes the moment
 
 | Shortcut | Action |
 |---|---|
-| `Ctrl` `Shift` `V` | Clipboard history |
+| `Win` `Alt` `V` | Clipboard history (on Windows; on Linux, `Ctrl` `Shift` `V`) |
 | `PrtSc` | Capture area or window (like Lightshot) |
 | `Shift` `PrtSc` | Capture the full screen |
 | `Ctrl` `Shift` `D` | Presentation mode (board) |

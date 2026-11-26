@@ -27,39 +27,101 @@ pub struct AudioInputs {
 /// Adjusts the process environment before the window system starts.
 pub fn prepare_env() {}
 
-/// Saves the window in front (before showing the history panel).
+/// Saves the window in front (before showing the history panel). Our own windows and the taskbar
+/// (opening from the tray icon) are skipped, so the paste goes back to the app the person was using.
 pub fn remember_foreground() {
     #[cfg(windows)]
     unsafe {
-        let h = windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow();
+        use windows::Win32::UI::WindowsAndMessaging::{GetClassNameW, GetForegroundWindow, GetWindowThreadProcessId};
+        let h = GetForegroundWindow();
+        if h.0.is_null() {
+            return;
+        }
+        let mut pid = 0u32;
+        GetWindowThreadProcessId(h, Some(&mut pid));
+        if pid == std::process::id() {
+            return;
+        }
+        let mut buf = [0u16; 64];
+        let n = GetClassNameW(h, &mut buf).max(0) as usize;
+        let class = String::from_utf16_lossy(&buf[..n]);
+        if ["Shell_TrayWnd", "Shell_SecondaryTrayWnd", "NotifyIconOverflowWindow", "TopLevelWindowForOverflowXamlIsland"].contains(&class.as_str()) {
+            return;
+        }
         PREVIOUS.store(h.0 as isize, Ordering::SeqCst);
     }
+}
+
+#[cfg(windows)]
+unsafe fn key_input(vk: windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY, up: bool) -> windows::Win32::UI::Input::KeyboardAndMouse::INPUT {
+    use windows::Win32::UI::Input::KeyboardAndMouse::*;
+    // Scan code too: some apps (games, remote desktops, Electron) ignore virtual-key-only input.
+    let scan = MapVirtualKeyW(vk.0 as u32, MAPVK_VK_TO_VSC) as u16;
+    INPUT {
+        r#type: INPUT_KEYBOARD,
+        Anonymous: INPUT_0 {
+            ki: KEYBDINPUT { wVk: vk, wScan: scan, dwFlags: if up { KEYEVENTF_KEYUP } else { KEYBD_EVENT_FLAGS(0) }, time: 0, dwExtraInfo: 0 },
+        },
+    }
+}
+
+/// Sends `ctrl + letter`, first releasing modifiers that are still held (from the shortcut).
+#[cfg(windows)]
+unsafe fn send_ctrl(letter: windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY) -> bool {
+    use windows::Win32::UI::Input::KeyboardAndMouse::*;
+    // Give the person a moment to let go of the keys; then release whatever is still down.
+    for _ in 0..40 {
+        if [VK_SHIFT, VK_MENU, VK_LWIN, VK_RWIN].iter().all(|k| (GetAsyncKeyState(k.0 as i32) as u16) & 0x8000 == 0) {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+    let mut inputs = vec![];
+    for k in [VK_SHIFT, VK_MENU, VK_LWIN, VK_RWIN] {
+        if (GetAsyncKeyState(k.0 as i32) as u16) & 0x8000 != 0 {
+            inputs.push(key_input(k, true));
+        }
+    }
+    inputs.extend([key_input(VK_CONTROL, false), key_input(letter, false), key_input(letter, true), key_input(VK_CONTROL, true)]);
+    SendInput(&inputs, std::mem::size_of::<INPUT>() as i32) as usize == inputs.len()
+}
+
+/// Puts `hwnd` in front. Windows only lets the foreground app change the foreground, so the input
+/// of this thread is attached to the current foreground window's thread while switching.
+#[cfg(windows)]
+unsafe fn bring_to_front(hwnd: HWND) -> bool {
+    use windows::Win32::System::Threading::{AttachThreadInput, GetCurrentThreadId};
+    use windows::Win32::UI::WindowsAndMessaging::*;
+    let fg = GetForegroundWindow();
+    if fg == hwnd {
+        return true;
+    }
+    let me = GetCurrentThreadId();
+    let other = GetWindowThreadProcessId(fg, None);
+    let attached = other != 0 && other != me && AttachThreadInput(me, other, true).as_bool();
+    if IsIconic(hwnd).as_bool() {
+        let _ = ShowWindow(hwnd, SW_RESTORE);
+    }
+    let _ = BringWindowToTop(hwnd);
+    let _ = SetForegroundWindow(hwnd);
+    if attached {
+        let _ = AttachThreadInput(me, other, false);
+    }
+    for _ in 0..25 {
+        if GetForegroundWindow() == hwnd {
+            return true;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+    false
 }
 
 /// Sends Ctrl+C to the window in front (copies the selected text, for voice commands).
 pub fn copy_selection() -> Result<(), String> {
     #[cfg(windows)]
     unsafe {
-        use windows::Win32::UI::Input::KeyboardAndMouse::*;
-        fn key(vk: VIRTUAL_KEY, up: bool) -> INPUT {
-            INPUT {
-                r#type: INPUT_KEYBOARD,
-                Anonymous: INPUT_0 {
-                    ki: KEYBDINPUT { wVk: vk, wScan: 0, dwFlags: if up { KEYEVENTF_KEYUP } else { KEYBD_EVENT_FLAGS(0) }, time: 0, dwExtraInfo: 0 },
-                },
-            }
-        }
-        let inputs = [
-            key(VK_SHIFT, true),
-            key(VK_MENU, true),
-            key(VK_LWIN, true),
-            key(VK_CONTROL, false),
-            key(VK_C, false),
-            key(VK_C, true),
-            key(VK_CONTROL, true),
-        ];
-        let sent = SendInput(&inputs, std::mem::size_of::<INPUT>() as i32);
-        if sent as usize != inputs.len() {
+        use windows::Win32::UI::Input::KeyboardAndMouse::VK_C;
+        if !send_ctrl(VK_C) {
             return Err("o Windows bloqueou o Ctrl+C".into());
         }
         Ok(())
@@ -72,40 +134,15 @@ pub fn copy_selection() -> Result<(), String> {
 pub fn restore_and_paste() -> Result<(), String> {
     #[cfg(windows)]
     unsafe {
-        use windows::Win32::UI::Input::KeyboardAndMouse::*;
-        use windows::Win32::UI::WindowsAndMessaging::SetForegroundWindow;
-
-        let prev = PREVIOUS.load(Ordering::SeqCst);
-        if prev != 0 {
-            let _ = SetForegroundWindow(HWND(prev as *mut c_void));
-            std::thread::sleep(std::time::Duration::from_millis(70));
+        use windows::Win32::UI::Input::KeyboardAndMouse::VK_V;
+        use windows::Win32::UI::WindowsAndMessaging::IsWindow;
+        let prev = HWND(PREVIOUS.load(Ordering::SeqCst) as *mut c_void);
+        if !prev.0.is_null() && IsWindow(Some(prev)).as_bool() {
+            bring_to_front(prev);
+            // The app needs a moment to give the keyboard focus back to its text field.
+            std::thread::sleep(std::time::Duration::from_millis(60));
         }
-        fn key(vk: VIRTUAL_KEY, up: bool) -> INPUT {
-            INPUT {
-                r#type: INPUT_KEYBOARD,
-                Anonymous: INPUT_0 {
-                    ki: KEYBDINPUT {
-                        wVk: vk,
-                        wScan: 0,
-                        dwFlags: if up { KEYEVENTF_KEYUP } else { KEYBD_EVENT_FLAGS(0) },
-                        time: 0,
-                        dwExtraInfo: 0,
-                    },
-                },
-            }
-        }
-        // Releases modifiers that may still be held from the shortcut, then presses Ctrl+V.
-        let inputs = [
-            key(VK_SHIFT, true),
-            key(VK_MENU, true),
-            key(VK_LWIN, true),
-            key(VK_CONTROL, false),
-            key(VK_V, false),
-            key(VK_V, true),
-            key(VK_CONTROL, true),
-        ];
-        let sent = SendInput(&inputs, std::mem::size_of::<INPUT>() as i32);
-        if sent as usize != inputs.len() {
+        if !send_ctrl(VK_V) {
             return Err("O Windows bloqueou o envio do Ctrl+V (janela de administrador?). O item ficou copiado: cole com Ctrl+V.".into());
         }
         Ok(())
