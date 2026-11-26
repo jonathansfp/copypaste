@@ -612,6 +612,16 @@ pub fn run() {
                 diag(&handle, &format!("atalho {a}: {e}"));
             }
 
+            let manual_pending = {
+                let state = handle.state::<AppState>();
+                let mut s = state.settings.lock().unwrap();
+                let pending = !s.manual_shown;
+                if pending {
+                    s.manual_shown = true;
+                    s.save(&state.paths.settings);
+                }
+                pending
+            };
             if first_run {
                 let state = handle.state::<AppState>();
                 let autostart = {
@@ -621,7 +631,18 @@ pub fn run() {
                     s.autostart
                 };
                 apply_autostart(&handle, autostart);
-                ui::open_settings(&handle, Some("inicio"));
+                // On a fresh install the manual below takes the place of the welcome tab.
+                if !manual_pending {
+                    ui::open_settings(&handle, Some("inicio"));
+                }
+            }
+            if manual_pending {
+                // The manual opens once by itself, so everyone learns the shortcuts (also those updating).
+                let h = handle.clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_secs(2));
+                    ui::open_settings(&h, Some("manual"));
+                });
             }
             updates::start(&handle);
             let args: Vec<String> = std::env::args().skip(1).collect();

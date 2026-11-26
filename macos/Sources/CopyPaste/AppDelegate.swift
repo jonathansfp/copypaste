@@ -28,6 +28,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         HotKeyManager.shared.registerFromSettings()
         setupStatusItem()
         UpdateChecker.start()
+        // The manual opens once, so everyone learns the shortcuts (also those updating from older versions).
+        if !UserDefaults.standard.bool(forKey: "manual.shown") {
+            UserDefaults.standard.set(true, forKey: "manual.shown")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { WindowManager.shared.showManual() }
+        }
         // `--testar-ia-local [arquivo.wav]`: checks the local AI and writes the result to the diagnostics log.
         let args = CommandLine.arguments
         if let i = args.firstIndex(of: "--testar-ia-local") {
@@ -166,6 +171,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         pause.state = store.paused ? .on : .off
         menu.addItem(pause)
         menu.addItem(withTitle: L("Limpar histórico…"), action: #selector(clearHistory), keyEquivalent: "").target = self
+        menu.addItem(withTitle: L("Como usar…"), action: #selector(openManual), keyEquivalent: "").target = self
         menu.addItem(withTitle: L("Configurações…"), action: #selector(openSettings), keyEquivalent: ",").target = self
         menu.addItem(withTitle: L("Verificar atualizações…"), action: #selector(checkUpdates), keyEquivalent: "").target = self
         menu.addItem(withTitle: L("Doar via Pix ♥"), action: #selector(donatePix), keyEquivalent: "").target = self
@@ -188,6 +194,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
     @objc private func openLibrary() { WindowManager.shared.showLibrary() }
     @objc private func openSettings() { WindowManager.shared.showSettings() }
+    @objc private func openManual() { WindowManager.shared.showManual() }
     @objc private func checkUpdates() { Task { await UpdateChecker.check(manual: true) } }
     @objc private func startDictation() { DictationController.shared.start(.dictate) }
     @objc private func startVoiceCommand() { DictationController.shared.start(.command) }
@@ -225,6 +232,22 @@ final class WindowManager: NSObject, NSWindowDelegate {
     static let shared = WindowManager()
     private var library: NSWindow?
     private var settings: NSWindow?
+    private var manual: NSWindow?
+
+    func showManual() {
+        if manual == nil {
+            let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 860, height: 600),
+                             styleMask: [.titled, .closable, .resizable, .miniaturizable],
+                             backing: .buffered, defer: false)
+            w.title = L("Como usar o CopyPaste")
+            w.isReleasedWhenClosed = false
+            w.contentView = NSHostingView(rootView: ManualView())
+            w.center()
+            w.delegate = self
+            manual = w
+        }
+        present(manual!)
+    }
 
     func showLibrary() {
         if library == nil {
@@ -267,7 +290,7 @@ final class WindowManager: NSObject, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         DispatchQueue.main.async {
-            let anyOpen = [self.library, self.settings].contains { $0?.isVisible == true }
+            let anyOpen = [self.library, self.settings, self.manual].contains { $0?.isVisible == true }
             if !anyOpen { NSApp.setActivationPolicy(.accessory) }
         }
     }

@@ -1,5 +1,7 @@
 // Translations for settings, dictation, AI, updates and the menu bar: Portuguese → [English, Spanish].
 let l10nSettings: [String: [String]] = [
+    "Como usar…": ["How to Use…", "Cómo usar…"],
+    "Como usar o CopyPaste": ["How to Use CopyPaste", "Cómo usar CopyPaste"],
     "Automático (idioma do Mac)": ["Automatic (Mac language)", "Automático (idioma del Mac)"],
 
     // MARK: Settings window

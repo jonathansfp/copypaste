@@ -45,6 +45,30 @@
     table.keys { width: 100%; border-collapse: collapse; }
     table.keys td { padding: 6px 0; border-top: 1px solid var(--line); }
     table.keys td:first-child { width: 46%; }
+    .manual { display: flex; gap: 18px; align-items: flex-start; margin-top: 16px; }
+    .manual .topics { width: 152px; flex: none; display: flex; flex-direction: column; gap: 2px; position: sticky; top: 0; }
+    .manual .topics button { display: flex; align-items: center; gap: 9px; border: 0; background: transparent; padding: 7px 9px; border-radius: 8px; cursor: pointer; text-align: left; color: var(--muted); font-weight: 500; }
+    .manual .topics button:hover { color: var(--text); }
+    .manual .topics button.active { background: var(--panel); color: var(--text); box-shadow: 0 0 0 1px var(--line); }
+    .manual .topics button.active .ic { color: var(--accent); }
+    .manual .topic { flex: 1; min-width: 0; }
+    .topic h2 { display: flex; align-items: center; gap: 10px; font-size: 19px; margin: 2px 0 6px; }
+    .topic h2 .ic { color: var(--accent); }
+    .topic .intro { color: var(--muted); margin: 0 0 16px; font-size: 14.5px; }
+    .topic h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 0 10px; }
+    .topic .hks { padding: 2px 14px; }
+    .topic .hkrow { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); }
+    .topic .hkrow:first-child { border-top: 0; }
+    .topic .hkrow span { flex: 1; min-width: 110px; }
+    .topic .hkrow i { color: var(--muted); font-size: 12px; text-align: right; max-width: 55%; }
+    .topic kbd { overflow-wrap: anywhere; }
+    .steps { list-style: none; counter-reset: step; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 11px; }
+    .steps li { counter-increment: step; position: relative; padding-left: 34px; min-height: 22px; }
+    .steps li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+    .tips { margin-top: 20px; padding: 2px 16px 6px; border-radius: var(--radius); background: var(--accent-soft); }
+    .tips h3 { margin-top: 12px; }
+    .tips p { margin: 0 0 10px; padding-left: 22px; position: relative; }
+    .tips p::before { content: ""; position: absolute; left: 2px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: #f5a524; }
   </style>
 </head>
 <body>

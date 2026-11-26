@@ -24,7 +24,10 @@ struct SettingsView: View {
                         Text(L("Desenvolvido por Jonathan Felix · gratuito e de código aberto")).font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Link("jonathansfp@gmail.com", destination: URL(string: "mailto:jonathansfp@gmail.com")!).font(.caption)
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Button(L("Como usar…")) { WindowManager.shared.showManual() }
+                        Link("jonathansfp@gmail.com", destination: URL(string: "mailto:jonathansfp@gmail.com")!).font(.caption)
+                    }
                 }
             }
             Section(L("Geral")) {

@@ -42,6 +42,8 @@ pub struct Settings {
     pub paused: bool,
     pub autostart: bool,
     pub first_run_done: bool,
+    /// The manual ("Como usar") was opened once by itself.
+    pub manual_shown: bool,
     /// Who transcribes the voice: "openai" or "gemini".
     pub dict_engine: String,
     /// "pt-BR", "en-US"… or "auto".
@@ -89,6 +91,7 @@ impl Default for Settings {
             paused: false,
             autostart: true,
             first_run_done: false,
+            manual_shown: false,
             dict_engine: "local".into(),
             // A fresh install dictates in the system's language; a saved choice is kept.
             dict_language: crate::i18n::default_dict_language(),

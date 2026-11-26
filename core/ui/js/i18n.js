@@ -18,6 +18,9 @@ const D = {
   'Gravar a tela (de novo para parar)': ['Record the screen (again to stop)', 'Grabar la pantalla (otra vez para detener)'],
   'Ditado por voz (segure e fale, ou toque)': ['Voice dictation (hold and speak, or tap)', 'Dictado por voz (mantén pulsado y habla, o toca)'],
   'Comando de voz sobre o texto selecionado': ['Voice command on the selected text', 'Comando de voz sobre el texto seleccionado'],
+  'Como usar': ['How to use', 'Cómo usar'],
+  'Dicas': ['Tips', 'Consejos'],
+  'sem atalho: defina em Configurações › Atalhos': ['no shortcut: set one in Settings › Shortcuts', 'sin atajo: defínelo en Configuración › Atajos'],
   'Desativado': ['Off', 'Desactivado'],
   'desativado': ['off', 'desactivado'],
 

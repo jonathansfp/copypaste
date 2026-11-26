@@ -1,6 +1,7 @@
-// Configurações: atalhos (gravador de teclas), captura, gravação, histórico, sobre e apoio via Pix.
+// Configurações: manual, atalhos (gravador de teclas), captura, gravação, histórico, sobre e apoio via Pix.
 import { icon } from './icons.js';
-import { t, locale, translatePage, onLanguageChange } from './i18n.js';
+import { t, locale, getLang, translatePage, onLanguageChange } from './i18n.js';
+import { manualTopics } from './manual.js';
 
 const T = window.__TAURI__;
 const invoke = T.core.invoke;
@@ -16,7 +17,7 @@ const ACTIONS = [
   ['voiceCommand', 'Comando de voz sobre o texto selecionado', 'style'],
 ];
 const TABS = [
-  ['inicio', 'Início', 'heart'], ['atalhos', 'Atalhos', 'more'], ['captura', 'Captura', 'select'],
+  ['inicio', 'Início', 'heart'], ['manual', 'Como usar', 'help'], ['atalhos', 'Atalhos', 'more'], ['captura', 'Captura', 'select'],
   ['gravacao', 'Gravação', 'record'], ['ia', 'IA e ditado', 'mic'], ['historico', 'Histórico', 'copy'], ['apoie', 'Sobre e apoio', 'heart'],
 ];
 
@@ -63,6 +64,11 @@ function build() {
       <div class="row"><div class="l">${t('Idioma do app')}<small>${t('Menus, avisos e janelas do CopyPaste')}</small></div><select data-k="language">
         <option value="auto">${t('Automático (idioma do sistema)')}</option><option value="pt">Português</option><option value="en">English</option><option value="es">Español</option></select></div>
     </div>
+  </section>
+
+  <section data-tab="manual">
+    <h1>${t('Como usar')}</h1>
+    <div class="manual"><div class="topics" id="topics"></div><div class="topic" id="topic"></div></div>
   </section>
 
   <section data-tab="atalhos">
@@ -192,6 +198,35 @@ function build() {
   const notes = $('#notes');
   notes.innerHTML = data.notes.length ? data.notes.map(n => `• ${n.replace(/`([^`]+)`/g, '<kbd>$1</kbd>')}`).join('<br>') : `${icon('check', 16)} ${t('Tudo pronto. Dica: clique com o botão direito no ícone perto do relógio para ver o menu.')}`;
   renderErrors();
+  renderManual();
+}
+
+// ── manual (Como usar) ──
+let manualTopic = 'start';
+function renderManual() {
+  const topics = manualTopics(getLang(), data.system);
+  const list = $('#topics');
+  list.innerHTML = '';
+  for (const tp of topics) {
+    const b = document.createElement('button');
+    b.className = tp.id === manualTopic ? 'active' : '';
+    b.innerHTML = `${icon(tp.icon, 16)}<span>${tp.title}</span>`;
+    b.addEventListener('click', () => { manualTopic = tp.id; renderManual(); $('#main').scrollTop = 0; });
+    list.append(b);
+  }
+  const tp = topics.find(x => x.id === manualTopic) || topics[0];
+  const label = Object.fromEntries(ACTIONS.map(([a, l]) => [a, t(l)]));
+  // The shortcuts as set now (also right after a change in the Shortcuts tab).
+  const hotkeys = tp.actions.map(a => `<div class="hkrow"><span>${label[a]}</span>${s.hotkeys[a] ? `<kbd>${pretty(s.hotkeys[a])}</kbd>` : `<i>${t('sem atalho: defina em Configurações › Atalhos')}</i>`}</div>`).join('');
+  const notes = tp.id === 'start' && data.notes.length ? `<div class="note">${data.notes.map(n => `• ${esc(n).replace(/`([^`]+)`/g, '<kbd>$1</kbd>')}`).join('<br>')}</div>` : '';
+  $('#topic').innerHTML = `
+    <h2>${icon(tp.icon, 24)}${tp.title}</h2>
+    <p class="intro">${tp.intro}</p>
+    ${hotkeys ? `<div class="card hks">${hotkeys}</div>` : ''}
+    <h3>${t('Como usar')}</h3>
+    <ol class="steps">${tp.steps.map(x => `<li>${x}</li>`).join('')}</ol>
+    ${notes}
+    ${tp.tips.length ? `<div class="tips"><h3>${t('Dicas')}</h3>${tp.tips.map(x => `<p>${x}</p>`).join('')}</div>` : ''}`;
 }
 
 const PROVIDERS = [
@@ -321,6 +356,7 @@ let current = 'inicio';
 function show(tab) {
   if (!TABS.some(x => x[0] === tab)) tab = 'inicio';
   current = tab;
+  if (tab === 'manual' && data) renderManual();
   document.querySelectorAll('aside button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('section').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
 }

@@ -121,6 +121,7 @@ fn table(pt: &str) -> Option<(&'static str, &'static str)> {
         "Comando de voz" => ("Voice command", "Comando de voz"),
         "Retomar histórico" => ("Resume history", "Reanudar historial"),
         "Pausar histórico" => ("Pause history", "Pausar historial"),
+        "Como usar…" => ("How to use…", "Cómo usar…"),
         "Configurações…" => ("Settings…", "Configuración…"),
         "Verificar atualizações…" => ("Check for updates…", "Buscar actualizaciones…"),
         "Doar via Pix ♥" => ("Donate via Pix ♥", "Donar vía Pix ♥"),

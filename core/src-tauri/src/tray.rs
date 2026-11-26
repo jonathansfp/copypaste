@@ -35,6 +35,7 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         .item(&item(app, "voiceCommand", t("Comando de voz"), hk("voiceCommand"))?);
     m.item(&PredefinedMenuItem::separator(app)?)
         .item(&MenuItem::with_id(app, "pause", t(if s.paused { "Retomar histórico" } else { "Pausar histórico" }), true, None::<&str>)?)
+        .item(&MenuItem::with_id(app, "manual", t("Como usar…"), true, None::<&str>)?)
         .item(&MenuItem::with_id(app, "settings", t("Configurações…"), true, None::<&str>)?)
         .item(&MenuItem::with_id(app, "updates", t("Verificar atualizações…"), true, None::<&str>)?)
         .item(&MenuItem::with_id(app, "donate", t("Doar via Pix ♥"), true, None::<&str>)?)
@@ -54,6 +55,7 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
             match id.as_str() {
                 "quit" => app.exit(0),
                 "settings" => crate::ui::open_settings(app, None),
+                "manual" => crate::ui::open_settings(app, Some("manual")),
                 "updates" => {
                     let app = app.clone();
                     std::thread::spawn(move || crate::updates::check(&app, true));
