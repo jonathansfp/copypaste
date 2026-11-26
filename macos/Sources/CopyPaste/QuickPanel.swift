@@ -265,7 +265,7 @@ struct QuickPanelView: View {
     private var searchBar: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass").font(.system(size: 16)).foregroundStyle(.secondary)
-            TextField("Buscar no histórico…", text: $model.query)
+            TextField(L("Buscar no histórico…"), text: $model.query)
                 .textFieldStyle(.plain)
                 .font(.system(size: 18))
                 .focused($searchFocused)
@@ -283,7 +283,7 @@ struct QuickPanelView: View {
 
     private var chips: some View {
         HStack(spacing: 6) {
-            chip("Tudo", nil)
+            chip(L("Tudo"), nil)
             ForEach(ClipKind.allCases) { k in chip(k.label, k) }
             Spacer()
         }
@@ -328,7 +328,7 @@ struct QuickPanelView: View {
     private var emptyState: some View {
         VStack(spacing: 8) {
             Image(systemName: "clipboard").font(.system(size: 30)).foregroundStyle(.tertiary)
-            Text(store.items.isEmpty ? "Nada copiado ainda" : "Nenhum resultado")
+            Text(store.items.isEmpty ? L("Nada copiado ainda") : L("Nenhum resultado"))
                 .foregroundStyle(.secondary)
         }
     }
@@ -339,7 +339,7 @@ struct QuickPanelView: View {
                 ClipThumb(item: item, size: 22)
                 Text(item.title).font(.headline).lineLimit(1)
                 Spacer()
-                Text("Espaço para fechar").font(.caption).foregroundStyle(.secondary)
+                Text(L("Espaço para fechar")).font(.caption).foregroundStyle(.secondary)
             }
             .padding(12)
             Divider()
@@ -350,21 +350,21 @@ struct QuickPanelView: View {
 
     private func footer(_ count: Int) -> some View {
         HStack(spacing: 14) {
-            Text("\(count) de \(store.items.count) itens")
+            Text(L("%d de %d itens", count, store.items.count))
             Spacer()
-            Text("↩ Colar")
-            Text("⌘↩ Copiar")
-            Text("Espaço Prévia")
+            Text(L("↩ Colar"))
+            Text(L("⌘↩ Copiar"))
+            Text(L("Espaço Prévia"))
             Button { PanelController.shared.hide(); WindowManager.shared.showLibrary() } label: {
                 Image(systemName: "sidebar.left")
             }
             .buttonStyle(.plain)
-            .help("Abrir biblioteca (⌘L)")
+            .help(L("Abrir biblioteca (⌘L)"))
             Button { PanelController.shared.hide(); WindowManager.shared.showSettings() } label: {
                 Image(systemName: "gearshape")
             }
             .buttonStyle(.plain)
-            .help("Configurações (⌘,)")
+            .help(L("Configurações (⌘,)"))
         }
         .font(.system(size: 11))
         .foregroundStyle(.secondary)
@@ -420,17 +420,17 @@ struct PanelRow: View {
             Button { ClipboardStore.shared.togglePin(item) } label: {
                 Image(systemName: item.pinned ? "pin.slash" : "pin")
             }
-            .help(item.pinned ? "Desafixar (⌘P)" : "Fixar (⌘P)")
+            .help(item.pinned ? L("Desafixar (⌘P)") : L("Fixar (⌘P)"))
             Button { PanelController.shared.copyOnly(item) } label: {
                 Image(systemName: "doc.on.doc")
             }
-            .help("Copiar sem colar — vira o primeiro do ⌘V (⌘↩)")
+            .help(L("Copiar sem colar — vira o primeiro do ⌘V (⌘↩)"))
             Menu {
-                Button("Colar") { PanelController.shared.paste(item) }
-                Button("Copiar") { PanelController.shared.copyOnly(item) }
-                Button(item.pinned ? "Desafixar" : "Fixar") { ClipboardStore.shared.togglePin(item) }
+                Button(L("Colar")) { PanelController.shared.paste(item) }
+                Button(L("Copiar")) { PanelController.shared.copyOnly(item) }
+                Button(item.pinned ? L("Desafixar") : L("Fixar")) { ClipboardStore.shared.togglePin(item) }
                 Divider()
-                Button("Excluir", role: .destructive) { ClipboardStore.shared.delete(item) }
+                Button(L("Excluir"), role: .destructive) { ClipboardStore.shared.delete(item) }
             } label: {
                 Image(systemName: "ellipsis")
             }

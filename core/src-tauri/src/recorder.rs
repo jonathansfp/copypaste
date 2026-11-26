@@ -10,6 +10,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager};
 
+use crate::i18n::{t, tf};
 use crate::{platform, ui, AppState};
 
 pub struct Recording {
@@ -38,12 +39,12 @@ pub fn is_recording(app: &AppHandle) -> bool {
 pub fn start(app: &AppHandle, x: u32, y: u32, w: u32, h: u32, mic: bool, system_audio: bool) -> Result<(), String> {
     let state = app.state::<AppState>();
     if state.recorder.lock().unwrap().is_some() {
-        return Err("Já existe uma gravação em andamento.".into());
+        return Err(t("Já existe uma gravação em andamento.").into());
     }
-    let ffmpeg = find_ffmpeg().ok_or_else(|| platform::ffmpeg_hint().to_string())?;
+    let ffmpeg = find_ffmpeg().ok_or_else(|| t(platform::ffmpeg_hint()).to_string())?;
     let (mon_x, mon_y) = {
         let f = state.frozen.lock().unwrap();
-        let f = f.as_ref().ok_or("Nenhuma tela selecionada")?;
+        let f = f.as_ref().ok_or(t("Nenhuma tela selecionada"))?;
         (f.mon_x, f.mon_y)
     };
     // The monitor is opened again inside the capture thread (on Windows it cannot change threads).
@@ -54,7 +55,7 @@ pub fn start(app: &AppHandle, x: u32, y: u32, w: u32, h: u32, mic: bool, system_
     let fps = settings.record_fps.clamp(10, 60);
     let dir = PathBuf::from(&settings.record_dir);
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    let path = dir.join(format!("Gravação {}.mp4", chrono::Local::now().format("%Y-%m-%d às %H.%M.%S")));
+    let path = dir.join(format!("{}.mp4", chrono::Local::now().format(t("Gravação %Y-%m-%d às %H.%M.%S"))));
 
     let audio = platform::audio_inputs(&ffmpeg, mic, system_audio);
     let mut args: Vec<String> = vec![
@@ -90,8 +91,8 @@ pub fn start(app: &AppHandle, x: u32, y: u32, w: u32, h: u32, mic: bool, system_
     let mut cmd = Command::new(&ffmpeg);
     cmd.args(&args).stdin(Stdio::piped()).stdout(Stdio::null()).stderr(Stdio::from(log));
     platform::hide_console(&mut cmd);
-    let mut child = cmd.spawn().map_err(|e| format!("Não consegui iniciar o ffmpeg: {e}"))?;
-    let mut stdin = child.stdin.take().ok_or("ffmpeg sem entrada")?;
+    let mut child = cmd.spawn().map_err(|e| tf("Não consegui iniciar o ffmpeg: {}", &[&e]))?;
+    let mut stdin = child.stdin.take().ok_or(t("ffmpeg sem entrada"))?;
 
     let stop = Arc::new(AtomicBool::new(false));
     let latest: Arc<Mutex<Option<(u32, u32, Vec<u8>)>>> = Arc::new(Mutex::new(None));
@@ -104,7 +105,7 @@ pub fn start(app: &AppHandle, x: u32, y: u32, w: u32, h: u32, mic: bool, system_
         let app = app.clone();
         std::thread::spawn(move || {
             let Ok(monitor) = xcap::Monitor::from_point(mon_x + 1, mon_y + 1) else {
-                let _ = app.emit("record-error", "Monitor não encontrado");
+                let _ = app.emit("record-error", t("Monitor não encontrado"));
                 return;
             };
             if x11_session() {
@@ -125,7 +126,7 @@ pub fn start(app: &AppHandle, x: u32, y: u32, w: u32, h: u32, mic: bool, system_
             match monitor.video_recorder() {
                 Ok((rec, rx)) => {
                     if rec.start().is_err() {
-                        let _ = app.emit("record-error", "Não consegui iniciar a captura de vídeo");
+                        let _ = app.emit("record-error", t("Não consegui iniciar a captura de vídeo"));
                         return;
                     }
                     while !stop.load(Ordering::SeqCst) {
@@ -200,18 +201,18 @@ pub fn start(app: &AppHandle, x: u32, y: u32, w: u32, h: u32, mic: bool, system_
             ui::hide_recbar(&app);
             crate::tray::refresh(&app);
             if success {
-                ui::toast_path(&app, "Gravação salva", &path);
+                ui::toast_path(&app, t("Gravação salva"), &path);
                 platform::reveal(&path);
             } else {
                 let log = std::fs::read_to_string(app.state::<AppState>().paths.data.join("gravacao.log")).unwrap_or_default();
-                let last_line = log.lines().last().unwrap_or("veja gravacao.log").to_string();
-                ui::toast(&app, &format!("A gravação falhou: {last_line}"));
+                let last_line = log.lines().last().unwrap_or(t("veja gravacao.log")).to_string();
+                ui::toast(&app, &tf("A gravação falhou: {}", &[&last_line]));
             }
         });
     }
 
     for w in &audio.warnings {
-        ui::toast(app, w);
+        ui::toast(app, t(w));
     }
     *state.recorder.lock().unwrap() = Some(Recording { stop, started: Instant::now(), path });
     ui::show_recbar(app, mon_x, mon_y, x, y, w, h);

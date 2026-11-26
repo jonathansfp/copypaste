@@ -14,6 +14,7 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager};
 
+use crate::i18n::{t, tf};
 use crate::{platform, AppState};
 
 pub const MODEL_NAME: &str = "Gemma 4 E2B";
@@ -178,7 +179,7 @@ pub fn install(app: &AppHandle) {
         match res {
             Ok(()) => {
                 crate::diag(&app, "IA local instalada");
-                emit(&app, 1.0, "Pronta", None, true);
+                emit(&app, 1.0, t("Pronta"), None, true);
             }
             Err(e) => {
                 crate::diag(&app, &format!("IA local: {e}"));
@@ -217,7 +218,7 @@ fn install_blocking(app: &AppHandle) -> Result<(), String> {
     let ok = cmd.status().map(|s| s.success()).unwrap_or(false);
     let _ = std::fs::remove_file(&archive);
     if !ok || find_server(&rt).is_none() {
-        return Err("Não consegui instalar o motor da IA local.".into());
+        return Err(t("Não consegui instalar o motor da IA local.").into());
     }
     #[cfg(unix)]
     if let Some(bin) = find_server(&rt) {
@@ -245,7 +246,7 @@ fn download(app: &AppHandle, a: &Asset, dest: &Path, base: u64, total: f64) -> R
         .build()
         .get(a.url)
         .call()
-        .map_err(|e| format!("O download de {} falhou: {e}", a.label))?;
+        .map_err(|e| tf("O download de {} falhou: {}", &[&t(a.label), &e]))?;
     let part = dest.with_extension("part");
     let mut out = std::fs::File::create(&part).map_err(|e| e.to_string())?;
     let mut reader = resp.into_reader();
@@ -257,25 +258,25 @@ fn download(app: &AppHandle, a: &Asset, dest: &Path, base: u64, total: f64) -> R
         if CANCEL.load(Ordering::SeqCst) {
             drop(out);
             let _ = std::fs::remove_file(&part);
-            return Err("Download cancelado.".into());
+            return Err(t("Download cancelado.").into());
         }
-        let n = reader.read(&mut buf).map_err(|e| format!("O download parou: {e}"))?;
+        let n = reader.read(&mut buf).map_err(|e| tf("O download parou: {}", &[&e]))?;
         if n == 0 {
             break;
         }
-        out.write_all(&buf[..n]).map_err(|e| format!("Sem espaço em disco? {e}"))?;
+        out.write_all(&buf[..n]).map_err(|e| tf("Sem espaço em disco? {}", &[&e]))?;
         hasher.update(&buf[..n]);
         got += n as u64;
         if last.elapsed() > Duration::from_millis(250) {
             last = Instant::now();
-            emit(app, (base + got) as f64 / total, &format!("Baixando {}…", a.label), None, false);
+            emit(app, (base + got) as f64 / total, &tf("Baixando {}…", &[&t(a.label)]), None, false);
         }
     }
     drop(out);
     let hash: String = hasher.finalize().iter().map(|b| format!("{b:02x}")).collect();
     if got != a.size || hash != a.sha256 {
         let _ = std::fs::remove_file(&part);
-        return Err(format!("O arquivo {} chegou incompleto ou corrompido. Tente de novo.", a.label));
+        return Err(tf("O arquivo {} chegou incompleto ou corrompido. Tente de novo.", &[&t(a.label)]));
     }
     let _ = std::fs::remove_file(dest);
     std::fs::rename(&part, dest).map_err(|e| e.to_string())
@@ -308,7 +309,7 @@ pub fn prewarm(app: &AppHandle) {
 /// Base URL of the OpenAI-compatible API (`http://127.0.0.1:PORT/v1`), starting the server if needed.
 pub fn ensure_running(app: &AppHandle) -> Result<String, String> {
     if !is_installed(app) {
-        return Err("Baixe a IA local em Configurações › IA e ditado.".into());
+        return Err(t("Baixe a IA local em Configurações › IA e ditado.").into());
     }
     *LAST_USE.lock().unwrap() = Some(Instant::now());
     let _guard = STARTING.lock().unwrap();
@@ -321,7 +322,7 @@ pub fn ensure_running(app: &AppHandle) -> Result<String, String> {
         }
     }
     stop();
-    let bin = find_server(&runtime_dir(app)).ok_or("Motor da IA local não encontrado. Reinstale a IA local.")?;
+    let bin = find_server(&runtime_dir(app)).ok_or(t("Motor da IA local não encontrado. Reinstale a IA local."))?;
     let port = std::net::TcpListener::bind("127.0.0.1:0").and_then(|l| l.local_addr()).map(|a| a.port()).unwrap_or(18765);
     let d = dir(app);
     let log = std::fs::File::create(d.join("servidor.log")).ok();
@@ -339,7 +340,7 @@ pub fn ensure_running(app: &AppHandle) -> Result<String, String> {
         }
     }
     platform::hide_console(&mut cmd);
-    let child = cmd.spawn().map_err(|e| format!("A IA local não conseguiu iniciar: {e}"))?;
+    let child = cmd.spawn().map_err(|e| tf("A IA local não conseguiu iniciar: {}", &[&e]))?;
     crate::diag(app, &format!("IA local: servidor na porta {port}"));
     *SERVER.lock().unwrap() = Some(Server { child, port, ready: false });
     let started = Instant::now();
@@ -347,10 +348,10 @@ pub fn ensure_running(app: &AppHandle) -> Result<String, String> {
     while started.elapsed() < Duration::from_secs(240) {
         {
             let mut g = SERVER.lock().unwrap();
-            let Some(s) = g.as_mut() else { return Err("A IA local foi encerrada.".into()) };
+            let Some(s) = g.as_mut() else { return Err(t("A IA local foi encerrada.").into()) };
             if !matches!(s.child.try_wait(), Ok(None)) {
                 *g = None;
-                return Err(format!("A IA local não conseguiu iniciar. {}", log_tail(&d)));
+                return Err(tf("A IA local não conseguiu iniciar. {}", &[&log_tail(&d)]));
             }
         }
         if agent.get(&format!("http://127.0.0.1:{port}/health")).call().is_ok() {
@@ -363,7 +364,7 @@ pub fn ensure_running(app: &AppHandle) -> Result<String, String> {
         std::thread::sleep(Duration::from_millis(300));
     }
     stop();
-    Err("A IA local demorou demais para carregar.".into())
+    Err(t("A IA local demorou demais para carregar.").into())
 }
 
 pub fn touch() {

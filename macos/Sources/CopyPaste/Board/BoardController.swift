@@ -7,11 +7,11 @@ enum BoardBackground: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .screen: return "Sobre a tela (transparente)"
-        case .white: return "Quadro branco"
-        case .grid: return "Quadriculado"
-        case .dark: return "Fundo escuro"
-        case .chalk: return "Lousa verde"
+        case .screen: return L("Sobre a tela (transparente)")
+        case .white: return L("Quadro branco")
+        case .grid: return L("Quadriculado")
+        case .dark: return L("Fundo escuro")
+        case .chalk: return L("Lousa verde")
         }
     }
     var symbol: String {
@@ -139,11 +139,11 @@ final class BoardController: ObservableObject {
     private func showPill(on screen: NSScreen) {
         let view = HStack(spacing: 4) {
             Image(systemName: "hand.point.up.left").foregroundStyle(.white.opacity(0.7)).padding(.leading, 6)
-            Text("Interagindo com a tela").font(.system(size: 12, weight: .medium)).foregroundStyle(.white.opacity(0.85))
-            IconButton(symbol: "pencil.tip", help: "Voltar a desenhar (\(AppSettings.shared.hotKey(for: .board)?.display ?? ""))") {
+            Text(L("Interagindo com a tela")).font(.system(size: 12, weight: .medium)).foregroundStyle(.white.opacity(0.85))
+            IconButton(symbol: "pencil.tip", help: L("Voltar a desenhar (%@)", AppSettings.shared.hotKey(for: .board)?.display ?? "")) {
                 BoardController.shared.passthrough = false
             }
-            IconButton(symbol: "xmark", help: "Fechar o quadro") { BoardController.shared.close() }
+            IconButton(symbol: "xmark", help: L("Fechar o quadro")) { BoardController.shared.close() }
         }
         .padding(4)
         .floatingBar()
@@ -187,9 +187,9 @@ final class BoardController: ObservableObject {
         renderBoard { image, w, screen in
             switch action {
             case .copy:
-                ImageOutput.copy(image); Toast.show("Quadro copiado")
+                ImageOutput.copy(image); Toast.show(L("Quadro copiado"))
             case .save:
-                if let u = ImageOutput.saveToFolder(image) { Toast.show("Salvo: \(u.lastPathComponent)") }
+                if let u = ImageOutput.saveToFolder(image) { Toast.show(L("Salvo: %@", u.lastPathComponent)) }
             case .saveAs:
                 w.orderOut(nil)
                 ImageOutput.saveAs(image)
@@ -212,7 +212,7 @@ final class BoardController: ObservableObject {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("CopyPaste-Quadro", isDirectory: true)
         try? FileManager.default.removeItem(at: dir)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let url = dir.appendingPathComponent(ImageOutput.fileName(prefix: "Quadro", ext: "png"))
+        let url = dir.appendingPathComponent(ImageOutput.fileName(prefix: L("Quadro"), ext: "png"))
         guard let d = ImageOutput.data(image, format: .png), (try? d.write(to: url)) != nil else { return }
         w.makeKeyAndOrderFront(nil)
         let anchor = w.root.shareAnchor
@@ -485,7 +485,7 @@ final class BoardCanvasView: CanvasView {
             return true
         }
         ImageOutput.copy(img)
-        Toast.show("Seleção copiada como imagem")
+        Toast.show(L("Seleção copiada como imagem"))
     }
 
     private func paste() {
@@ -542,8 +542,8 @@ struct BoardToolbar: View {
             ToolButton(model: model, tool: .eraser)
             separator
             StyleToggle(model: model, ui: ui)
-            IconButton(symbol: "arrow.uturn.backward", help: "Desfazer (⌘Z)", disabled: !model.canUndo) { model.undo() }
-            IconButton(symbol: "arrow.uturn.forward", help: "Refazer (⇧⌘Z)", disabled: !model.canRedo) { model.redo() }
+            IconButton(symbol: "arrow.uturn.backward", help: L("Desfazer (⌘Z)"), disabled: !model.canUndo) { model.undo() }
+            IconButton(symbol: "arrow.uturn.forward", help: L("Refazer (⇧⌘Z)"), disabled: !model.canRedo) { model.redo() }
             separator
             Menu {
                 ForEach(BoardBackground.allCases) { b in
@@ -555,30 +555,30 @@ struct BoardToolbar: View {
                 Image(systemName: controller.background.symbol).font(.system(size: 14, weight: .medium)).frame(width: 30, height: 30)
             }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Fundo (G)")
-            IconButton(symbol: "hand.point.up.left", help: "Interagir com os apps sem apagar o desenho (I)") {
+            .help(L("Fundo (G)"))
+            IconButton(symbol: "hand.point.up.left", help: L("Interagir com os apps sem apagar o desenho (I)")) {
                 controller.passthrough = true
             }
             separator
-            IconButton(symbol: "doc.on.doc", help: "Copiar o quadro como imagem (⌘C) — depois é só colar no chat ou e-mail") { controller.export(.copy) }
-            IconButton(symbol: "square.and.arrow.down", help: "Salvar o quadro na pasta (⌘S)") { controller.export(.save) }
-            IconButton(symbol: "square.and.arrow.up", help: "Enviar: AirDrop, Mensagens, Mail… (⇧⌘E)") { controller.share() }
+            IconButton(symbol: "doc.on.doc", help: L("Copiar o quadro como imagem (⌘C) — depois é só colar no chat ou e-mail")) { controller.export(.copy) }
+            IconButton(symbol: "square.and.arrow.down", help: L("Salvar o quadro na pasta (⌘S)")) { controller.export(.save) }
+            IconButton(symbol: "square.and.arrow.up", help: L("Enviar: AirDrop, Mensagens, Mail… (⇧⌘E)")) { controller.share() }
             Menu {
-                Button("Salvar como… (⇧⌘S)") { controller.export(.saveAs) }
-                Button("Fixar na tela") { controller.export(.pin) }
+                Button(L("Salvar como… (⇧⌘S)")) { controller.export(.saveAs) }
+                Button(L("Fixar na tela")) { controller.export(.pin) }
                 Divider()
-                Button("Gravar a tela com o quadro") { ScreenRecorder.shared.toggleFromHotKey() }
+                Button(L("Gravar a tela com o quadro")) { ScreenRecorder.shared.toggleFromHotKey() }
                 Divider()
-                Button(vertical ? "Barra na horizontal" : "Barra na vertical") { controller.toolbarVertical.toggle() }
-                Button("Barra na posição padrão") { controller.resetToolbarPosition() }
+                Button(vertical ? L("Barra na horizontal") : L("Barra na vertical")) { controller.toolbarVertical.toggle() }
+                Button(L("Barra na posição padrão")) { controller.resetToolbarPosition() }
                 Divider()
-                Button("Apagar tudo", role: .destructive) { model.clear() }
+                Button(L("Apagar tudo"), role: .destructive) { model.clear() }
             } label: {
                 Image(systemName: "ellipsis.circle").font(.system(size: 14, weight: .medium)).frame(width: 30, height: 30)
             }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Mais: salvar como, fixar, gravar, posição da barra, limpar")
-            IconButton(symbol: "xmark", help: "Fechar quadro (⎋) — o desenho fica guardado") { controller.close() }
+            .help(L("Mais: salvar como, fixar, gravar, posição da barra, limpar"))
+            IconButton(symbol: "xmark", help: L("Fechar quadro (⎋) — o desenho fica guardado")) { controller.close() }
         }
         .padding(4)
         .floatingBar()
@@ -605,6 +605,6 @@ struct BoardToolbar: View {
                     .onEnded { v in NSCursor.openHand.set(); onDrag(v.translation, true) }
             )
             .onTapGesture(count: 2) { controller.resetToolbarPosition() }
-            .help("Arraste para mover a barra. Solte numa lateral para deixá-la na vertical. Duplo clique: posição padrão.")
+            .help(L("Arraste para mover a barra. Solte numa lateral para deixá-la na vertical. Duplo clique: posição padrão."))
     }
 }

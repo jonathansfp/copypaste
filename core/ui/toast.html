@@ -20,9 +20,11 @@
   <div class="t" id="t"></div>
   <script type="module">
     import { icon } from './js/icons.js';
+    import './js/i18n.js';
     const t = document.getElementById('t');
     window.__TAURI__.event.listen('toast', e => {
-      const ok = !/falh|não |erro|instale|ative/i.test(e.payload.text);
+      // Problems get a yellow mark (the text arrives already translated: pt, en or es).
+      const ok = !/falh|não |erro|instale|ative|fail|couldn.t|didn.t|install|enable|no se |no oí|falló|instala|activa/i.test(e.payload.text);
       t.innerHTML = `${icon(ok ? 'check' : 'more', 18)}<span></span>`;
       t.querySelector('span').textContent = e.payload.text;
       t.querySelector('svg').style.color = ok ? '#4ade80' : '#fbbf24';

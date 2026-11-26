@@ -3,10 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CopyPaste — histórico de cópias, captura e quadro</title>
-<meta name="description" content="Histórico de cópias, captura de tela com anotações, quadro de apresentação, gravação de tela e ditado por voz com IA. Gratuito e de código aberto para macOS, Windows e Linux.">
+<title data-i18n="title">CopyPaste — histórico de cópias, captura e quadro</title>
+<meta name="description" data-i18n-attr="content:meta.desc" content="Histórico de cópias, captura de tela com anotações, quadro de apresentação, gravação de tela e ditado por voz com IA. Gratuito e de código aberto para macOS, Windows e Linux.">
 <meta property="og:title" content="CopyPaste">
-<meta property="og:description" content="Histórico de cópias, captura com anotações, quadro, gravação de tela e ditado por voz com IA. Gratuito para macOS, Windows e Linux.">
+<meta property="og:description" data-i18n-attr="content:meta.og" content="Histórico de cópias, captura com anotações, quadro, gravação de tela e ditado por voz com IA. Gratuito para macOS, Windows e Linux.">
+<meta property="og:locale" data-i18n-attr="content:meta.locale" content="pt_BR">
+<link rel="alternate" hreflang="pt" href="https://jonathansfp.github.io/copypaste/?lang=pt">
+<link rel="alternate" hreflang="en" href="https://jonathansfp.github.io/copypaste/?lang=en">
+<link rel="alternate" hreflang="es" href="https://jonathansfp.github.io/copypaste/?lang=es">
+<link rel="alternate" hreflang="x-default" href="https://jonathansfp.github.io/copypaste/">
 <meta property="og:image" content="https://jonathansfp.github.io/copypaste/componentes.png">
 <meta property="og:type" content="website">
 <link rel="icon" href="icon.png">
@@ -49,11 +54,19 @@ nav { position: sticky; top: 0; z-index: 20; background: var(--bg); border-botto
 nav .wrap { display: flex; align-items: center; gap: 24px; height: 58px; }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 700; color: var(--ink); text-decoration: none; }
 .brand img { width: 26px; height: 26px; }
-nav .links { display: flex; gap: 22px; margin-left: auto; font-size: 15px; }
+nav .links { display: flex; gap: 22px; margin-left: auto; font-size: 15px; white-space: nowrap; }
 nav .links a { color: var(--ink2); text-decoration: none; }
 nav .links a:hover { color: var(--ink); }
-.theme { border: 1px solid var(--line); background: none; color: var(--ink2); border-radius: 7px; width: 32px; height: 32px; cursor: pointer; display: grid; place-items: center; }
-@media (max-width: 720px) { nav .links a:not(.keep) { display: none; } }
+.theme { flex: none; border: 1px solid var(--line); background: none; color: var(--ink2); border-radius: 7px; width: 32px; height: 32px; cursor: pointer; display: grid; place-items: center; }
+.lang { flex: none; display: flex; height: 32px; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.lang button { border: 0; background: none; color: var(--ink3); font: inherit; font-size: 12.5px; font-weight: 600; letter-spacing: .03em; padding: 0 8px; cursor: pointer; }
+.lang button + button { border-left: 1px solid var(--line); }
+.lang button:hover { color: var(--ink); }
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+@media (max-width: 920px) { nav .links a:not(.keep) { display: none; } }
+@media (max-width: 560px) { nav .wrap { gap: 10px; } nav .links { gap: 12px; font-size: 14px; } .lang button { padding: 0 6px; } }
+@media (max-width: 440px) { .brand .bname { display: none; } }
+@media (max-width: 400px) { nav .links a.navdl { display: none; } }
 
 /* buttons */
 .btn { display: inline-flex; align-items: center; gap: 9px; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 16px; border: 1px solid var(--ink); cursor: pointer; text-decoration: none; font-family: inherit; }
@@ -101,7 +114,9 @@ nav .links a.navpix:hover { background: var(--pixbg); }
 @keyframes vb { 0%, 100% { height: 4px; } 50% { height: 20px; } }
 .pilldemo span { font-size: 12.5px; color: rgba(255,255,255,.7); white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .pilldemo .bars i { animation: none; height: 10px; } }
+.voice > * { min-width: 0; }
 @media (max-width: 900px) { .voice { grid-template-columns: 1fr; } }
+@media (max-width: 420px) { .pilldemo span { white-space: normal; } }
 
 /* hero */
 .hero { padding: 64px 0 56px; }
@@ -227,16 +242,21 @@ footer a { color: var(--ink2); }
 
 <nav>
   <div class="wrap">
-    <a class="brand" href="#"><img src="icon.png" alt="">CopyPaste</a>
+    <a class="brand" href="#"><img src="icon.png" alt=""><span class="bname">CopyPaste</span></a>
     <div class="links">
-      <a href="#recursos">Recursos</a>
-      <a href="#ditado">Ditado IA</a>
-      <a href="#atalhos">Atalhos</a>
-      <a href="#codigo">Código</a>
-      <a href="#download" class="keep">Download</a>
-      <a href="#apoie" class="keep navpix">Apoiar</a>
+      <a href="#recursos" data-i18n="nav.features">Recursos</a>
+      <a href="#ditado" data-i18n="nav.dict">Ditado IA</a>
+      <a href="#atalhos" data-i18n="nav.keys">Atalhos</a>
+      <a href="#codigo" data-i18n="nav.code">Código</a>
+      <a href="#download" class="keep navdl" data-i18n="nav.dl">Download</a>
+      <a href="#apoie" class="keep navpix" data-i18n="nav.pix">Apoiar</a>
     </div>
-    <button class="theme" id="theme" title="Alternar tema claro/escuro" aria-label="Alternar tema">
+    <div class="lang" id="lang" role="group" aria-label="Idioma" data-i18n-attr="aria-label:lang.label">
+      <button type="button" data-lang="pt" lang="pt-BR" title="Português" aria-pressed="false">PT</button>
+      <button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button>
+      <button type="button" data-lang="es" lang="es" title="Español" aria-pressed="false">ES</button>
+    </div>
+    <button class="theme" id="theme" title="Alternar tema claro/escuro" aria-label="Alternar tema" data-i18n-attr="title:theme.title;aria-label:theme.label">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     </button>
   </div>
@@ -244,61 +264,61 @@ footer a { color: var(--ink2); }
 
 <header class="hero">
   <div class="wrap">
-    <p class="free"><b>100% GRATUITO</b><span>sem anúncios · sem cadastro · sem assinatura · código aberto</span></p>
-    <p class="dev">Desenvolvido por <b>Jonathan Felix</b> · <a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a></p>
-    <h1>Copie, capture, anote e <mark>apresente</mark>. Fácil e simples.</h1>
-    <p class="lead">Histórico de cópias, captura de tela com anotações nítidas, quadro de apresentação, gravação de tela e ditado por voz com a sua IA, num app só. Leve, gratuito e de código aberto.</p>
+    <p class="free"><b data-i18n="free.badge">100% GRATUITO</b><span data-i18n="free.list">sem anúncios · sem cadastro · sem assinatura · código aberto</span></p>
+    <p class="dev"><span data-i18n="dev">Desenvolvido por</span> <b>Jonathan Felix</b> · <a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a></p>
+    <h1 data-i18n="hero.h1">Copie, capture, anote e <mark>apresente</mark>. Fácil e simples.</h1>
+    <p class="lead" data-i18n="hero.lead">Histórico de cópias, captura de tela com anotações nítidas, quadro de apresentação, gravação de tela e ditado por voz com a sua IA, num app só. Leve, gratuito e de código aberto.</p>
     <div class="cta">
-      <a class="btn primary" id="hero-dl" href="#download"><svg><use href="#i-dl"/></svg><span>Baixar grátis</span></a>
-      <a class="btn ghost" href="https://github.com/jonathansfp/copypaste"><svg><use href="#i-gh"/></svg>Código no GitHub</a>
-      <a class="btn pixbtn" href="#apoie"><svg><use href="#i-heart"/></svg>Apoiar com Pix</a>
+      <a class="btn primary" id="hero-dl" href="#download"><svg><use href="#i-dl"/></svg><span data-i18n="hero.dl">Baixar grátis</span></a>
+      <a class="btn ghost" href="https://github.com/jonathansfp/copypaste"><svg><use href="#i-gh"/></svg><span data-i18n="hero.gh">Código no GitHub</span></a>
+      <a class="btn pixbtn" href="#apoie"><svg><use href="#i-heart"/></svg><span data-i18n="hero.pix">Apoiar com Pix</span></a>
     </div>
-    <p class="meta" id="hero-meta">macOS 14+ · Windows 10 e 11 · Linux (X11 e Wayland) · licença GPL-3.0</p>
+    <p class="meta" id="hero-meta" data-i18n="hero.meta">macOS 14+ · Windows 10 e 11 · Linux (X11 e Wayland) · licença GPL-3.0</p>
     <figure class="shot">
-      <img src="componentes.png" width="1600" height="1013" alt="Formas, componentes, setas, traço à mão, desfoque, marca-texto e passos numerados desenhados no CopyPaste">
-      <figcaption>Desenhado no próprio app: formas, componentes, traço à mão, setas, passos numerados, desfoque, marca-texto e texto.</figcaption>
+      <img src="componentes.png" width="1600" height="1013" alt="Formas, componentes, setas, traço à mão, desfoque, marca-texto e passos numerados desenhados no CopyPaste" data-i18n-attr="alt:hero.alt">
+      <figcaption data-i18n="hero.cap">Desenhado no próprio app: formas, componentes, traço à mão, setas, passos numerados, desfoque, marca-texto e texto.</figcaption>
     </figure>
   </div>
 </header>
 
 <div class="band">
   <div class="wrap">
-    <p><b>Gratuito, sem anúncios e de código aberto.</b> Se o CopyPaste te ajuda, apoie o projeto com qualquer valor via Pix.</p>
-    <button class="btn pixbtn" data-copypix><svg><use href="#i-heart"/></svg>Copiar chave Pix</button>
-    <a href="#apoie">Como doar</a>
+    <p data-i18n="band.p"><b>Gratuito, sem anúncios e de código aberto.</b> Se o CopyPaste te ajuda, apoie o projeto com qualquer valor via Pix.</p>
+    <button class="btn pixbtn" data-copypix><svg><use href="#i-heart"/></svg><span data-i18n="pix.copy">Copiar chave Pix</span></button>
+    <a href="#apoie" data-i18n="band.how">Como doar</a>
   </div>
 </div>
 
 <section id="recursos">
   <div class="wrap">
     <div class="intro">
-      <h2>Quatro ferramentas, um atalho cada</h2>
-      <p>Cada uma abre na hora e é liberada quando você termina. Nada fica rodando em segundo plano sem motivo.</p>
+      <h2 data-i18n="feat.h2">Quatro ferramentas, um atalho cada</h2>
+      <p data-i18n="feat.p">Cada uma abre na hora e é liberada quando você termina. Nada fica rodando em segundo plano sem motivo.</p>
     </div>
     <div class="features">
       <article class="feature">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M8 12h8M8 16h5"/></svg>
-        <h3>Histórico de cópias</h3>
-        <p>Tudo o que você copia fica guardado: texto, links, código, cores, imagens e arquivos.</p>
-        <ul><li>Busca, filtros e fixados</li><li>Cola direto no cursor</li><li>Ignora senhas de gerenciadores</li></ul>
+        <h3 data-i18n="f1.h">Histórico de cópias</h3>
+        <p data-i18n="f1.p">Tudo o que você copia fica guardado: texto, links, código, cores, imagens e arquivos.</p>
+        <ul><li data-i18n="f1.l1">Busca, filtros e fixados</li><li data-i18n="f1.l2">Cola direto no cursor</li><li data-i18n="f1.l3">Ignora senhas de gerenciadores</li></ul>
       </article>
       <article class="feature">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="m9 15 6-6m0 0h-4m4 0v4"/></svg>
-        <h3>Captura com anotações</h3>
-        <p>A tela congela no instante do atalho. Clique numa janela ou arraste uma área, anote e copie.</p>
-        <ul><li>Setas, formas, texto, passos</li><li>Desfoque para esconder dados</li><li>Lupa, cor do pixel e OCR</li></ul>
+        <h3 data-i18n="f2.h">Captura com anotações</h3>
+        <p data-i18n="f2.p">A tela congela no instante do atalho. Clique numa janela ou arraste uma área, anote e copie.</p>
+        <ul><li data-i18n="f2.l1">Setas, formas, texto, passos</li><li data-i18n="f2.l2">Desfoque para esconder dados</li><li data-i18n="f2.l3">Lupa, cor do pixel e OCR</li></ul>
       </article>
       <article class="feature">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20c3-1 4-4 7-4s3 2 5 2 4-3 6-6"/><path d="m14 3 5 5-8 8H6v-5z"/></svg>
-        <h3>Quadro de apresentação</h3>
-        <p>Desenhe por cima de qualquer app numa reunião ou aula, ou num quadro em branco.</p>
-        <ul><li>Componentes estilo diagrama</li><li>Laser que some sozinho</li><li>Copiar, salvar e enviar</li></ul>
+        <h3 data-i18n="f3.h">Quadro de apresentação</h3>
+        <p data-i18n="f3.p">Desenhe por cima de qualquer app numa reunião ou aula, ou num quadro em branco.</p>
+        <ul><li data-i18n="f3.l1">Componentes estilo diagrama</li><li data-i18n="f3.l2">Laser que some sozinho</li><li data-i18n="f3.l3">Copiar, salvar e enviar</li></ul>
       </article>
       <article class="feature">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/></svg>
-        <h3>Gravação de tela</h3>
-        <p>Grave uma área ou a tela inteira em MP4, com o microfone e o som do computador.</p>
-        <ul><li>Cliques destacados</li><li>24, 30 ou 60 fps</li><li>O quadro aparece no vídeo</li></ul>
+        <h3 data-i18n="f4.h">Gravação de tela</h3>
+        <p data-i18n="f4.p">Grave uma área ou a tela inteira em MP4, com o microfone e o som do computador.</p>
+        <ul><li data-i18n="f4.l1">Cliques destacados</li><li data-i18n="f4.l2">24, 30 ou 60 fps</li><li data-i18n="f4.l3">O quadro aparece no vídeo</li></ul>
       </article>
     </div>
   </div>
@@ -308,30 +328,30 @@ footer a { color: var(--ink2); }
   <div class="wrap voice">
     <div>
       <div class="intro" style="margin-bottom:0">
-        <h2>Novo: fale e o texto aparece, em qualquer app</h2>
-        <p>Segure o atalho, fale e solte. O CopyPaste transcreve e a <b>sua</b> IA limpa o texto: tira os "é", "hã" e "tipo", pontua, monta listas e aplica as suas correções ("às três, não, às quatro" vira "às quatro").</p>
+        <h2 data-i18n="d.h2">Novo: fale e o texto aparece, em qualquer app</h2>
+        <p data-i18n="d.p">Segure o atalho, fale e solte. O CopyPaste transcreve e a <b>sua</b> IA limpa o texto: tira os "é", "hã" e "tipo", pontua, monta listas e aplica as suas correções ("às três, não, às quatro" vira "às quatro").</p>
       </div>
       <ul>
-        <li><b>Segure ou toque:</b> <kbd>⌥</kbd> <kbd>Espaço</kbd> no Mac, <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Espaço</kbd> no Windows e no Linux.</li>
-        <li><b>Comando de voz:</b> selecione um texto e diga "traduza para inglês", "deixe mais formal" ou "resuma em tópicos".</li>
-        <li><b>Estilos:</b> natural, formal para e-mails, descontraído para chats ou literal, sem IA.</li>
-        <li><b>Vocabulário próprio:</b> nomes, siglas e termos técnicos com a grafia certa.</li>
-        <li><b>IA local grátis:</b> o Gemma 4 do Google roda no seu computador, sem internet e sem chave. É o padrão quando você não conecta outra IA.</li>
+        <li data-i18n="d.l1"><b>Segure ou toque:</b> <kbd>⌥</kbd> <kbd>Espaço</kbd> no Mac, <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Espaço</kbd> no Windows e no Linux.</li>
+        <li data-i18n="d.l2"><b>Comando de voz:</b> selecione um texto e diga "traduza para inglês", "deixe mais formal" ou "resuma em tópicos".</li>
+        <li data-i18n="d.l3"><b>Estilos:</b> natural, formal para e-mails, descontraído para chats ou literal, sem IA.</li>
+        <li data-i18n="d.l4"><b>Vocabulário próprio:</b> nomes, siglas e termos técnicos com a grafia certa.</li>
+        <li data-i18n="d.l5"><b>IA local grátis:</b> o Gemma 4 do Google roda no seu computador, sem internet e sem chave. É o padrão quando você não conecta outra IA.</li>
       </ul>
-      <div class="pilldemo" aria-hidden="true"><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span>Ouvindo · solte para terminar</span></div>
+      <div class="pilldemo" aria-hidden="true"><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span data-i18n="d.pill">Ouvindo · solte para terminar</span></div>
     </div>
     <div class="ais">
-      <h3>IA local ou a sua própria IA</h3>
-      <p>Use a IA local, grátis e offline, ou cole a chave de API de uma destas em Configurações. Sem servidor do CopyPaste e sem mensalidade: com a sua chave, você paga só o uso na sua conta, normalmente centavos por mês.</p>
+      <h3 data-i18n="ais.h">IA local ou a sua própria IA</h3>
+      <p data-i18n="ais.p">Use a IA local, grátis e offline, ou cole a chave de API de uma destas em Configurações. Sem servidor do CopyPaste e sem mensalidade: com a sua chave, você paga só o uso na sua conta, normalmente centavos por mês.</p>
       <div class="chips">
-        <span class="chip">Gemma 4<small>local · texto e voz · grátis</small></span>
+        <span class="chip">Gemma 4<small data-i18n="chip.gemma">local · texto e voz · grátis</small></span>
         <span class="chip">Claude<small>Anthropic</small></span>
-        <span class="chip">ChatGPT<small>OpenAI · texto e voz</small></span>
-        <span class="chip">Gemini<small>Google · texto e voz</small></span>
+        <span class="chip">ChatGPT<small data-i18n="chip.openai">OpenAI · texto e voz</small></span>
+        <span class="chip">Gemini<small data-i18n="chip.gemini">Google · texto e voz</small></span>
         <span class="chip">DeepSeek</span>
         <span class="chip">Grok<small>xAI</small></span>
       </div>
-      <p style="margin:16px 0 0">A voz pode ser transcrita pela IA local em qualquer sistema, pela <b>Apple</b> no Mac, ou pela OpenAI ou pelo Gemini com a sua chave.</p>
+      <p style="margin:16px 0 0" data-i18n="ais.voice">A voz pode ser transcrita pela IA local em qualquer sistema, pela <b>Apple</b> no Mac, ou pela OpenAI ou pelo Gemini com a sua chave.</p>
     </div>
   </div>
 </section>
@@ -339,19 +359,19 @@ footer a { color: var(--ink2); }
 <section>
   <div class="wrap">
     <div class="intro">
-      <h2>O que muda no dia a dia</h2>
-      <p>Tarefas que pediam três apps, uma assinatura ou muitos cliques viram um atalho.</p>
+      <h2 data-i18n="ba.h2">O que muda no dia a dia</h2>
+      <p data-i18n="ba.p">Tarefas que pediam três apps, uma assinatura ou muitos cliques viram um atalho.</p>
     </div>
     <div class="scroll">
       <table class="tbl">
-        <thead><tr><th>Antes</th><th>Com o CopyPaste</th></tr></thead>
+        <thead><tr><th data-i18n="ba.th1">Antes</th><th data-i18n="ba.th2">Com o CopyPaste</th></tr></thead>
         <tbody>
-          <tr><td class="before">Copiou outra coisa e a anterior sumiu.</td><td class="after">O histórico guarda tudo, com busca e colagem no cursor.</td></tr>
-          <tr><td class="before">Print, abrir o editor, anotar, salvar, procurar o arquivo.</td><td class="after">Anota sobre a seleção, na hora, e <kbd>Enter</kbd> copia.</td></tr>
-          <tr><td class="before">A área de trabalho cheia de "Captura de tela….png".</td><td class="after">A captura vai para a área de transferência. Salva só quando você quer.</td></tr>
-          <tr><td class="before">Esconder senhas e dados de clientes exige outro editor.</td><td class="after">O desfoque pixeliza a área no próprio arquivo final.</td></tr>
-          <tr><td class="before">Copiar o texto de uma imagem ou de um vídeo.</td><td class="after">OCR offline em português: selecione e o texto é copiado.</td></tr>
-          <tr><td class="before">A gravação do sistema não pega o som do computador.</td><td class="after">Grava tela, microfone e áudio do sistema juntos.</td></tr>
+          <tr><td class="before" data-i18n="ba.1a">Copiou outra coisa e a anterior sumiu.</td><td class="after" data-i18n="ba.1b">O histórico guarda tudo, com busca e colagem no cursor.</td></tr>
+          <tr><td class="before" data-i18n="ba.2a">Print, abrir o editor, anotar, salvar, procurar o arquivo.</td><td class="after" data-i18n="ba.2b">Anota sobre a seleção, na hora, e <kbd>Enter</kbd> copia.</td></tr>
+          <tr><td class="before" data-i18n="ba.3a">A área de trabalho cheia de "Captura de tela….png".</td><td class="after" data-i18n="ba.3b">A captura vai para a área de transferência. Salva só quando você quer.</td></tr>
+          <tr><td class="before" data-i18n="ba.4a">Esconder senhas e dados de clientes exige outro editor.</td><td class="after" data-i18n="ba.4b">O desfoque pixeliza a área no próprio arquivo final.</td></tr>
+          <tr><td class="before" data-i18n="ba.5a">Copiar o texto de uma imagem ou de um vídeo.</td><td class="after" data-i18n="ba.5b">OCR offline em português: selecione e o texto é copiado.</td></tr>
+          <tr><td class="before" data-i18n="ba.6a">A gravação do sistema não pega o som do computador.</td><td class="after" data-i18n="ba.6b">Grava tela, microfone e áudio do sistema juntos.</td></tr>
         </tbody>
       </table>
     </div>
@@ -361,22 +381,22 @@ footer a { color: var(--ink2); }
 <section>
   <div class="wrap">
     <div class="intro">
-      <h2>Comparado a ferramentas comuns</h2>
-      <p>As ferramentas de captura mais usadas demoram para abrir e deixam o texto borrado.</p>
+      <h2 data-i18n="cmp.h2">Comparado a ferramentas comuns</h2>
+      <p data-i18n="cmp.p">As ferramentas de captura mais usadas demoram para abrir e deixam o texto borrado.</p>
     </div>
     <div class="scroll">
       <table class="tbl">
-        <thead><tr><th></th><th>Ferramentas comuns</th><th>CopyPaste</th></tr></thead>
+        <thead><tr><th></th><th data-i18n="cmp.them">Ferramentas comuns</th><th>CopyPaste</th></tr></thead>
         <tbody>
-          <tr><td>Abrir a captura</td><td class="them">Demora e às vezes trava</td><td class="us">A tela congela na hora (~150 ms)</td></tr>
-          <tr><td>Nitidez</td><td class="them">Anotações rasterizadas</td><td class="us">Vetores na resolução nativa (Retina, 4K)</td></tr>
-          <tr><td>Ferramentas</td><td class="them">Caneta, seta, retângulo</td><td class="us">+ marca-texto, passos, desfoque, componentes, laser</td></tr>
-          <tr><td>Janelas</td><td class="them">Seleção manual</td><td class="us">Destaca a janela sob o mouse; um clique captura</td></tr>
-          <tr><td>Texto da imagem</td><td class="them">—</td><td class="us">OCR offline</td></tr>
-          <tr><td>Depois da captura</td><td class="them">Copiar ou salvar</td><td class="us">+ fixar na tela, abrir no quadro, gravar a área</td></tr>
-          <tr><td>Vídeo</td><td class="them">—</td><td class="us">Com microfone e áudio do sistema</td></tr>
-          <tr><td>Atalhos</td><td class="them">Fixos</td><td class="us">Configuráveis, com aviso de conflito</td></tr>
-          <tr><td>Preço</td><td class="them">Assinatura ou anúncios</td><td class="us">Gratuito e de código aberto</td></tr>
+          <tr><td data-i18n="cmp.1">Abrir a captura</td><td class="them" data-i18n="cmp.1a">Demora e às vezes trava</td><td class="us" data-i18n="cmp.1b">A tela congela na hora (~150 ms)</td></tr>
+          <tr><td data-i18n="cmp.2">Nitidez</td><td class="them" data-i18n="cmp.2a">Anotações rasterizadas</td><td class="us" data-i18n="cmp.2b">Vetores na resolução nativa (Retina, 4K)</td></tr>
+          <tr><td data-i18n="cmp.3">Ferramentas</td><td class="them" data-i18n="cmp.3a">Caneta, seta, retângulo</td><td class="us" data-i18n="cmp.3b">+ marca-texto, passos, desfoque, componentes, laser</td></tr>
+          <tr><td data-i18n="cmp.4">Janelas</td><td class="them" data-i18n="cmp.4a">Seleção manual</td><td class="us" data-i18n="cmp.4b">Destaca a janela sob o mouse; um clique captura</td></tr>
+          <tr><td data-i18n="cmp.5">Texto da imagem</td><td class="them">—</td><td class="us" data-i18n="cmp.5b">OCR offline</td></tr>
+          <tr><td data-i18n="cmp.6">Depois da captura</td><td class="them" data-i18n="cmp.6a">Copiar ou salvar</td><td class="us" data-i18n="cmp.6b">+ fixar na tela, abrir no quadro, gravar a área</td></tr>
+          <tr><td data-i18n="cmp.7">Vídeo</td><td class="them">—</td><td class="us" data-i18n="cmp.7b">Com microfone e áudio do sistema</td></tr>
+          <tr><td data-i18n="cmp.8">Atalhos</td><td class="them" data-i18n="cmp.8a">Fixos</td><td class="us" data-i18n="cmp.8b">Configuráveis, com aviso de conflito</td></tr>
+          <tr><td data-i18n="cmp.9">Preço</td><td class="them" data-i18n="cmp.9a">Assinatura ou anúncios</td><td class="us" data-i18n="cmp.9b">Gratuito e de código aberto</td></tr>
         </tbody>
       </table>
     </div>
@@ -386,8 +406,8 @@ footer a { color: var(--ink2); }
 <section id="atalhos">
   <div class="wrap">
     <div class="intro">
-      <h2>Atalhos</h2>
-      <p>Os padrões abaixo podem ser trocados nas configurações, inclusive por teclas F sozinhas.</p>
+      <h2 data-i18n="k.h2">Atalhos</h2>
+      <p data-i18n="k.p">Os padrões abaixo podem ser trocados nas configurações, inclusive por teclas F sozinhas.</p>
     </div>
     <div class="tabs" role="tablist" id="ktabs">
       <button role="tab" data-os="mac" aria-selected="true">macOS</button>
@@ -395,33 +415,33 @@ footer a { color: var(--ink2); }
       <button role="tab" data-os="linux" aria-selected="false">Linux</button>
     </div>
     <div class="panel keys" data-os="mac">
-      <div class="key"><span>Histórico de cópias</span><span><kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>V</kbd></span></div>
-      <div class="key"><span>Quadro de apresentação</span><span><kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>D</kbd></span></div>
-      <div class="key"><span>Capturar área ou janela</span><span><kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>1</kbd></span></div>
-      <div class="key"><span>Gravar a tela</span><span><kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>R</kbd></span></div>
-      <div class="key"><span>Capturar a tela inteira</span><span><kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>2</kbd></span></div>
-      <div class="key"><span>Enviar o quadro</span><span><kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>E</kbd></span></div>
-      <div class="key"><span>Ditado por voz</span><span><kbd>⌥</kbd> <kbd>Espaço</kbd></span></div>
-      <div class="key"><span>Comando de voz</span><span><kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>Espaço</kbd></span></div>
+      <div class="key"><span data-i18n="k.hist">Histórico de cópias</span><span><kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>V</kbd></span></div>
+      <div class="key"><span data-i18n="k.board">Quadro de apresentação</span><span><kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>D</kbd></span></div>
+      <div class="key"><span data-i18n="k.area">Capturar área ou janela</span><span><kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>1</kbd></span></div>
+      <div class="key"><span data-i18n="k.rec">Gravar a tela</span><span><kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>R</kbd></span></div>
+      <div class="key"><span data-i18n="k.full">Capturar a tela inteira</span><span><kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>2</kbd></span></div>
+      <div class="key"><span data-i18n="k.send">Enviar o quadro</span><span><kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>E</kbd></span></div>
+      <div class="key"><span data-i18n="k.dict">Ditado por voz</span><span><kbd>⌥</kbd> <kbd data-i18n="k.space">Espaço</kbd></span></div>
+      <div class="key"><span data-i18n="k.cmd">Comando de voz</span><span><kbd>⌥</kbd> <kbd>⇧</kbd> <kbd data-i18n="k.space">Espaço</kbd></span></div>
     </div>
     <div class="panel keys" data-os="win" hidden>
-      <div class="key"><span>Histórico de cópias</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>V</kbd></span></div>
-      <div class="key"><span>Quadro de apresentação</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>D</kbd></span></div>
-      <div class="key"><span>Capturar área ou janela</span><span><kbd>PrtSc</kbd></span></div>
-      <div class="key"><span>Gravar a tela</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd></span></div>
-      <div class="key"><span>Capturar a tela inteira</span><span><kbd>Shift</kbd> <kbd>PrtSc</kbd></span></div>
-      <div class="key"><span>Copiar · salvar</span><span><kbd>Ctrl</kbd> <kbd>C</kbd> · <kbd>Ctrl</kbd> <kbd>S</kbd></span></div>
-      <div class="key"><span>Ditado por voz</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Espaço</kbd></span></div>
-      <div class="key"><span>Comando de voz</span><span><kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>Espaço</kbd></span></div>
+      <div class="key"><span data-i18n="k.hist">Histórico de cópias</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>V</kbd></span></div>
+      <div class="key"><span data-i18n="k.board">Quadro de apresentação</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>D</kbd></span></div>
+      <div class="key"><span data-i18n="k.area">Capturar área ou janela</span><span><kbd>PrtSc</kbd></span></div>
+      <div class="key"><span data-i18n="k.rec">Gravar a tela</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd></span></div>
+      <div class="key"><span data-i18n="k.full">Capturar a tela inteira</span><span><kbd>Shift</kbd> <kbd>PrtSc</kbd></span></div>
+      <div class="key"><span data-i18n="k.copysave">Copiar · salvar</span><span><kbd>Ctrl</kbd> <kbd>C</kbd> · <kbd>Ctrl</kbd> <kbd>S</kbd></span></div>
+      <div class="key"><span data-i18n="k.dict">Ditado por voz</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd data-i18n="k.space">Espaço</kbd></span></div>
+      <div class="key"><span data-i18n="k.cmd">Comando de voz</span><span><kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd data-i18n="k.space">Espaço</kbd></span></div>
     </div>
     <div class="panel keys" data-os="linux" hidden>
-      <div class="key"><span>Histórico de cópias</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>V</kbd></span></div>
-      <div class="key"><span>Quadro de apresentação</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>D</kbd></span></div>
-      <div class="key"><span>Capturar área ou janela</span><span><kbd>PrtSc</kbd></span></div>
-      <div class="key"><span>Gravar a tela</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd></span></div>
-      <div class="key"><span>Capturar a tela inteira</span><span><kbd>Shift</kbd> <kbd>PrtSc</kbd></span></div>
-      <div class="key"><span>Ditado por voz</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Espaço</kbd></span></div>
-      <div class="key"><span>No Wayland, atalho do sistema</span><span><code>copypaste --capture-area</code></span></div>
+      <div class="key"><span data-i18n="k.hist">Histórico de cópias</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>V</kbd></span></div>
+      <div class="key"><span data-i18n="k.board">Quadro de apresentação</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>D</kbd></span></div>
+      <div class="key"><span data-i18n="k.area">Capturar área ou janela</span><span><kbd>PrtSc</kbd></span></div>
+      <div class="key"><span data-i18n="k.rec">Gravar a tela</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd></span></div>
+      <div class="key"><span data-i18n="k.full">Capturar a tela inteira</span><span><kbd>Shift</kbd> <kbd>PrtSc</kbd></span></div>
+      <div class="key"><span data-i18n="k.dict">Ditado por voz</span><span><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd data-i18n="k.space">Espaço</kbd></span></div>
+      <div class="key"><span data-i18n="k.wayland">No Wayland, atalho do sistema</span><span><code>copypaste --capture-area</code></span></div>
     </div>
   </div>
 </section>
@@ -429,35 +449,35 @@ footer a { color: var(--ink2); }
 <section id="download">
   <div class="wrap">
     <div class="intro">
-      <h2>Download <span class="freeline">grátis</span></h2>
-      <p>Sem custo, sem cadastro e sem versão paga. Baixe só o instalador, sem precisar do código. Os arquivos são gerados pelo GitHub a partir do código aberto. Versões anteriores em <a href="https://github.com/jonathansfp/copypaste/releases">Releases</a>.</p>
+      <h2 data-i18n="dl.h2">Download <span class="freeline">grátis</span></h2>
+      <p data-i18n="dl.p">Sem custo, sem cadastro e sem versão paga. Baixe só o instalador, sem precisar do código. Os arquivos são gerados pelo GitHub a partir do código aberto. Versões anteriores em <a href="https://github.com/jonathansfp/copypaste/releases">Releases</a>.</p>
     </div>
     <div class="dl">
       <div class="os" data-os="mac">
-        <header><svg><use href="#i-apple"/></svg><div><h3>macOS</h3><div class="req">macOS 14+ · Apple Silicon e Intel</div></div></header>
+        <header><svg><use href="#i-apple"/></svg><div><h3>macOS</h3><div class="req" data-i18n="mac.req">macOS 14+ · Apple Silicon e Intel</div></div></header>
         <div class="files">
-          <a class="file main" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-macOS.dmg"><b>CopyPaste.dmg</b><small>arraste para Aplicativos</small></a>
-          <a class="file" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-macOS.zip"><b>.zip</b><small>o mesmo app, compactado</small></a>
+          <a class="file main" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-macOS.dmg"><b>CopyPaste.dmg</b><small data-i18n="mac.dmg">arraste para Aplicativos</small></a>
+          <a class="file" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-macOS.zip"><b>.zip</b><small data-i18n="mac.zip">o mesmo app, compactado</small></a>
         </div>
-        <p class="note">Na primeira vez: botão direito no app → <b>Abrir</b> → <b>Abrir</b>. A gravação de tela pede macOS 15.</p>
+        <p class="note" data-i18n="mac.note">Na primeira vez: botão direito no app → <b>Abrir</b> → <b>Abrir</b>. A gravação de tela pede macOS 15.</p>
       </div>
       <div class="os" data-os="win">
-        <header><svg><use href="#i-win"/></svg><div><h3>Windows</h3><div class="req">Windows 10 e 11 · 64 bits</div></div></header>
+        <header><svg><use href="#i-win"/></svg><div><h3>Windows</h3><div class="req" data-i18n="win.req">Windows 10 e 11 · 64 bits</div></div></header>
         <div class="files">
-          <a class="file main" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Windows-Setup.exe"><b>Instalador .exe</b><small>sem administrador</small></a>
-          <a class="file" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Windows.msi"><b>.msi</b><small>para empresas</small></a>
-          <a class="file" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Windows-Portable.zip"><b>Portátil .zip</b><small>sem instalar</small></a>
+          <a class="file main" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Windows-Setup.exe"><b data-i18n="win.exe">Instalador .exe</b><small data-i18n="win.exe.s">sem administrador</small></a>
+          <a class="file" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Windows.msi"><b>.msi</b><small data-i18n="win.msi.s">para empresas</small></a>
+          <a class="file" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Windows-Portable.zip"><b data-i18n="win.zip">Portátil .zip</b><small data-i18n="win.zip.s">sem instalar</small></a>
         </div>
-        <p class="note">Se aparecer "O Windows protegeu o computador": <b>Mais informações</b> → <b>Executar assim mesmo</b>. Para gravar: <code>winget install Gyan.FFmpeg</code></p>
+        <p class="note" data-i18n="win.note">Se aparecer "O Windows protegeu o computador": <b>Mais informações</b> → <b>Executar assim mesmo</b>. Para gravar: <code>winget install Gyan.FFmpeg</code></p>
       </div>
       <div class="os" data-os="linux">
-        <header><svg><use href="#i-linux"/></svg><div><h3>Linux</h3><div class="req">x86_64 · X11 e Wayland</div></div></header>
+        <header><svg><use href="#i-linux"/></svg><div><h3>Linux</h3><div class="req" data-i18n="linux.req">x86_64 · X11 e Wayland</div></div></header>
         <div class="files">
-          <a class="file main" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Linux-x86_64.AppImage"><b>AppImage</b><small>qualquer distro</small></a>
+          <a class="file main" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Linux-x86_64.AppImage"><b>AppImage</b><small data-i18n="linux.ai.s">qualquer distro</small></a>
           <a class="file" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Linux-amd64.deb"><b>.deb</b><small>Ubuntu, Debian, Mint</small></a>
           <a class="file" href="https://github.com/jonathansfp/copypaste/releases/latest/download/CopyPaste-Linux-x86_64.rpm"><b>.rpm</b><small>Fedora, openSUSE</small></a>
         </div>
-        <p class="note">AppImage: <code>chmod +x</code> e abrir. Extras: <code>sudo apt install xdotool ffmpeg tesseract-ocr-por</code></p>
+        <p class="note" data-i18n="linux.note">AppImage: <code>chmod +x</code> e abrir. Extras: <code>sudo apt install xdotool ffmpeg tesseract-ocr-por</code></p>
       </div>
     </div>
   </div>
@@ -467,14 +487,14 @@ footer a { color: var(--ink2); }
   <div class="wrap">
     <div class="pix">
       <div>
-        <h2>Apoie com um Pix</h2>
-        <p>O CopyPaste é gratuito, sem anúncios e de código aberto. Se ele poupa o seu tempo, qualquer valor ajuda a manter o projeto e trazer novidades.</p>
-        <ol class="steps"><li>Copie a chave.</li><li>No app do banco: <b>Pix → Pagar → Chave aleatória</b>.</li><li>Cole a chave e escolha o valor.</li></ol>
+        <h2 data-i18n="pix.h2">Apoie com um Pix</h2>
+        <p data-i18n="pix.p">O CopyPaste é gratuito, sem anúncios e de código aberto. Se ele poupa o seu tempo, qualquer valor ajuda a manter o projeto e trazer novidades.</p>
+        <ol class="steps"><li data-i18n="pix.s1">Copie a chave.</li><li data-i18n="pix.s2">No app do banco: <b>Pix → Pagar → Chave aleatória</b>.</li><li data-i18n="pix.s3">Cole a chave e escolha o valor.</li></ol>
       </div>
       <div class="keybox">
-        <label for="pixkey">Chave Pix (aleatória)</label>
+        <label for="pixkey" data-i18n="pix.label">Chave Pix (aleatória)</label>
         <span class="k" id="pixkey">586cb2d1-8a6e-4bed-8cdb-1f413e8f3e38</span>
-        <button class="btn" data-copypix>Copiar chave Pix</button>
+        <button class="btn" data-copypix><span data-i18n="pix.copy">Copiar chave Pix</span></button>
       </div>
     </div>
   </div>
@@ -483,27 +503,27 @@ footer a { color: var(--ink2); }
 <section id="codigo">
   <div class="wrap">
     <div class="intro">
-      <h2>Código aberto, uma pasta por sistema</h2>
-      <p>O Mac usa um app nativo em Swift. Windows e Linux compartilham um núcleo em Rust (Tauri 2), com o código de cada sistema na sua pasta.</p>
+      <h2 data-i18n="code.h2">Código aberto, uma pasta por sistema</h2>
+      <p data-i18n="code.p">O Mac usa um app nativo em Swift. Windows e Linux compartilham um núcleo em Rust (Tauri 2), com o código de cada sistema na sua pasta.</p>
     </div>
     <div class="repo">
-      <a class="folder" href="https://github.com/jonathansfp/copypaste/tree/main/macos"><b>macos/</b><p>Swift, AppKit e SwiftUI, ScreenCaptureKit, OCR do Vision.</p></a>
-      <a class="folder" href="https://github.com/jonathansfp/copypaste/tree/main/windows"><b>windows/</b><p>Colar com SendInput, OCR do Windows, barra fora da gravação.</p></a>
-      <a class="folder" href="https://github.com/jonathansfp/copypaste/tree/main/linux"><b>linux/</b><p>X11 e Wayland, xdotool e wtype, Tesseract, PipeWire.</p></a>
-      <a class="folder" href="https://github.com/jonathansfp/copypaste/tree/main/core"><b>core/</b><p>Núcleo de Windows e Linux: Rust e interface em canvas na GPU.</p></a>
+      <a class="folder" href="https://github.com/jonathansfp/copypaste/tree/main/macos"><b>macos/</b><p data-i18n="fo.mac">Swift, AppKit e SwiftUI, ScreenCaptureKit, OCR do Vision.</p></a>
+      <a class="folder" href="https://github.com/jonathansfp/copypaste/tree/main/windows"><b>windows/</b><p data-i18n="fo.win">Colar com SendInput, OCR do Windows, barra fora da gravação.</p></a>
+      <a class="folder" href="https://github.com/jonathansfp/copypaste/tree/main/linux"><b>linux/</b><p data-i18n="fo.linux">X11 e Wayland, xdotool e wtype, Tesseract, PipeWire.</p></a>
+      <a class="folder" href="https://github.com/jonathansfp/copypaste/tree/main/core"><b>core/</b><p data-i18n="fo.core">Núcleo de Windows e Linux: Rust e interface em canvas na GPU.</p></a>
     </div>
     <div class="scroll">
       <table class="tbl matrix">
-        <thead><tr><th>Recurso</th><th>macOS</th><th>Windows</th><th>Linux</th></tr></thead>
+        <thead><tr><th data-i18n="m.th">Recurso</th><th>macOS</th><th>Windows</th><th>Linux</th></tr></thead>
         <tbody>
-          <tr><td>Histórico com busca e colagem no cursor</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-          <tr><td>Captura congelada, lupa e janelas</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-          <tr><td>Anotações vetoriais e desfoque</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-          <tr><td>Fixar captura na tela</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-          <tr><td>OCR (texto da imagem)</td><td>Vision</td><td>OCR do Windows</td><td>Tesseract</td></tr>
-          <tr><td>Quadro com componentes e laser</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-          <tr><td>Gravação com microfone e áudio</td><td>nativa</td><td>ffmpeg</td><td>ffmpeg</td></tr>
-          <tr><td>Atalhos globais configuráveis</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td data-i18n="m.1">Histórico com busca e colagem no cursor</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td data-i18n="m.2">Captura congelada, lupa e janelas</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td data-i18n="m.3">Anotações vetoriais e desfoque</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td data-i18n="m.4">Fixar captura na tela</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td data-i18n="m.5">OCR (texto da imagem)</td><td>Vision</td><td data-i18n="m.winocr">OCR do Windows</td><td>Tesseract</td></tr>
+          <tr><td data-i18n="m.6">Quadro com componentes e laser</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td data-i18n="m.7">Gravação com microfone e áudio</td><td data-i18n="m.native">nativa</td><td>ffmpeg</td><td>ffmpeg</td></tr>
+          <tr><td data-i18n="m.8">Atalhos globais configuráveis</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
         </tbody>
       </table>
     </div>
@@ -512,24 +532,24 @@ footer a { color: var(--ink2); }
 
 <section>
   <div class="wrap faq">
-    <h2 style="margin-bottom:24px">Perguntas frequentes</h2>
-    <details><summary>É gratuito mesmo?</summary><p>Sim. Sem anúncios, sem cadastro e sem limites. O código é aberto sob a licença GPL-3.0. Se quiser apoiar, há a opção de <a href="#apoie">doar via Pix</a>.</p></details>
-    <details><summary>Meus dados saem do computador?</summary><p>Não. O histórico, as capturas e o OCR ficam e rodam só no seu computador, sem internet. O que gerenciadores de senha marcam como confidencial nunca é salvo. A única exceção é o ditado por voz quando você conecta uma IA: aí só o áudio do ditado e o texto vão, direto do seu computador, para o provedor que você escolheu.</p></details>
-    <details><summary>Preciso pagar pela IA do ditado?</summary><p>Não. A IA local (Gemma 4) é grátis e roda no seu computador, sem internet; basta baixá-la uma vez em Configurações (cerca de 4 GB). Se preferir, use a sua própria chave de API (Claude, ChatGPT, Gemini, DeepSeek ou Grok) e pague só o que usar na conta do provedor, em geral centavos por mês.</p></details>
-    <details><summary>Como fico sabendo de novas versões?</summary><p>Uma vez por semana o CopyPaste confere se há uma versão nova e, se houver, mostra um aviso com o botão para baixar. Também dá para verificar na hora pelo menu do ícone: <b>Verificar atualizações…</b>.</p></details>
-    <details><summary>Onde consigo a chave de API?</summary><p>No painel de cada provedor: <a href="https://platform.claude.com/settings/keys">Claude</a>, <a href="https://platform.openai.com/api-keys">OpenAI</a>, <a href="https://aistudio.google.com/apikey">Gemini</a>, <a href="https://platform.deepseek.com/api_keys">DeepSeek</a> e <a href="https://console.x.ai">Grok</a>. Em Configurações, o link "Obter chave" leva direto à página certa. A chave fica guardada só no seu computador.</p></details>
-    <details><summary>Por que o sistema pede confirmação ao abrir?</summary><p>O app não é distribuído por uma loja. No Windows, clique em <b>Mais informações → Executar assim mesmo</b>. No Mac, clique com o botão direito no app → <b>Abrir</b>. Isso só acontece na primeira vez.</p></details>
-    <details><summary>Como envio o que desenhei no quadro?</summary><p>Pelos botões da barra do quadro: <b>Copiar</b> (cole direto no WhatsApp, Teams, Slack ou e-mail), <b>Salvar</b> na pasta de capturas ou, no Mac, <b>Enviar</b> pelo AirDrop, Mensagens ou Mail.</p></details>
-    <details><summary>O que preciso para gravar a tela no Windows e no Linux?</summary><p>O ffmpeg, que é gratuito. No Windows: <code>winget install Gyan.FFmpeg</code>. No Linux: <code>sudo apt install ffmpeg</code>. O app avisa se estiver faltando.</p></details>
-    <details><summary>Os atalhos não funcionam no Wayland.</summary><p>O Wayland não deixa apps registrarem atalhos globais. Crie um atalho do sistema que rode <code>copypaste --capture-area</code> (ou <code>--history</code>, <code>--board</code>, <code>--record</code>, <code>--dictate</code>). O app já aberto recebe o comando na hora.</p></details>
-    <details><summary>O Print Screen do Windows 11 abre outra ferramenta.</summary><p>Desligue em <b>Configurações › Acessibilidade › Teclado › "Usar a tecla Print Screen para abrir a captura de tela"</b>, ou escolha outro atalho no CopyPaste.</p></details>
+    <h2 style="margin-bottom:24px" data-i18n="faq.h2">Perguntas frequentes</h2>
+    <details><summary data-i18n="q1">É gratuito mesmo?</summary><p data-i18n="a1">Sim. Sem anúncios, sem cadastro e sem limites. O código é aberto sob a licença GPL-3.0. Se quiser apoiar, há a opção de <a href="#apoie">doar via Pix</a>.</p></details>
+    <details><summary data-i18n="q2">Meus dados saem do computador?</summary><p data-i18n="a2">Não. O histórico, as capturas e o OCR ficam e rodam só no seu computador, sem internet. O que gerenciadores de senha marcam como confidencial nunca é salvo. A única exceção é o ditado por voz quando você conecta uma IA: aí só o áudio do ditado e o texto vão, direto do seu computador, para o provedor que você escolheu.</p></details>
+    <details><summary data-i18n="q3">Preciso pagar pela IA do ditado?</summary><p data-i18n="a3">Não. A IA local (Gemma 4) é grátis e roda no seu computador, sem internet; basta baixá-la uma vez em Configurações (cerca de 4 GB). Se preferir, use a sua própria chave de API (Claude, ChatGPT, Gemini, DeepSeek ou Grok) e pague só o que usar na conta do provedor, em geral centavos por mês.</p></details>
+    <details><summary data-i18n="q4">Como fico sabendo de novas versões?</summary><p data-i18n="a4">Uma vez por semana o CopyPaste confere se há uma versão nova e, se houver, mostra um aviso com o botão para baixar. Também dá para verificar na hora pelo menu do ícone: <b>Verificar atualizações…</b>.</p></details>
+    <details><summary data-i18n="q5">Onde consigo a chave de API?</summary><p><span data-i18n="a5a">No painel de cada provedor:</span> <a href="https://platform.claude.com/settings/keys">Claude</a>, <a href="https://platform.openai.com/api-keys">OpenAI</a>, <a href="https://aistudio.google.com/apikey">Gemini</a>, <a href="https://platform.deepseek.com/api_keys">DeepSeek</a> <span data-i18n="and">e</span> <a href="https://console.x.ai">Grok</a>. <span data-i18n="a5b">Em Configurações, o link "Obter chave" leva direto à página certa. A chave fica guardada só no seu computador.</span></p></details>
+    <details><summary data-i18n="q6">Por que o sistema pede confirmação ao abrir?</summary><p data-i18n="a6">O app não é distribuído por uma loja. No Windows, clique em <b>Mais informações → Executar assim mesmo</b>. No Mac, clique com o botão direito no app → <b>Abrir</b>. Isso só acontece na primeira vez.</p></details>
+    <details><summary data-i18n="q7">Como envio o que desenhei no quadro?</summary><p data-i18n="a7">Pelos botões da barra do quadro: <b>Copiar</b> (cole direto no WhatsApp, Teams, Slack ou e-mail), <b>Salvar</b> na pasta de capturas ou, no Mac, <b>Enviar</b> pelo AirDrop, Mensagens ou Mail.</p></details>
+    <details><summary data-i18n="q8">O que preciso para gravar a tela no Windows e no Linux?</summary><p data-i18n="a8">O ffmpeg, que é gratuito. No Windows: <code>winget install Gyan.FFmpeg</code>. No Linux: <code>sudo apt install ffmpeg</code>. O app avisa se estiver faltando.</p></details>
+    <details><summary data-i18n="q9">Os atalhos não funcionam no Wayland.</summary><p data-i18n="a9">O Wayland não deixa apps registrarem atalhos globais. Crie um atalho do sistema que rode <code>copypaste --capture-area</code> (ou <code>--history</code>, <code>--board</code>, <code>--record</code>, <code>--dictate</code>). O app já aberto recebe o comando na hora.</p></details>
+    <details><summary data-i18n="q10">O Print Screen do Windows 11 abre outra ferramenta.</summary><p data-i18n="a10">Desligue em <b>Configurações › Acessibilidade › Teclado › "Usar a tecla Print Screen para abrir a captura de tela"</b>, ou escolha outro atalho no CopyPaste.</p></details>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <span>CopyPaste · por Jonathan Felix (<a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a>) · código aberto sob GPL-3.0</span>
-    <span><a href="https://github.com/jonathansfp/copypaste">GitHub</a> · <a href="https://github.com/jonathansfp/copypaste/releases">Releases</a> · <a href="https://github.com/jonathansfp/copypaste/issues">Relatar um problema</a> · <a href="#apoie">Doar via Pix</a></span>
+    <span>CopyPaste · <span data-i18n="ft.by">por</span> Jonathan Felix (<a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a>) · <span data-i18n="ft.lic">código aberto sob GPL-3.0</span></span>
+    <span><a href="https://github.com/jonathansfp/copypaste">GitHub</a> · <a href="https://github.com/jonathansfp/copypaste/releases">Releases</a> · <a href="https://github.com/jonathansfp/copypaste/issues" data-i18n="ft.issue">Relatar um problema</a> · <a href="#apoie" data-i18n="ft.pix">Doar via Pix</a></span>
   </div>
 </footer>
 
@@ -539,6 +559,442 @@ footer a { color: var(--ink2); }
 (() => {
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
   const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch { } } };
+
+  // Idiomas: o português é o próprio HTML; inglês e espanhol vêm destes dicionários.
+  // PT guarda só os textos montados pelo script (que não existem no HTML).
+  const PT = {
+    'dl.win': 'Baixar grátis para Windows',
+    'dl.mac': 'Baixar grátis para macOS',
+    'dl.linux': 'Baixar grátis para Linux',
+    'you': 'Seu sistema',
+    'toast.ok': 'Chave Pix copiada. Obrigado!',
+    'toast.sel': 'Chave selecionada: use Ctrl+C ou ⌘C',
+  };
+  const I18N = {
+    en: {
+      'title': 'CopyPaste — clipboard history, screenshots and whiteboard',
+      'meta.desc': 'Clipboard history, annotated screenshots, a presentation board, screen recording and AI voice dictation. Free and open source for macOS, Windows and Linux.',
+      'meta.og': 'Clipboard history, annotated screenshots, whiteboard, screen recording and AI voice dictation. Free for macOS, Windows and Linux.',
+      'meta.locale': 'en_US',
+      'lang.label': 'Language',
+      'theme.title': 'Toggle light/dark theme',
+      'theme.label': 'Toggle theme',
+      'nav.features': 'Features',
+      'nav.dict': 'AI dictation',
+      'nav.keys': 'Shortcuts',
+      'nav.code': 'Code',
+      'nav.dl': 'Download',
+      'nav.pix': 'Donate',
+      'free.badge': '100% FREE',
+      'free.list': 'no ads · no sign-up · no subscription · open source',
+      'dev': 'Developed by',
+      'hero.h1': 'Copy, capture, annotate and <mark>present</mark>. Simple and easy.',
+      'hero.lead': 'Clipboard history, screenshots with crisp annotations, a presentation board, screen recording and voice dictation with your own AI, all in one app. Lightweight, free and open source.',
+      'hero.dl': 'Free download',
+      'hero.gh': 'Code on GitHub',
+      'hero.pix': 'Donate via Pix',
+      'hero.meta': 'macOS 14+ · Windows 10 and 11 · Linux (X11 and Wayland) · GPL-3.0 license',
+      'hero.alt': 'Shapes, components, arrows, freehand strokes, blur, highlighter and numbered steps drawn in CopyPaste',
+      'hero.cap': 'Drawn in the app itself: shapes, components, freehand strokes, arrows, numbered steps, blur, highlighter and text.',
+      'band.p': '<b>Free, ad-free and open source.</b> If CopyPaste helps you, support the project with any amount via Pix, Brazil\'s instant payment system.',
+      'pix.copy': 'Copy Pix key',
+      'band.how': 'How to donate',
+      'feat.h2': 'Four tools, one shortcut each',
+      'feat.p': 'Each one opens instantly and is released when you\'re done. Nothing keeps running in the background for no reason.',
+      'f1.h': 'Clipboard history',
+      'f1.p': 'Everything you copy is saved: text, links, code, colors, images and files.',
+      'f1.l1': 'Search, filters and pins',
+      'f1.l2': 'Pastes right at the cursor',
+      'f1.l3': 'Skips passwords from password managers',
+      'f2.h': 'Annotated screenshots',
+      'f2.p': 'The screen freezes the moment you hit the shortcut. Click a window or drag an area, annotate and copy.',
+      'f2.l1': 'Arrows, shapes, text, steps',
+      'f2.l2': 'Blur to hide sensitive data',
+      'f2.l3': 'Magnifier, pixel color and OCR',
+      'f3.h': 'Presentation board',
+      'f3.p': 'Draw over any app during a meeting or class, or on a blank board.',
+      'f3.l1': 'Diagram-style components',
+      'f3.l2': 'Laser that fades on its own',
+      'f3.l3': 'Copy, save and share',
+      'f4.h': 'Screen recording',
+      'f4.p': 'Record an area or the whole screen to MP4, with your microphone and computer audio.',
+      'f4.l1': 'Highlighted clicks',
+      'f4.l2': '24, 30 or 60 fps',
+      'f4.l3': 'The board shows up in the video',
+      'd.h2': 'New: speak and the text appears, in any app',
+      'd.p': 'Hold the shortcut, speak and let go. CopyPaste transcribes and <b>your</b> AI cleans up the text: it drops the "um"s, "uh"s and "like"s, adds punctuation, builds lists and applies your corrections ("at three, no, at four" becomes "at four").',
+      'd.l1': '<b>Hold or tap:</b> <kbd>⌥</kbd> <kbd>Space</kbd> on Mac, <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Space</kbd> on Windows and Linux.',
+      'd.l2': '<b>Voice command:</b> select some text and say "translate to Spanish", "make it more formal" or "summarize as bullet points".',
+      'd.l3': '<b>Styles:</b> natural, formal for emails, casual for chats, or verbatim with no AI.',
+      'd.l4': '<b>Custom vocabulary:</b> names, acronyms and technical terms, spelled right.',
+      'd.l5': '<b>Free local AI:</b> Google\'s Gemma 4 runs on your computer, with no internet and no key. It\'s the default when you don\'t connect another AI.',
+      'd.pill': 'Listening · release to finish',
+      'ais.h': 'Local AI or your own AI',
+      'ais.p': 'Use the local AI, free and offline, or paste an API key for one of these in Settings. No CopyPaste server and no monthly fee: with your own key, you only pay for what you use on your account, usually pennies a month.',
+      'chip.gemma': 'local · text and voice · free',
+      'chip.openai': 'OpenAI · text and voice',
+      'chip.gemini': 'Google · text and voice',
+      'ais.voice': 'Speech can be transcribed by the local AI on any system, by <b>Apple</b> on Mac, or by OpenAI or Gemini with your key.',
+      'ba.h2': 'What changes day to day',
+      'ba.p': 'Tasks that used to take three apps, a subscription or lots of clicks become a single shortcut.',
+      'ba.th1': 'Before',
+      'ba.th2': 'With CopyPaste',
+      'ba.1a': 'You copied something else and the previous item was gone.',
+      'ba.1b': 'The history keeps everything, with search and paste at the cursor.',
+      'ba.2a': 'Screenshot, open an editor, annotate, save, hunt for the file.',
+      'ba.2b': 'Annotate right on the selection, instantly, and <kbd>Enter</kbd> copies.',
+      'ba.3a': 'A desktop full of "Screenshot….png" files.',
+      'ba.3b': 'Captures go to the clipboard. Save only when you want to.',
+      'ba.4a': 'Hiding passwords and client data takes another editor.',
+      'ba.4b': 'Blur pixelates the area in the final file itself.',
+      'ba.5a': 'Copying text from an image or a video.',
+      'ba.5b': 'Offline OCR: select it and the text is copied.',
+      'ba.6a': 'The built-in recorder doesn\'t capture computer audio.',
+      'ba.6b': 'Records screen, microphone and system audio together.',
+      'cmp.h2': 'Compared to common tools',
+      'cmp.p': 'The most popular screenshot tools are slow to open and leave text blurry.',
+      'cmp.them': 'Common tools',
+      'cmp.1': 'Opening a capture',
+      'cmp.1a': 'Slow, sometimes freezes',
+      'cmp.1b': 'The screen freezes instantly (~150 ms)',
+      'cmp.2': 'Sharpness',
+      'cmp.2a': 'Rasterized annotations',
+      'cmp.2b': 'Vectors at native resolution (Retina, 4K)',
+      'cmp.3': 'Tools',
+      'cmp.3a': 'Pen, arrow, rectangle',
+      'cmp.3b': '+ highlighter, steps, blur, components, laser',
+      'cmp.4': 'Windows',
+      'cmp.4a': 'Manual selection',
+      'cmp.4b': 'Highlights the window under the mouse; one click captures it',
+      'cmp.5': 'Text from images',
+      'cmp.5b': 'Offline OCR',
+      'cmp.6': 'After capturing',
+      'cmp.6a': 'Copy or save',
+      'cmp.6b': '+ pin to screen, open on the board, record the area',
+      'cmp.7': 'Video',
+      'cmp.7b': 'With microphone and system audio',
+      'cmp.8': 'Shortcuts',
+      'cmp.8a': 'Fixed',
+      'cmp.8b': 'Customizable, with conflict warnings',
+      'cmp.9': 'Price',
+      'cmp.9a': 'Subscription or ads',
+      'cmp.9b': 'Free and open source',
+      'k.h2': 'Shortcuts',
+      'k.p': 'The defaults below can be changed in Settings, even to a single F key.',
+      'k.hist': 'Clipboard history',
+      'k.board': 'Presentation board',
+      'k.area': 'Capture area or window',
+      'k.rec': 'Record the screen',
+      'k.full': 'Capture the full screen',
+      'k.send': 'Share the board',
+      'k.dict': 'Voice dictation',
+      'k.cmd': 'Voice command',
+      'k.space': 'Space',
+      'k.copysave': 'Copy · save',
+      'k.wayland': 'On Wayland, a system shortcut',
+      'dl.h2': '<span class="freeline">Free</span> download',
+      'dl.p': 'No cost, no sign-up and no paid version. Just grab the installer, no code needed. The files are built by GitHub from the open source code. Older versions are in <a href="https://github.com/jonathansfp/copypaste/releases">Releases</a>.',
+      'mac.req': 'macOS 14+ · Apple Silicon and Intel',
+      'mac.dmg': 'drag to Applications',
+      'mac.zip': 'the same app, zipped',
+      'mac.note': 'First time: right-click the app → <b>Open</b> → <b>Open</b>. Screen recording requires macOS 15.',
+      'win.req': 'Windows 10 and 11 · 64-bit',
+      'win.exe': '.exe installer',
+      'win.exe.s': 'no admin needed',
+      'win.msi.s': 'for businesses',
+      'win.zip': 'Portable .zip',
+      'win.zip.s': 'no install',
+      'win.note': 'If you see "Windows protected your PC": <b>More info</b> → <b>Run anyway</b>. To record: <code>winget install Gyan.FFmpeg</code>',
+      'linux.req': 'x86_64 · X11 and Wayland',
+      'linux.ai.s': 'any distro',
+      'linux.note': 'AppImage: <code>chmod +x</code> and run. Extras: <code>sudo apt install xdotool ffmpeg tesseract-ocr</code>',
+      'pix.h2': 'Support with Pix',
+      'pix.p': 'CopyPaste is free, ad-free and open source. If it saves you time, any amount helps keep the project going and bring new features. Pix is Brazil\'s instant payment system, available in any Brazilian bank app.',
+      'pix.s1': 'Copy the key.',
+      'pix.s2': 'In your bank app: <b>Pix → Pagar → Chave aleatória</b> (Pix → Pay → Random key).',
+      'pix.s3': 'Paste the key and choose the amount.',
+      'pix.label': 'Pix key (random)',
+      'code.h2': 'Open source, one folder per system',
+      'code.p': 'The Mac version is a native Swift app. Windows and Linux share a Rust core (Tauri 2), with each system\'s code in its own folder.',
+      'fo.mac': 'Swift, AppKit and SwiftUI, ScreenCaptureKit, Vision OCR.',
+      'fo.win': 'Paste via SendInput, Windows OCR, toolbar hidden from recordings.',
+      'fo.linux': 'X11 and Wayland, xdotool and wtype, Tesseract, PipeWire.',
+      'fo.core': 'Shared Windows and Linux core: Rust and a GPU canvas UI.',
+      'm.th': 'Feature',
+      'm.1': 'History with search and paste at the cursor',
+      'm.2': 'Frozen capture, magnifier and windows',
+      'm.3': 'Vector annotations and blur',
+      'm.4': 'Pin capture to screen',
+      'm.5': 'OCR (text from images)',
+      'm.winocr': 'Windows OCR',
+      'm.6': 'Board with components and laser',
+      'm.7': 'Recording with mic and audio',
+      'm.native': 'native',
+      'm.8': 'Customizable global shortcuts',
+      'faq.h2': 'Frequently asked questions',
+      'q1': 'Is it really free?',
+      'a1': 'Yes. No ads, no sign-up and no limits. The code is open source under the GPL-3.0 license. If you\'d like to support it, you can <a href="#apoie">donate via Pix</a>.',
+      'q2': 'Does my data leave my computer?',
+      'a2': 'No. Your history, captures and OCR stay and run only on your computer, with no internet. Anything password managers mark as confidential is never saved. The only exception is voice dictation when you connect an AI: then only the dictation audio and text go, straight from your computer, to the provider you chose.',
+      'q3': 'Do I have to pay for the dictation AI?',
+      'a3': 'No. The local AI (Gemma 4) is free and runs on your computer, with no internet; just download it once in Settings (about 4 GB). If you prefer, use your own API key (Claude, ChatGPT, Gemini, DeepSeek or Grok) and pay only for what you use on the provider\'s account, usually pennies a month.',
+      'q4': 'How do I find out about new versions?',
+      'a4': 'Once a week CopyPaste checks for a new version and, if there is one, shows a notice with a download button. You can also check right away from the menu bar icon: <b>Check for Updates…</b>.',
+      'q5': 'Where do I get an API key?',
+      'a5a': 'From each provider\'s dashboard:',
+      'and': 'and',
+      'a5b': 'In Settings, the "Get key" link takes you straight to the right page. The key is stored only on your computer.',
+      'q6': 'Why does the system ask for confirmation when opening it?',
+      'a6': 'The app isn\'t distributed through a store. On Windows, click <b>More info → Run anyway</b>. On Mac, right-click the app → <b>Open</b>. This only happens the first time.',
+      'q7': 'How do I share what I drew on the board?',
+      'a7': 'With the buttons on the board\'s toolbar: <b>Copy</b> (paste straight into WhatsApp, Teams, Slack or email), <b>Save</b> to the captures folder or, on Mac, <b>Share</b> via AirDrop, Messages or Mail.',
+      'q8': 'What do I need to record the screen on Windows and Linux?',
+      'a8': 'ffmpeg, which is free. On Windows: <code>winget install Gyan.FFmpeg</code>. On Linux: <code>sudo apt install ffmpeg</code>. The app lets you know if it\'s missing.',
+      'q9': 'Shortcuts don\'t work on Wayland.',
+      'a9': 'Wayland doesn\'t let apps register global shortcuts. Create a system shortcut that runs <code>copypaste --capture-area</code> (or <code>--history</code>, <code>--board</code>, <code>--record</code>, <code>--dictate</code>). The running app picks up the command instantly.',
+      'q10': 'Print Screen on Windows 11 opens another tool.',
+      'a10': 'Turn it off in <b>Settings › Accessibility › Keyboard › "Use the Print screen key to open screen capture"</b>, or pick another shortcut in CopyPaste.',
+      'ft.by': 'by',
+      'ft.lic': 'open source under GPL-3.0',
+      'ft.issue': 'Report an issue',
+      'ft.pix': 'Donate via Pix',
+      'dl.win': 'Free download for Windows',
+      'dl.mac': 'Free download for macOS',
+      'dl.linux': 'Free download for Linux',
+      'you': 'Your system',
+      'toast.ok': 'Pix key copied. Thank you!',
+      'toast.sel': 'Key selected: press Ctrl+C or ⌘C',
+    },
+    es: {
+      'title': 'CopyPaste — historial del portapapeles, capturas y pizarra',
+      'meta.desc': 'Historial del portapapeles, capturas de pantalla con anotaciones, pizarra de presentación, grabación de pantalla y dictado por voz con IA. Gratis y de código abierto para macOS, Windows y Linux.',
+      'meta.og': 'Historial del portapapeles, capturas con anotaciones, pizarra, grabación de pantalla y dictado por voz con IA. Gratis para macOS, Windows y Linux.',
+      'meta.locale': 'es_LA',
+      'lang.label': 'Idioma',
+      'theme.title': 'Cambiar tema claro/oscuro',
+      'theme.label': 'Cambiar tema',
+      'nav.features': 'Funciones',
+      'nav.dict': 'Dictado IA',
+      'nav.keys': 'Atajos',
+      'nav.code': 'Código',
+      'nav.dl': 'Descargar',
+      'nav.pix': 'Donar',
+      'free.badge': '100% GRATIS',
+      'free.list': 'sin anuncios · sin registro · sin suscripción · código abierto',
+      'dev': 'Desarrollado por',
+      'hero.h1': 'Copia, captura, anota y <mark>presenta</mark>. Fácil y sencillo.',
+      'hero.lead': 'Historial del portapapeles, capturas de pantalla con anotaciones nítidas, pizarra de presentación, grabación de pantalla y dictado por voz con tu propia IA, en una sola app. Ligera, gratis y de código abierto.',
+      'hero.dl': 'Descargar gratis',
+      'hero.gh': 'Código en GitHub',
+      'hero.pix': 'Donar con Pix',
+      'hero.meta': 'macOS 14+ · Windows 10 y 11 · Linux (X11 y Wayland) · licencia GPL-3.0',
+      'hero.alt': 'Formas, componentes, flechas, trazo a mano, desenfoque, resaltador y pasos numerados dibujados en CopyPaste',
+      'hero.cap': 'Dibujado en la propia app: formas, componentes, trazo a mano, flechas, pasos numerados, desenfoque, resaltador y texto.',
+      'band.p': '<b>Gratis, sin anuncios y de código abierto.</b> Si CopyPaste te ayuda, apoya el proyecto con cualquier monto vía Pix, el sistema de pagos instantáneos de Brasil.',
+      'pix.copy': 'Copiar clave Pix',
+      'band.how': 'Cómo donar',
+      'feat.h2': 'Cuatro herramientas, un atajo para cada una',
+      'feat.p': 'Cada una se abre al instante y se libera cuando terminas. Nada queda ejecutándose en segundo plano sin motivo.',
+      'f1.h': 'Historial del portapapeles',
+      'f1.p': 'Todo lo que copias queda guardado: texto, enlaces, código, colores, imágenes y archivos.',
+      'f1.l1': 'Búsqueda, filtros y fijados',
+      'f1.l2': 'Pega directo en el cursor',
+      'f1.l3': 'Ignora contraseñas de los gestores',
+      'f2.h': 'Capturas con anotaciones',
+      'f2.p': 'La pantalla se congela en el instante del atajo. Haz clic en una ventana o arrastra un área, anota y copia.',
+      'f2.l1': 'Flechas, formas, texto, pasos',
+      'f2.l2': 'Desenfoque para ocultar datos',
+      'f2.l3': 'Lupa, color del píxel y OCR',
+      'f3.h': 'Pizarra de presentación',
+      'f3.p': 'Dibuja sobre cualquier app en una reunión o clase, o en una pizarra en blanco.',
+      'f3.l1': 'Componentes estilo diagrama',
+      'f3.l2': 'Láser que se desvanece solo',
+      'f3.l3': 'Copiar, guardar y enviar',
+      'f4.h': 'Grabación de pantalla',
+      'f4.p': 'Graba un área o la pantalla completa en MP4, con el micrófono y el sonido de la computadora.',
+      'f4.l1': 'Clics resaltados',
+      'f4.l2': '24, 30 o 60 fps',
+      'f4.l3': 'La pizarra aparece en el video',
+      'd.h2': 'Nuevo: habla y el texto aparece, en cualquier app',
+      'd.p': 'Mantén pulsado el atajo, habla y suelta. CopyPaste transcribe y <b>tu</b> IA limpia el texto: quita los "eh", "este" y "o sea", puntúa, arma listas y aplica tus correcciones ("a las tres, no, a las cuatro" queda "a las cuatro").',
+      'd.l1': '<b>Mantén o toca:</b> <kbd>⌥</kbd> <kbd>Espacio</kbd> en Mac, <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>Espacio</kbd> en Windows y Linux.',
+      'd.l2': '<b>Comando de voz:</b> selecciona un texto y di "traduce al inglés", "hazlo más formal" o "resume en viñetas".',
+      'd.l3': '<b>Estilos:</b> natural, formal para correos, informal para chats o literal, sin IA.',
+      'd.l4': '<b>Vocabulario propio:</b> nombres, siglas y términos técnicos bien escritos.',
+      'd.l5': '<b>IA local gratis:</b> Gemma 4 de Google se ejecuta en tu computadora, sin internet y sin clave. Es la opción predeterminada si no conectas otra IA.',
+      'd.pill': 'Escuchando · suelta para terminar',
+      'ais.h': 'IA local o tu propia IA',
+      'ais.p': 'Usa la IA local, gratis y sin conexión, o pega en Configuración la clave de API de alguna de estas. Sin servidor de CopyPaste y sin mensualidad: con tu clave, pagas solo el uso en tu cuenta, normalmente centavos al mes.',
+      'chip.gemma': 'local · texto y voz · gratis',
+      'chip.openai': 'OpenAI · texto y voz',
+      'chip.gemini': 'Google · texto y voz',
+      'ais.voice': 'La voz la puede transcribir la IA local en cualquier sistema, <b>Apple</b> en Mac, u OpenAI o Gemini con tu clave.',
+      'ba.h2': 'Lo que cambia en el día a día',
+      'ba.p': 'Tareas que pedían tres apps, una suscripción o muchos clics se resuelven con un atajo.',
+      'ba.th1': 'Antes',
+      'ba.th2': 'Con CopyPaste',
+      'ba.1a': 'Copiaste otra cosa y lo anterior desapareció.',
+      'ba.1b': 'El historial lo guarda todo, con búsqueda y pegado en el cursor.',
+      'ba.2a': 'Captura, abrir el editor, anotar, guardar, buscar el archivo.',
+      'ba.2b': 'Anota sobre la selección, al instante, y <kbd>Enter</kbd> copia.',
+      'ba.3a': 'El escritorio lleno de "Captura de pantalla….png".',
+      'ba.3b': 'La captura va al portapapeles. Guardas solo cuando quieres.',
+      'ba.4a': 'Ocultar contraseñas y datos de clientes exige otro editor.',
+      'ba.4b': 'El desenfoque pixela el área en el propio archivo final.',
+      'ba.5a': 'Copiar el texto de una imagen o de un video.',
+      'ba.5b': 'OCR sin conexión: selecciona y el texto se copia.',
+      'ba.6a': 'La grabación del sistema no capta el sonido de la computadora.',
+      'ba.6b': 'Graba pantalla, micrófono y audio del sistema a la vez.',
+      'cmp.h2': 'Comparado con herramientas comunes',
+      'cmp.p': 'Las herramientas de captura más usadas tardan en abrir y dejan el texto borroso.',
+      'cmp.them': 'Herramientas comunes',
+      'cmp.1': 'Abrir la captura',
+      'cmp.1a': 'Tarda y a veces se cuelga',
+      'cmp.1b': 'La pantalla se congela al instante (~150 ms)',
+      'cmp.2': 'Nitidez',
+      'cmp.2a': 'Anotaciones rasterizadas',
+      'cmp.2b': 'Vectores en resolución nativa (Retina, 4K)',
+      'cmp.3': 'Herramientas',
+      'cmp.3a': 'Lápiz, flecha, rectángulo',
+      'cmp.3b': '+ resaltador, pasos, desenfoque, componentes, láser',
+      'cmp.4': 'Ventanas',
+      'cmp.4a': 'Selección manual',
+      'cmp.4b': 'Resalta la ventana bajo el mouse; un clic la captura',
+      'cmp.5': 'Texto de la imagen',
+      'cmp.5b': 'OCR sin conexión',
+      'cmp.6': 'Después de capturar',
+      'cmp.6a': 'Copiar o guardar',
+      'cmp.6b': '+ fijar en pantalla, abrir en la pizarra, grabar el área',
+      'cmp.7': 'Video',
+      'cmp.7b': 'Con micrófono y audio del sistema',
+      'cmp.8': 'Atajos',
+      'cmp.8a': 'Fijos',
+      'cmp.8b': 'Configurables, con aviso de conflicto',
+      'cmp.9': 'Precio',
+      'cmp.9a': 'Suscripción o anuncios',
+      'cmp.9b': 'Gratis y de código abierto',
+      'k.h2': 'Atajos',
+      'k.p': 'Los atajos predeterminados se pueden cambiar en Configuración, incluso por una tecla F sola.',
+      'k.hist': 'Historial del portapapeles',
+      'k.board': 'Pizarra de presentación',
+      'k.area': 'Capturar área o ventana',
+      'k.rec': 'Grabar la pantalla',
+      'k.full': 'Capturar la pantalla completa',
+      'k.send': 'Enviar la pizarra',
+      'k.dict': 'Dictado por voz',
+      'k.cmd': 'Comando de voz',
+      'k.space': 'Espacio',
+      'k.copysave': 'Copiar · guardar',
+      'k.wayland': 'En Wayland, atajo del sistema',
+      'dl.h2': 'Descarga <span class="freeline">gratis</span>',
+      'dl.p': 'Sin costo, sin registro y sin versión de pago. Descarga solo el instalador, sin necesidad del código. GitHub genera los archivos a partir del código abierto. Versiones anteriores en <a href="https://github.com/jonathansfp/copypaste/releases">Releases</a>.',
+      'mac.req': 'macOS 14+ · Apple Silicon e Intel',
+      'mac.dmg': 'arrastra a Aplicaciones',
+      'mac.zip': 'la misma app, comprimida',
+      'mac.note': 'La primera vez: clic derecho en la app → <b>Abrir</b> → <b>Abrir</b>. La grabación de pantalla requiere macOS 15.',
+      'win.req': 'Windows 10 y 11 · 64 bits',
+      'win.exe': 'Instalador .exe',
+      'win.exe.s': 'sin administrador',
+      'win.msi.s': 'para empresas',
+      'win.zip': 'Portátil .zip',
+      'win.zip.s': 'sin instalar',
+      'win.note': 'Si aparece "Windows protegió su PC": <b>Más información</b> → <b>Ejecutar de todas formas</b>. Para grabar: <code>winget install Gyan.FFmpeg</code>',
+      'linux.req': 'x86_64 · X11 y Wayland',
+      'linux.ai.s': 'cualquier distro',
+      'linux.note': 'AppImage: <code>chmod +x</code> y abrir. Extras: <code>sudo apt install xdotool ffmpeg tesseract-ocr-spa</code>',
+      'pix.h2': 'Apoya con Pix',
+      'pix.p': 'CopyPaste es gratis, sin anuncios y de código abierto. Si te ahorra tiempo, cualquier monto ayuda a mantener el proyecto y a traer novedades. Pix es el sistema de pagos instantáneos de Brasil, disponible en cualquier app bancaria brasileña.',
+      'pix.s1': 'Copia la clave.',
+      'pix.s2': 'En la app de tu banco: <b>Pix → Pagar → Chave aleatória</b> (Pix → Pagar → Clave aleatoria).',
+      'pix.s3': 'Pega la clave y elige el monto.',
+      'pix.label': 'Clave Pix (aleatoria)',
+      'code.h2': 'Código abierto, una carpeta por sistema',
+      'code.p': 'En Mac es una app nativa en Swift. Windows y Linux comparten un núcleo en Rust (Tauri 2), con el código de cada sistema en su propia carpeta.',
+      'fo.mac': 'Swift, AppKit y SwiftUI, ScreenCaptureKit, OCR de Vision.',
+      'fo.win': 'Pegado con SendInput, OCR de Windows, barra fuera de la grabación.',
+      'fo.linux': 'X11 y Wayland, xdotool y wtype, Tesseract, PipeWire.',
+      'fo.core': 'Núcleo de Windows y Linux: Rust e interfaz en canvas por GPU.',
+      'm.th': 'Función',
+      'm.1': 'Historial con búsqueda y pegado en el cursor',
+      'm.2': 'Captura congelada, lupa y ventanas',
+      'm.3': 'Anotaciones vectoriales y desenfoque',
+      'm.4': 'Fijar captura en pantalla',
+      'm.5': 'OCR (texto de la imagen)',
+      'm.winocr': 'OCR de Windows',
+      'm.6': 'Pizarra con componentes y láser',
+      'm.7': 'Grabación con micrófono y audio',
+      'm.native': 'nativa',
+      'm.8': 'Atajos globales configurables',
+      'faq.h2': 'Preguntas frecuentes',
+      'q1': '¿De verdad es gratis?',
+      'a1': 'Sí. Sin anuncios, sin registro y sin límites. El código es abierto bajo la licencia GPL-3.0. Si quieres apoyar, puedes <a href="#apoie">donar vía Pix</a>.',
+      'q2': '¿Mis datos salen de mi computadora?',
+      'a2': 'No. El historial, las capturas y el OCR se quedan y se ejecutan solo en tu computadora, sin internet. Lo que los gestores de contraseñas marcan como confidencial nunca se guarda. La única excepción es el dictado por voz cuando conectas una IA: solo el audio del dictado y el texto van, directo desde tu computadora, al proveedor que elegiste.',
+      'q3': '¿Tengo que pagar por la IA del dictado?',
+      'a3': 'No. La IA local (Gemma 4) es gratis y se ejecuta en tu computadora, sin internet; basta con descargarla una vez en Configuración (unos 4 GB). Si prefieres, usa tu propia clave de API (Claude, ChatGPT, Gemini, DeepSeek o Grok) y paga solo lo que uses en la cuenta del proveedor, normalmente centavos al mes.',
+      'q4': '¿Cómo me entero de las nuevas versiones?',
+      'a4': 'Una vez por semana CopyPaste comprueba si hay una versión nueva y, si la hay, muestra un aviso con el botón para descargarla. También puedes comprobarlo al momento desde el menú del ícono: <b>Buscar actualizaciones…</b>.',
+      'q5': '¿Dónde consigo la clave de API?',
+      'a5a': 'En el panel de cada proveedor:',
+      'and': 'y',
+      'a5b': 'En Configuración, el enlace "Obtener clave" lleva directo a la página correcta. La clave se guarda solo en tu computadora.',
+      'q6': '¿Por qué el sistema pide confirmación al abrirla?',
+      'a6': 'La app no se distribuye por una tienda. En Windows, haz clic en <b>Más información → Ejecutar de todas formas</b>. En Mac, clic derecho en la app → <b>Abrir</b>. Solo pasa la primera vez.',
+      'q7': '¿Cómo envío lo que dibujé en la pizarra?',
+      'a7': 'Con los botones de la barra de la pizarra: <b>Copiar</b> (pega directo en WhatsApp, Teams, Slack o el correo), <b>Guardar</b> en la carpeta de capturas o, en Mac, <b>Enviar</b> por AirDrop, Mensajes o Mail.',
+      'q8': '¿Qué necesito para grabar la pantalla en Windows y Linux?',
+      'a8': 'ffmpeg, que es gratuito. En Windows: <code>winget install Gyan.FFmpeg</code>. En Linux: <code>sudo apt install ffmpeg</code>. La app te avisa si falta.',
+      'q9': 'Los atajos no funcionan en Wayland.',
+      'a9': 'Wayland no permite que las apps registren atajos globales. Crea un atajo del sistema que ejecute <code>copypaste --capture-area</code> (o <code>--history</code>, <code>--board</code>, <code>--record</code>, <code>--dictate</code>). La app ya abierta recibe el comando al instante.',
+      'q10': 'La tecla Imprimir pantalla de Windows 11 abre otra herramienta.',
+      'a10': 'Desactívalo en <b>Configuración › Accesibilidad › Teclado › "Usar la tecla Imprimir pantalla para abrir la captura de pantalla"</b>, o elige otro atajo en CopyPaste.',
+      'ft.by': 'por',
+      'ft.lic': 'código abierto bajo GPL-3.0',
+      'ft.issue': 'Reportar un problema',
+      'ft.pix': 'Donar vía Pix',
+      'dl.win': 'Descargar gratis para Windows',
+      'dl.mac': 'Descargar gratis para macOS',
+      'dl.linux': 'Descargar gratis para Linux',
+      'you': 'Tu sistema',
+      'toast.ok': 'Clave Pix copiada. ¡Gracias!',
+      'toast.sel': 'Clave seleccionada: usa Ctrl+C o ⌘C',
+    },
+  };
+  const LANGS = ['pt', 'en', 'es'], TAGS = { pt: 'pt-BR', en: 'en', es: 'es' };
+  const norm = v => { const c = String(v || '').slice(0, 2).toLowerCase(); return LANGS.includes(c) ? c : null; };
+  // Ordem: escolha salva, ?lang= na URL, idiomas do navegador (o primeiro entre pt/es/en); senão, inglês.
+  const detect = () => {
+    const saved = norm(store.get('cp.lang'));
+    if (saved) return saved;
+    const q = norm(new URLSearchParams(location.search).get('lang'));
+    if (q) return q;
+    for (const l of navigator.languages || [navigator.language]) { const c = norm(l); if (c) return c; }
+    return 'en';
+  };
+  let lang = detect();
+  const t = k => (I18N[lang] && I18N[lang][k]) || PT[k] || k;
+  const orig = new WeakMap(), origAttr = new WeakMap();
+  const applyLang = l => {
+    lang = l;
+    const dict = I18N[l] || PT;
+    document.documentElement.lang = TAGS[l];
+    $$('[data-i18n]').forEach(el => {
+      if (!orig.has(el)) orig.set(el, el.innerHTML);
+      const k = el.dataset.i18n;
+      el.innerHTML = dict[k] ?? PT[k] ?? orig.get(el);
+    });
+    $$('[data-i18n-attr]').forEach(el => {
+      if (!origAttr.has(el)) origAttr.set(el, {});
+      const o = origAttr.get(el);
+      el.dataset.i18nAttr.split(';').forEach(pair => {
+        const [attr, k] = pair.split(':').map(s => s.trim());
+        if (!(attr in o)) o[attr] = el.getAttribute(attr);
+        el.setAttribute(attr, dict[k] ?? PT[k] ?? o[attr]);
+      });
+    });
+    $$('#lang button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === l)));
+  };
+  $$('#lang button').forEach(b => b.addEventListener('click', () => { store.set('cp.lang', b.dataset.lang); applyLang(b.dataset.lang); }));
 
   const saved = store.get('cp.theme');
   if (saved) document.documentElement.dataset.theme = saved;
@@ -554,18 +1010,17 @@ footer a { color: var(--ink2); }
   const mobile = /Android|iPhone|iPad|iPod/i.test(ua);
   const os = mobile ? null : /Win/i.test(plat + ua) ? 'win' : /Mac/i.test(plat + ua) ? 'mac' : /Linux|X11/i.test(plat + ua) ? 'linux' : null;
   const files = {
-    win: ['CopyPaste-Windows-Setup.exe', 'Baixar grátis para Windows'],
-    mac: ['CopyPaste-macOS.dmg', 'Baixar grátis para macOS'],
-    linux: ['CopyPaste-Linux-x86_64.AppImage', 'Baixar grátis para Linux'],
+    win: 'CopyPaste-Windows-Setup.exe',
+    mac: 'CopyPaste-macOS.dmg',
+    linux: 'CopyPaste-Linux-x86_64.AppImage',
   };
   if (os) {
-    const [f, label] = files[os];
     const a = $('#hero-dl');
-    a.href = `https://github.com/jonathansfp/copypaste/releases/latest/download/${f}`;
-    a.querySelector('span').textContent = label;
+    a.href = `https://github.com/jonathansfp/copypaste/releases/latest/download/${files[os]}`;
+    a.querySelector('span').dataset.i18n = `dl.${os}`;
     const card = $(`.os[data-os="${os}"]`);
     card.classList.add('mine');
-    const tag = document.createElement('span'); tag.className = 'you'; tag.textContent = 'Seu sistema';
+    const tag = document.createElement('span'); tag.className = 'you'; tag.dataset.i18n = 'you'; tag.textContent = PT.you;
     card.append(tag);
     card.parentElement.prepend(card);
   }
@@ -577,12 +1032,14 @@ footer a { color: var(--ink2); }
   $$('#ktabs button').forEach(b => b.addEventListener('click', () => pick(b.dataset.os)));
   if (os) pick(os);
 
-  const toast = msg => { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 2200); };
+  const toast = msg => { const el = $('#toast'); el.textContent = msg; el.classList.add('on'); clearTimeout(el._h); el._h = setTimeout(() => el.classList.remove('on'), 2200); };
   $$('[data-copypix]').forEach(b => b.addEventListener('click', async () => {
     const key = $('#pixkey').textContent.trim();
-    try { await navigator.clipboard.writeText(key); toast('Chave Pix copiada. Obrigado!'); }
-    catch { const r = document.createRange(); r.selectNodeContents($('#pixkey')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Chave selecionada: use Ctrl+C ou ⌘C'); }
+    try { await navigator.clipboard.writeText(key); toast(t('toast.ok')); }
+    catch { const r = document.createRange(); r.selectNodeContents($('#pixkey')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast(t('toast.sel')); }
   }));
+
+  applyLang(lang);
 })();
 </script>
 </body>

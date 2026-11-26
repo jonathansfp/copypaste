@@ -5,6 +5,7 @@ use tauri::{AppHandle, Manager};
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
 use tauri_plugin_opener::OpenerExt;
 
+use crate::i18n::{t, tf};
 use crate::AppState;
 
 const API: &str = "https://api.github.com/repos/jonathansfp/copypaste/releases/latest";
@@ -57,7 +58,7 @@ pub fn check(app: &AppHandle, manual: bool) {
     let Some(tag) = res.as_ref().and_then(|v| v.get("tag_name")).and_then(|t| t.as_str()).map(|t| t.trim_start_matches(['v', 'V']).to_string()) else {
         crate::diag(app, "atualização: não consegui verificar");
         if manual {
-            crate::ui::toast(app, "Não consegui verificar atualizações agora. Confira a internet.");
+            crate::ui::toast(app, t("Não consegui verificar atualizações agora. Confira a internet."));
         }
         return;
     };
@@ -70,21 +71,21 @@ pub fn check(app: &AppHandle, manual: bool) {
     crate::diag(app, &format!("atualização: atual {current}, mais recente {tag}"));
     if !newer(&tag, &current) {
         if manual {
-            crate::ui::toast(app, &format!("Você já tem a versão mais recente ({current})"));
+            crate::ui::toast(app, &tf("Você já tem a versão mais recente ({})", &[&current]));
         }
         return;
     }
-    let how = if cfg!(windows) {
+    let how = t(if cfg!(windows) {
         "Baixe o instalador e abra: ele substitui a versão atual e mantém o seu histórico e as configurações."
     } else {
         "Baixe o pacote do seu sistema (.deb, .rpm ou AppImage) e instale por cima: o histórico e as configurações são mantidos."
-    };
+    });
     let app2 = app.clone();
     app.dialog()
-        .message(format!("Você está na {current}. {how}"))
-        .title(format!("Nova versão do CopyPaste: {tag}"))
+        .message(tf("Você está na {}. {}", &[&current, &how]))
+        .title(tf("Nova versão do CopyPaste: {}", &[&tag]))
         .kind(MessageDialogKind::Info)
-        .buttons(MessageDialogButtons::OkCancelCustom("Baixar atualização".into(), "Depois".into()))
+        .buttons(MessageDialogButtons::OkCancelCustom(t("Baixar atualização").into(), t("Depois").into()))
         .show(move |ok| {
             if ok {
                 let _ = app2.opener().open_url(download_url(), None::<&str>);

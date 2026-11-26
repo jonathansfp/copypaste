@@ -30,7 +30,7 @@ final class CaptureController {
                 self.present(frozen, windowRects: rects, fullScreen: fullScreen, mode: mode)
             } catch {
                 Diag.log("captura: ERRO \(error) (\((error as NSError).domain) \((error as NSError).code))")
-                Toast.show("Não foi possível capturar a tela. Verifique a permissão de Gravação de Tela.",
+                Toast.show(L("Não foi possível capturar a tela. Verifique a permissão de Gravação de Tela."),
                            symbol: "exclamationmark.triangle", duration: 3.5)
             }
         }
@@ -292,12 +292,12 @@ final class CaptureRootView: NSView {
         switch action {
         case .copy:
             ImageOutput.copy(image)
-            Toast.show("Captura copiada")
+            Toast.show(L("Captura copiada"))
         case .save:
-            if let url = ImageOutput.saveToFolder(image) { Toast.show("Salva: \(url.lastPathComponent)") }
+            if let url = ImageOutput.saveToFolder(image) { Toast.show(L("Salva: %@", url.lastPathComponent)) }
         case .copyAndSave:
             ImageOutput.copy(image)
-            if let url = ImageOutput.saveToFolder(image) { Toast.show("Copiada e salva: \(url.lastPathComponent)") }
+            if let url = ImageOutput.saveToFolder(image) { Toast.show(L("Copiada e salva: %@", url.lastPathComponent)) }
         case .saveAs:
             DispatchQueue.main.async { ImageOutput.saveAs(image) }
         case .pin:
@@ -305,22 +305,22 @@ final class CaptureRootView: NSView {
         case .board:
             BoardController.shared.open(with: image)
         case .ocr:
-            Toast.show("Lendo texto…", symbol: "text.viewfinder", duration: 6)
+            Toast.show(L("Lendo texto…"), symbol: "text.viewfinder", duration: 6)
             TextRecognizer.recognize(image) { text in
                 if text.isEmpty {
-                    Toast.show("Nenhum texto encontrado", symbol: "text.magnifyingglass")
+                    Toast.show(L("Nenhum texto encontrado"), symbol: "text.magnifyingglass")
                 } else {
                     let pb = NSPasteboard.general
                     pb.clearContents()
                     pb.setString(text, forType: .string)
                     let lines = text.components(separatedBy: "\n").count
-                    Toast.show("Texto copiado (\(lines) \(lines == 1 ? "linha" : "linhas"))", symbol: "text.viewfinder")
+                    Toast.show(lines == 1 ? L("Texto copiado (1 linha)") : L("Texto copiado (%d linhas)", lines), symbol: "text.viewfinder")
                 }
             }
         case .search:
             ImageOutput.copy(image)
             if let url = URL(string: "https://lens.google.com/") { NSWorkspace.shared.open(url) }
-            Toast.show("Imagem copiada: cole (⌘V) no Google Lens", symbol: "magnifyingglass", duration: 3)
+            Toast.show(L("Imagem copiada: cole (⌘V) no Google Lens"), symbol: "magnifyingglass", duration: 3)
         case .close, .record:
             break
         }
@@ -438,7 +438,7 @@ final class CaptureCanvasView: CanvasView {
             ctx.setStrokeColor(accent.cgColor)
             ctx.setLineWidth(3)
             ctx.stroke(h.insetBy(dx: 1.5, dy: 1.5))
-            drawSizeLabel(for: h, hint: "Clique para capturar esta janela · arraste para escolher a área")
+            drawSizeLabel(for: h, hint: L("Clique para capturar esta janela · arraste para escolher a área"))
             return
         }
         guard let sel = selection else {
@@ -482,7 +482,7 @@ final class CaptureCanvasView: CanvasView {
     }
 
     private func drawHint() {
-        let text = "Arraste para selecionar · clique numa janela · ⎋ cancela · C copia a cor do pixel"
+        let text = L("Arraste para selecionar · clique numa janela · ⎋ cancela · C copia a cor do pixel")
         let str = NSAttributedString(string: text, attributes: [
             .font: NSFont.systemFont(ofSize: 14, weight: .medium), .foregroundColor: NSColor.white,
         ])
@@ -660,7 +660,7 @@ final class CaptureCanvasView: CanvasView {
                 pb.clearContents()
                 pb.setString(hex, forType: .string)
                 root?.perform(.close)
-                Toast.show("Cor \(hex) copiada", symbol: "eyedropper")
+                Toast.show(L("Cor %@ copiada", hex), symbol: "eyedropper")
                 return true
             }
             if chars == "f" || e.keyCode == 36 { selectWholeScreen(); return true }
@@ -814,8 +814,8 @@ struct CaptureToolsBar: View {
                 LibraryMenu(model: model)
                 Divider().frame(width: 22).padding(.vertical, 3)
                 StyleToggle(model: model, ui: ui)
-                IconButton(symbol: "arrow.uturn.backward", help: "Desfazer (⌘Z)", disabled: !model.canUndo) { model.undo() }
-                IconButton(symbol: "arrow.uturn.forward", help: "Refazer (⇧⌘Z)", disabled: !model.canRedo) { model.redo() }
+                IconButton(symbol: "arrow.uturn.backward", help: L("Desfazer (⌘Z)"), disabled: !model.canUndo) { model.undo() }
+                IconButton(symbol: "arrow.uturn.forward", help: L("Refazer (⇧⌘Z)"), disabled: !model.canRedo) { model.redo() }
             }
             .padding(4)
             .floatingBar()
@@ -829,16 +829,16 @@ struct CaptureActionsBar: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            IconButton(symbol: "text.viewfinder", help: "Copiar o texto da imagem (OCR) — ⌘T") { root.perform(.ocr) }
-            IconButton(symbol: "magnifyingglass", help: "Pesquisar imagem (Google Lens)") { root.perform(.search) }
-            IconButton(symbol: "pin", help: "Fixar na tela (fica por cima das janelas)") { root.perform(.pin) }
-            IconButton(symbol: "rectangle.on.rectangle.angled", help: "Abrir no quadro de apresentação") { root.perform(.board) }
-            IconButton(symbol: "record.circle", help: "Gravar vídeo desta área", tint: .red) { root.perform(.record) }
+            IconButton(symbol: "text.viewfinder", help: L("Copiar o texto da imagem (OCR) — ⌘T")) { root.perform(.ocr) }
+            IconButton(symbol: "magnifyingglass", help: L("Pesquisar imagem (Google Lens)")) { root.perform(.search) }
+            IconButton(symbol: "pin", help: L("Fixar na tela (fica por cima das janelas)")) { root.perform(.pin) }
+            IconButton(symbol: "rectangle.on.rectangle.angled", help: L("Abrir no quadro de apresentação")) { root.perform(.board) }
+            IconButton(symbol: "record.circle", help: L("Gravar vídeo desta área"), tint: .red) { root.perform(.record) }
             Divider().frame(height: 20).padding(.horizontal, 3)
-            IconButton(symbol: "square.and.arrow.down.on.square", help: "Salvar como… (⇧⌘S)") { root.perform(.saveAs) }
-            IconButton(symbol: "square.and.arrow.down", help: "Salvar na pasta (⌘S)") { root.perform(.save) }
-            IconButton(symbol: "doc.on.doc", help: "Copiar (⌘C ou ↩)") { root.perform(.copy) }
-            IconButton(symbol: "xmark", help: "Fechar (⎋)") { root.perform(.close) }
+            IconButton(symbol: "square.and.arrow.down.on.square", help: L("Salvar como… (⇧⌘S)")) { root.perform(.saveAs) }
+            IconButton(symbol: "square.and.arrow.down", help: L("Salvar na pasta (⌘S)")) { root.perform(.save) }
+            IconButton(symbol: "doc.on.doc", help: L("Copiar (⌘C ou ↩)")) { root.perform(.copy) }
+            IconButton(symbol: "xmark", help: L("Fechar (⎋)")) { root.perform(.close) }
         }
         .padding(4)
         .floatingBar()
@@ -852,19 +852,19 @@ struct RecordStartBar: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            Toggle(isOn: $options.mic) { Label("Microfone", systemImage: "mic") }
+            Toggle(isOn: $options.mic) { Label(L("Microfone"), systemImage: "mic") }
                 .toggleStyle(.button)
-            Toggle(isOn: $options.systemAudio) { Label("Áudio do Mac", systemImage: "speaker.wave.2") }
+            Toggle(isOn: $options.systemAudio) { Label(L("Áudio do Mac"), systemImage: "speaker.wave.2") }
                 .toggleStyle(.button)
             Button {
                 root.perform(.record)
             } label: {
-                Label("Gravar", systemImage: "record.circle.fill").foregroundStyle(.white)
+                Label(L("Gravar"), systemImage: "record.circle.fill").foregroundStyle(.white)
             }
             .buttonStyle(.borderedProminent)
             .tint(.red)
             .keyboardShortcut(.defaultAction)
-            IconButton(symbol: "xmark", help: "Cancelar (⎋)") { root.perform(.close) }
+            IconButton(symbol: "xmark", help: L("Cancelar (⎋)")) { root.perform(.close) }
         }
         .font(.system(size: 12, weight: .medium))
         .padding(6)

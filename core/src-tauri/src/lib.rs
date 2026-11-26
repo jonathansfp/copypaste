@@ -7,6 +7,7 @@ mod capture;
 mod dictation;
 mod local;
 mod history;
+mod i18n;
 mod platform;
 mod recorder;
 mod settings;
@@ -25,6 +26,7 @@ use tauri::ipc::{InvokeBody, Request};
 use tauri::{AppHandle, Emitter, Manager, RunEvent, State, WindowEvent};
 
 use history::{ClipSig, ClipView, History};
+use i18n::t;
 use settings::Settings;
 
 /// Voluntary donation key (Pix) to support the project.
@@ -72,14 +74,14 @@ pub fn set_clipboard_text(app: &AppHandle, text: &str) -> Result<(), String> {
     let state = app.state::<AppState>();
     state.sig.lock().unwrap().last_hash = history::hash_text(text);
     let mut cb = state.clipboard.lock().unwrap();
-    let cb = cb.as_mut().ok_or("área de transferência indisponível")?;
+    let cb = cb.as_mut().ok_or(t("área de transferência indisponível"))?;
     cb.set_text(text.to_string()).map_err(|e| e.to_string())
 }
 
 pub fn set_clipboard_image(app: &AppHandle, w: usize, h: usize, rgba: Vec<u8>) -> Result<(), String> {
     let state = app.state::<AppState>();
     let mut cb = state.clipboard.lock().unwrap();
-    let cb = cb.as_mut().ok_or("área de transferência indisponível")?;
+    let cb = cb.as_mut().ok_or(t("área de transferência indisponível"))?;
     cb.set_image(arboard::ImageData { width: w, height: h, bytes: rgba.into() }).map_err(|e| e.to_string())
 }
 
@@ -107,7 +109,7 @@ fn get_settings(app: AppHandle, state: State<AppState>) -> SettingsView {
         errors: state.hotkey_errors.lock().unwrap().clone(),
         defaults: settings::ACTIONS.iter().map(|a| (a.to_string(), settings::default_hotkey(a).to_string())).collect(),
         system: platform::SYSTEM.into(),
-        notes: platform::notes(),
+        notes: platform::notes().iter().map(|n| t(n).to_string()).collect(),
         version: app.package_info().version.to_string(),
         pix_key: PIX_KEY.into(),
         ffmpeg: recorder::find_ffmpeg().is_some(),
@@ -119,8 +121,9 @@ fn get_settings(app: AppHandle, state: State<AppState>) -> SettingsView {
 #[tauri::command]
 fn save_settings(app: AppHandle, state: State<AppState>, settings: Settings) -> BTreeMap<String, String> {
     let autostart = settings.autostart;
-    {
+    let language_changed = {
         let mut s = state.settings.lock().unwrap();
+        let changed = s.language != settings.language;
         // Model lists are kept by the app (ai_connect), not by the settings page.
         let (lists, stt) = (s.ai_model_lists.clone(), s.ai_stt_lists.clone());
         *s = settings;
@@ -128,9 +131,21 @@ fn save_settings(app: AppHandle, state: State<AppState>, settings: Settings) -> 
         s.ai_stt_lists = stt;
         s.history_limit = s.history_limit.clamp(20, 5000);
         s.record_fps = s.record_fps.clamp(10, 60);
+        if !["auto", "pt", "en", "es"].contains(&s.language.as_str()) {
+            s.language = "auto".into();
+        }
         s.save(&state.paths.settings);
         let limit = s.history_limit;
         state.history.lock().unwrap().trim(limit);
+        if changed {
+            i18n::set(&s.language);
+        }
+        changed
+    };
+    if language_changed {
+        // Open pages redraw themselves in the new language (the tray menu is rebuilt below).
+        ui::retitle(&app);
+        let _ = app.emit("language-changed", i18n::current());
     }
     apply_autostart(&app, autostart);
     let errors = actions::register_all(&app);
@@ -153,6 +168,12 @@ fn apply_autostart(app: &AppHandle, on: bool) {
     }
 }
 
+/// Language of the interface in use: "pt", "en" or "es".
+#[tauri::command]
+fn get_language() -> &'static str {
+    i18n::current()
+}
+
 #[tauri::command]
 fn suspend_hotkeys(app: AppHandle) {
     actions::suspend(&app);
@@ -172,7 +193,7 @@ fn history_list(state: State<AppState>) -> Vec<ClipView> {
 #[tauri::command]
 async fn history_use(app: AppHandle, id: String, paste: bool) -> Result<String, String> {
     let state = app.state::<AppState>();
-    let item = state.history.lock().unwrap().items.iter().find(|i| i.id == id).cloned().ok_or("item não encontrado")?;
+    let item = state.history.lock().unwrap().items.iter().find(|i| i.id == id).cloned().ok_or(t("item não encontrado"))?;
     if let Some(text) = &item.text {
         set_clipboard_text(&app, text)?;
     } else if let Some(file) = &item.image {
@@ -195,12 +216,12 @@ async fn history_use(app: AppHandle, id: String, paste: bool) -> Result<String, 
     ui::hide_history(&app);
     if paste {
         if let Err(msg) = platform::restore_and_paste() {
-            ui::toast(&app, &msg);
+            ui::toast(&app, &i18n::msg(&msg));
             return Ok("copied".into());
         }
         return Ok("pasted".into());
     }
-    ui::toast(&app, "Copiado");
+    ui::toast(&app, t("Copiado"));
     Ok("copied".into())
 }
 
@@ -236,7 +257,7 @@ fn hide_history(app: AppHandle) {
 /// The editor sends the final PNG as the raw body; the action goes in the `x-action` header.
 #[tauri::command]
 async fn editor_finish(app: AppHandle, request: Request<'_>) -> Result<String, String> {
-    let InvokeBody::Raw(png) = request.body() else { return Err("corpo inválido".into()) };
+    let InvokeBody::Raw(png) = request.body() else { return Err(t("corpo inválido").into()) };
     let h = request.headers();
     let action = h.get("x-action").and_then(|v| v.to_str().ok()).unwrap_or("copy").to_string();
     let num = |k: &str| h.get(k).and_then(|v| v.to_str().ok()).and_then(|v| v.parse::<f64>().ok());
@@ -246,7 +267,7 @@ async fn editor_finish(app: AppHandle, request: Request<'_>) -> Result<String, S
     };
     let keep = h.get("x-keep").and_then(|v| v.to_str().ok()) == Some("1");
     let png = png.clone();
-    let res = capture::finish(&app, &action, png, pin_at, keep);
+    let res = capture::finish(&app, &action, png, pin_at, keep).map_err(|e| i18n::msg(&e));
     if let Err(e) = &res {
         ui::toast(&app, e);
     }
@@ -350,16 +371,16 @@ fn toast(app: AppHandle, text: String) {
 async fn ai_connect(app: AppHandle, provider: String, key: String) -> Result<Settings, String> {
     let key = key.trim().to_string();
     if !ai::PROVIDERS.contains(&provider.as_str()) {
-        return Err("provedor desconhecido".into());
+        return Err(t("provedor desconhecido").into());
     }
     if key.is_empty() {
-        return Err("Cole a chave da API.".into());
+        return Err(t("Cole a chave da API.").into());
     }
     let p = provider.clone();
     let k = key.clone();
     let list = tauri::async_runtime::spawn_blocking(move || ai::list_models(&p, &k)).await.map_err(|e| e.to_string())??;
     if list.chat.is_empty() {
-        return Err("A chave funciona, mas nenhum modelo de texto está disponível nela.".into());
+        return Err(t("A chave funciona, mas nenhum modelo de texto está disponível nela.").into());
     }
     let state = app.state::<AppState>();
     {
@@ -511,6 +532,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_settings,
             save_settings,
+            get_language,
             suspend_hotkeys,
             resume_hotkeys,
             history_list,
@@ -562,6 +584,7 @@ pub fn run() {
             }
             let settings_path = config.join("settings.json");
             let settings = Settings::load(&settings_path);
+            i18n::set(&settings.language);
             let first_run = !settings.first_run_done;
             app.manage(AppState {
                 settings: Mutex::new(settings),

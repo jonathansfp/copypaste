@@ -8,40 +8,42 @@ struct DictationSettingsSections: View {
     @ObservedObject private var local = LocalAI.shared
 
     var body: some View {
-        Section("Ditado por voz") {
-            Text("Segure \(hotkeys.hotKey(for: .dictate)?.display ?? "o atalho do ditado") e fale; solte para o texto aparecer onde está o cursor, em qualquer app. Um toque rápido deixa ouvindo até o próximo toque. Com texto selecionado, \(hotkeys.hotKey(for: .voiceCommand)?.display ?? "o atalho do comando de voz") aplica o que você pedir (\"traduza para inglês\", \"deixe mais formal\").")
+        Section(L("Ditado por voz")) {
+            Text(L("Segure %@ e fale; solte para o texto aparecer onde está o cursor, em qualquer app. Um toque rápido deixa ouvindo até o próximo toque. Com texto selecionado, %@ aplica o que você pedir (\"traduza para inglês\", \"deixe mais formal\").",
+                   hotkeys.hotKey(for: .dictate)?.display ?? L("o atalho do ditado"),
+                   hotkeys.hotKey(for: .voiceCommand)?.display ?? L("o atalho do comando de voz")))
                 .font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Picker("Transcrição", selection: $dict.engine) {
+            Picker(L("Transcrição"), selection: $dict.engine) {
                 ForEach(TranscriptionEngine.allCases) { e in
                     Text(e.label).tag(e)
                 }
             }
             if let p = dict.engine.provider, !dict.available.contains(p) {
-                Text(p == .local ? "Baixe a IA local abaixo para usar essa transcrição." : "Conecte o \(p.name) abaixo para usar essa transcrição.")
+                Text(p == .local ? L("Baixe a IA local abaixo para usar essa transcrição.") : L("Conecte o %@ abaixo para usar essa transcrição.", p.name))
                     .font(.caption).foregroundStyle(.orange)
             }
-            Picker("Idioma", selection: $dict.language) {
+            Picker(L("Idioma"), selection: $dict.language) {
                 ForEach(DictationLanguage.all) { Text($0.label).tag($0.code) }
             }
-            Picker("IA que ajusta o texto", selection: $dict.polishProvider) {
-                Text("Nenhuma (texto como foi transcrito)").tag(AIProvider?.none)
+            Picker(L("IA que ajusta o texto"), selection: $dict.polishProvider) {
+                Text(L("Nenhuma (texto como foi transcrito)")).tag(AIProvider?.none)
                 ForEach(AIProvider.allCases.filter { $0 == .local || dict.connected.contains($0) }) { p in
-                    Text(p == .local && !local.isInstalled ? "\(p.name) — baixar abaixo" : p.name).tag(AIProvider?.some(p))
+                    Text(p == .local && !local.isInstalled ? L("%@ — baixar abaixo", p.name) : p.name).tag(AIProvider?.some(p))
                 }
             }
             if dict.effectivePolish == nil {
-                Text("Baixe a IA local (grátis) ou conecte uma IA abaixo para tirar vícios de fala, pontuar e formatar o texto automaticamente.")
+                Text(L("Baixe a IA local (grátis) ou conecte uma IA abaixo para tirar vícios de fala, pontuar e formatar o texto automaticamente."))
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Picker("Estilo", selection: $dict.style) {
+            Picker(L("Estilo"), selection: $dict.style) {
                 ForEach(DictationStyle.allCases) { Text($0.label).tag($0) }
             }
-            Toggle("Adaptar o tom ao app em uso (nome do app vai para a IA)", isOn: $dict.useAppContext)
-            Toggle("Sons ao começar e terminar", isOn: $dict.sounds)
+            Toggle(L("Adaptar o tom ao app em uso (nome do app vai para a IA)"), isOn: $dict.useAppContext)
+            Toggle(L("Sons ao começar e terminar"), isOn: $dict.sounds)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Vocabulário (nomes, siglas e termos, separados por vírgula)")
-                TextField("", text: $dict.terms, prompt: Text("Ex.: CopyPaste, Kubernetes, Dra. Ana Souza"), axis: .vertical)
+                Text(L("Vocabulário (nomes, siglas e termos, separados por vírgula)"))
+                TextField("", text: $dict.terms, prompt: Text(L("Ex.: CopyPaste, Kubernetes, Dra. Ana Souza")), axis: .vertical)
                     .lineLimit(1...3)
                     .textFieldStyle(.roundedBorder)
             }
@@ -50,9 +52,9 @@ struct DictationSettingsSections: View {
         Section {
             LocalAIRow(local: local)
         } header: {
-            Text("IA local (padrão, grátis e offline)")
+            Text(L("IA local (padrão, grátis e offline)"))
         } footer: {
-            Text("O Gemma 4 E2B, do Google, roda no próprio Mac pelo llama.cpp: transcreve e ajusta o texto sem internet e sem chave. É usado quando nenhuma outra IA está ativa. Precisa de uns 4 GB de disco e de memória enquanto está em uso; libera a memória após 10 minutos parado.")
+            Text(L("O Gemma 4 E2B, do Google, roda no próprio Mac pelo llama.cpp: transcreve e ajusta o texto sem internet e sem chave. É usado quando nenhuma outra IA está ativa. Precisa de uns 4 GB de disco e de memória enquanto está em uso; libera a memória após 10 minutos parado."))
                 .font(.caption).foregroundStyle(.secondary)
         }
 
@@ -61,9 +63,9 @@ struct DictationSettingsSections: View {
                 AIConnectionRow(provider: p, dict: dict)
             }
         } header: {
-            Text("Conexões de IA")
+            Text(L("Conexões de IA"))
         } footer: {
-            Text("Use a sua própria chave de API: o CopyPaste não tem servidor e não cobra nada. A chave fica no Porta-chaves do Mac, e o áudio e o texto vão direto do seu Mac para a IA escolhida, cobrados na sua conta dela. Com a transcrição da Apple e sem IA, nada sai do Mac.")
+            Text(L("Use a sua própria chave de API: o CopyPaste não tem servidor e não cobra nada. A chave fica no Porta-chaves do Mac, e o áudio e o texto vão direto do seu Mac para a IA escolhida, cobrados na sua conta dela. Com a transcrição da Apple e sem IA, nada sai do Mac."))
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -84,15 +86,15 @@ private struct AIConnectionRow: View {
             HStack {
                 Text(provider.name).fontWeight(.medium)
                 if provider.canTranscribe {
-                    Text("texto e voz").font(.caption2).padding(.horizontal, 5).padding(.vertical, 1)
+                    Text(L("texto e voz")).font(.caption2).padding(.horizontal, 5).padding(.vertical, 1)
                         .background(Color.secondary.opacity(0.15), in: Capsule())
                 }
                 Spacer()
                 if isConnected && !editing {
-                    Label("Conectado", systemImage: "checkmark.circle.fill").foregroundStyle(.green).font(.callout)
-                    Button("Remover", role: .destructive) { dict.disconnect(provider) }
+                    Label(L("Conectado"), systemImage: "checkmark.circle.fill").foregroundStyle(.green).font(.callout)
+                    Button(L("Remover"), role: .destructive) { dict.disconnect(provider) }
                 } else {
-                    Link("Obter chave", destination: provider.keyURL).font(.callout)
+                    Link(L("Obter chave"), destination: provider.keyURL).font(.callout)
                 }
             }
             if !isConnected || editing {
@@ -103,7 +105,7 @@ private struct AIConnectionRow: View {
                     if busy {
                         ProgressView().controlSize(.small)
                     } else {
-                        Button("Conectar", action: connect).disabled(key.trimmingCharacters(in: .whitespaces).isEmpty)
+                        Button(L("Conectar"), action: connect).disabled(key.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                 }
             }
@@ -113,7 +115,7 @@ private struct AIConnectionRow: View {
             if isConnected && !editing {
                 let models = dict.chatModels[provider] ?? []
                 if !models.isEmpty {
-                    Picker("Modelo de texto", selection: Binding(
+                    Picker(L("Modelo de texto"), selection: Binding(
                         get: { dict.model(for: provider) ?? models.first ?? "" },
                         set: { dict.setModel($0, for: provider) })) {
                         ForEach(models, id: \.self) { Text($0).tag($0) }
@@ -121,13 +123,13 @@ private struct AIConnectionRow: View {
                 }
                 let stt = dict.sttModels[provider] ?? []
                 if provider.canTranscribe, !stt.isEmpty {
-                    Picker("Modelo de transcrição", selection: Binding(
+                    Picker(L("Modelo de transcrição"), selection: Binding(
                         get: { dict.sttModel(for: provider) ?? stt.first ?? "" },
                         set: { dict.setSttModel($0, for: provider) })) {
                         ForEach(stt, id: \.self) { Text($0).tag($0) }
                     }
                 }
-                Button("Atualizar lista de modelos") {
+                Button(L("Atualizar lista de modelos")) {
                     Task {
                         do { try await dict.refreshModels(provider); error = nil }
                         catch { self.error = error.localizedDescription }
@@ -163,18 +165,18 @@ private struct LocalAIRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Gemma 4 E2B").fontWeight(.medium)
-                Text("texto e voz").font(.caption2).padding(.horizontal, 5).padding(.vertical, 1)
+                Text(L("texto e voz")).font(.caption2).padding(.horizontal, 5).padding(.vertical, 1)
                     .background(Color.secondary.opacity(0.15), in: Capsule())
                 Spacer()
                 switch local.state {
                 case .installed:
-                    Label(local.running ? "Pronta · carregada" : "Pronta", systemImage: "checkmark.circle.fill")
+                    Label(local.running ? L("Pronta · carregada") : L("Pronta"), systemImage: "checkmark.circle.fill")
                         .foregroundStyle(.green).font(.callout)
-                    Button("Remover", role: .destructive) { local.remove() }
+                    Button(L("Remover"), role: .destructive) { local.remove() }
                 case .downloading:
-                    Button("Cancelar") { local.cancelInstall() }
+                    Button(L("Cancelar")) { local.cancelInstall() }
                 case .notInstalled, .failed:
-                    Button(local.hasModelFiles ? "Instalar (≈ 17 MB)" : "Baixar (≈ \(Self.gb(LocalAI.totalBytes)))") { local.install() }
+                    Button(local.hasModelFiles ? L("Instalar (≈ 17 MB)") : L("Baixar (≈ %@)", Self.gb(LocalAI.totalBytes))) { local.install() }
                         .buttonStyle(.borderedProminent)
                 }
             }
@@ -183,19 +185,19 @@ private struct LocalAIRow: View {
                 ProgressView(value: p) {
                     Text(label).font(.caption)
                 } currentValueLabel: {
-                    Text("\(Int(p * 100))% de \(Self.gb(LocalAI.totalBytes))").font(.caption).foregroundStyle(.secondary)
+                    Text(L("%d%% de %@", Int(p * 100), Self.gb(LocalAI.totalBytes))).font(.caption).foregroundStyle(.secondary)
                 }
             case .failed(let msg):
                 Text(msg).font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
             case .installed:
                 HStack {
-                    Text("Usando \(Self.gb(local.diskUsage)) em ~/Library/Application Support/CopyPaste/IA local")
+                    Text(L("Usando %@ em ~/Library/Application Support/CopyPaste/IA local", Self.gb(local.diskUsage)))
                         .font(.caption).foregroundStyle(.secondary)
                     Spacer()
                     if local.testing {
                         ProgressView().controlSize(.small)
                     } else {
-                        Button("Testar") { Task { await local.selfTest() } }.font(.caption)
+                        Button(L("Testar")) { Task { await local.selfTest() } }.font(.caption)
                     }
                 }
                 if let r = local.testResult {

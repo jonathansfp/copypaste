@@ -18,6 +18,8 @@ mkdir -p "$OUT/Contents/MacOS" "$OUT/Contents/Resources"
 cp "$BIN" "$OUT/Contents/MacOS/$APP"
 cp Resources/Info.plist "$OUT/Contents/Info.plist"
 cp Resources/AppIcon.icns "$OUT/Contents/Resources/AppIcon.icns"
+# Textos dos pedidos de permissão (microfone, fala) em cada idioma.
+cp -R Resources/*.lproj "$OUT/Contents/Resources/"
 # Assina com um certificado estável (Apple Development do Xcode) quando existir: assim as permissões
 # de Gravação de Tela / Acessibilidade continuam valendo depois de recompilar. Sem certificado, usa ad-hoc
 # (o macOS então pede as permissões de novo a cada nova compilação). Dá para forçar com SIGN_IDENTITY=...

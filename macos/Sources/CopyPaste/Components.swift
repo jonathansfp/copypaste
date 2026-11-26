@@ -83,7 +83,7 @@ struct ClipPreview: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                Text("Imagem não encontrada").foregroundStyle(.secondary)
+                Text(L("Imagem não encontrada")).foregroundStyle(.secondary)
             }
         case .color:
             VStack(spacing: 12) {

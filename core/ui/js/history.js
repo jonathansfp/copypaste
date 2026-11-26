@@ -1,5 +1,6 @@
 // Painel do histórico de cópias: busca, filtros, teclado e colar no app anterior.
 import { icon } from './icons.js';
+import { t, locale, translatePage, onLanguageChange } from './i18n.js';
 
 const T = window.__TAURI__;
 const invoke = T.core.invoke;
@@ -11,7 +12,7 @@ const KIND_ICON = { text: 'textLines', link: 'link', image: 'image', color: 'pal
 
 let items = [], view = [], sel = 0, filter = 'all', pasteOnSelect = true;
 
-$('#searchbox').innerHTML = `${icon('search', 16)}<input id="q" placeholder="Buscar no histórico…" autocomplete="off" spellcheck="false">`;
+$('#searchbox').innerHTML = `${icon('search', 16)}<input id="q" placeholder="${t('Buscar no histórico…')}" autocomplete="off" spellcheck="false">`;
 $('#settings').innerHTML = icon('settings', 17);
 $('#settings').addEventListener('click', () => invoke('open_settings', {}));
 const q = $('#q');
@@ -19,7 +20,7 @@ const q = $('#q');
 const nav = $('#filters');
 for (const [k, label] of FILTERS) {
   const b = document.createElement('button');
-  b.textContent = label; b.dataset.k = k;
+  b.textContent = t(label); b.dataset.k = k;
   b.addEventListener('click', () => setFilter(k));
   nav.append(b);
 }
@@ -31,11 +32,11 @@ function setFilter(k) {
 
 function ago(ms) {
   const s = (Date.now() - ms) / 1000;
-  if (s < 60) return 'agora';
-  if (s < 3600) return `há ${Math.floor(s / 60)} min`;
-  if (s < 86400) return `há ${Math.floor(s / 3600)} h`;
+  if (s < 60) return t('agora');
+  if (s < 3600) return t('há {0} min', Math.floor(s / 60));
+  if (s < 86400) return t('há {0} h', Math.floor(s / 3600));
   const d = Math.floor(s / 86400);
-  return d === 1 ? 'ontem' : d < 30 ? `há ${d} dias` : new Date(ms).toLocaleDateString('pt-BR');
+  return d === 1 ? t('ontem') : d < 30 ? t('há {0} dias', d) : new Date(ms).toLocaleDateString(locale());
 }
 
 function norm(s) { return (s || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase(); }
@@ -45,7 +46,7 @@ function refresh() {
   view = items.filter(i => {
     if (filter === 'pinned' ? !i.pinned : filter !== 'all' && i.kind !== filter) return false;
     if (!words.length) return true;
-    const hay = norm(i.text || (i.kind === 'image' ? 'imagem' : ''));
+    const hay = norm(i.text || (i.kind === 'image' ? `imagem image imagen ${t('Imagem')}` : ''));
     return words.every(w => hay.includes(w));
   });
   // Fixados primeiro quando não há busca.
@@ -59,26 +60,26 @@ function esc(s) { return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 function draw() {
   const list = $('#list');
   if (!view.length) {
-    list.innerHTML = `<div class="empty">${items.length ? 'Nada encontrado.' : 'Copie algo (Ctrl+C) e ele aparece aqui.'}</div>`;
+    list.innerHTML = `<div class="empty">${items.length ? t('Nada encontrado.') : t('Copie algo (Ctrl+C) e ele aparece aqui.')}</div>`;
   } else {
     list.innerHTML = view.slice(0, 300).map((i, n) => {
       let lead;
       if (i.kind === 'image') lead = `<img class="thumb" loading="lazy" src="${PROTO}/img/${encodeURIComponent(i.image)}">`;
       else if (i.kind === 'color') lead = `<span class="swatch" style="background:${esc(i.text.trim())}"></span>`;
       else lead = `<span class="kind">${icon(KIND_ICON[i.kind] || 'textLines', 16)}</span>`;
-      const title = i.kind === 'image' ? `Imagem` : esc((i.text || '').replace(/\s+/g, ' ').trim().slice(0, 240));
+      const title = i.kind === 'image' ? t('Imagem') : esc((i.text || '').replace(/\s+/g, ' ').trim().slice(0, 240));
       const meta = [ago(i.date)];
       if (i.kind === 'image') meta.push(`${i.width} × ${i.height}`);
-      else if (i.chars > 80) meta.push(`${i.chars.toLocaleString('pt-BR')} caracteres`);
-      if (i.uses > 1) meta.push(`usado ${i.uses}×`);
+      else if (i.chars > 80) meta.push(t('{0} caracteres', i.chars.toLocaleString(locale())));
+      if (i.uses > 1) meta.push(t('usado {0}×', i.uses));
       return `<div class="item ${n === sel ? 'sel' : ''}" data-n="${n}">
         <span class="num">${n < 9 ? n + 1 : ''}</span>${lead}
         <div class="body"><div class="title ${i.kind === 'code' ? 'code' : ''}">${title}</div><div class="meta">${meta.join(' · ')}</div></div>
-        ${i.pinned ? `<span class="pinmark" title="Fixado">${icon('pin', 15)}</span>` : ''}
+        ${i.pinned ? `<span class="pinmark" title="${t('Fixado')}">${icon('pin', 15)}</span>` : ''}
       </div>`;
     }).join('');
   }
-  $('#count').textContent = `${view.length} de ${items.length}`;
+  $('#count').textContent = t('{0} de {1}', view.length, items.length);
   const el = list.querySelector('.item.sel');
   if (el) el.scrollIntoView({ block: 'nearest' });
 }
@@ -142,5 +143,8 @@ T.event.listen('history-open', async () => {
   setTimeout(() => q.focus(), 30);
 });
 
+// The panel is hidden most of the time: in another language it simply loads again.
+onLanguageChange(() => location.reload());
+translatePage();
 setFilter('all');
 load();

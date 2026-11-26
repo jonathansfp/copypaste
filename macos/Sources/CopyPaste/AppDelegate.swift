@@ -76,7 +76,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         recordTimer?.invalidate()
         recordTimer = nil
         if on {
-            let img = NSImage(systemSymbolName: "record.circle.fill", accessibilityDescription: "Gravando")?
+            let img = NSImage(systemSymbolName: "record.circle.fill", accessibilityDescription: L("Gravando"))?
                 .withSymbolConfiguration(.init(paletteColors: [.systemRed]))
             button.image = img
             button.imagePosition = .imageLeading
@@ -115,32 +115,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let store = ClipboardStore.shared
 
         if ScreenRecorder.shared.isRecording {
-            let stop = NSMenuItem(title: "Parar gravação", action: #selector(toggleRecording), keyEquivalent: "")
+            let stop = NSMenuItem(title: L("Parar gravação"), action: #selector(toggleRecording), keyEquivalent: "")
             stop.target = self
             stop.image = NSImage(systemSymbolName: "stop.circle.fill", accessibilityDescription: nil)
             menu.addItem(stop)
             menu.addItem(.separator())
         }
-        menu.addItem(hotKeyItem("Capturar área ou janela", .captureArea, #selector(captureArea)))
-        menu.addItem(hotKeyItem("Capturar tela inteira", .captureScreen, #selector(captureScreen)))
-        menu.addItem(hotKeyItem("Modo apresentação (quadro)", .board, #selector(openBoard)))
+        menu.addItem(hotKeyItem(L("Capturar área ou janela"), .captureArea, #selector(captureArea)))
+        menu.addItem(hotKeyItem(L("Capturar tela inteira"), .captureScreen, #selector(captureScreen)))
+        menu.addItem(hotKeyItem(L("Modo apresentação (quadro)"), .board, #selector(openBoard)))
         if !ScreenRecorder.shared.isRecording {
-            menu.addItem(hotKeyItem("Gravar tela…", .record, #selector(toggleRecording)))
+            menu.addItem(hotKeyItem(L("Gravar tela…"), .record, #selector(toggleRecording)))
         }
-        menu.addItem(hotKeyItem("Ditado por voz", .dictate, #selector(startDictation)))
-        menu.addItem(hotKeyItem("Comando de voz", .voiceCommand, #selector(startVoiceCommand)))
+        menu.addItem(hotKeyItem(L("Ditado por voz"), .dictate, #selector(startDictation)))
+        menu.addItem(hotKeyItem(L("Comando de voz"), .voiceCommand, #selector(startVoiceCommand)))
         menu.addItem(.separator())
 
-        let open = NSMenuItem(title: "Abrir histórico   \(AppSettings.shared.hotKeyDisplay)",
+        let open = NSMenuItem(title: L("Abrir histórico   %@", AppSettings.shared.hotKeyDisplay),
                               action: #selector(openPanel), keyEquivalent: "")
         open.target = self
         menu.addItem(open)
-        menu.addItem(withTitle: "Biblioteca…", action: #selector(openLibrary), keyEquivalent: "l").target = self
+        menu.addItem(withTitle: L("Biblioteca…"), action: #selector(openLibrary), keyEquivalent: "l").target = self
         menu.addItem(.separator())
 
         let recent = store.items.prefix(8)
         if recent.isEmpty {
-            let empty = NSMenuItem(title: "Nada copiado ainda", action: nil, keyEquivalent: "")
+            let empty = NSMenuItem(title: L("Nada copiado ainda"), action: nil, keyEquivalent: "")
             empty.isEnabled = false
             menu.addItem(empty)
         } else {
@@ -161,16 +161,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         menu.addItem(.separator())
 
-        let pause = NSMenuItem(title: "Pausar captura", action: #selector(togglePause), keyEquivalent: "")
+        let pause = NSMenuItem(title: L("Pausar captura"), action: #selector(togglePause), keyEquivalent: "")
         pause.target = self
         pause.state = store.paused ? .on : .off
         menu.addItem(pause)
-        menu.addItem(withTitle: "Limpar histórico…", action: #selector(clearHistory), keyEquivalent: "").target = self
-        menu.addItem(withTitle: "Configurações…", action: #selector(openSettings), keyEquivalent: ",").target = self
-        menu.addItem(withTitle: "Verificar atualizações…", action: #selector(checkUpdates), keyEquivalent: "").target = self
-        menu.addItem(withTitle: "Doar via Pix ♥", action: #selector(donatePix), keyEquivalent: "").target = self
+        menu.addItem(withTitle: L("Limpar histórico…"), action: #selector(clearHistory), keyEquivalent: "").target = self
+        menu.addItem(withTitle: L("Configurações…"), action: #selector(openSettings), keyEquivalent: ",").target = self
+        menu.addItem(withTitle: L("Verificar atualizações…"), action: #selector(checkUpdates), keyEquivalent: "").target = self
+        menu.addItem(withTitle: L("Doar via Pix ♥"), action: #selector(donatePix), keyEquivalent: "").target = self
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Sair do CopyPaste", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: L("Sair do CopyPaste"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     }
 
     @objc private func captureArea() { delayed { CaptureController.shared.start() } }
@@ -195,7 +195,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let pb = NSPasteboard.general
         pb.clearContents()
         pb.setString(Donation.pixKey, forType: .string)
-        Toast.show("Chave Pix copiada — obrigado pelo apoio!", symbol: "heart.fill", duration: 2.6)
+        Toast.show(L("Chave Pix copiada — obrigado pelo apoio!"), symbol: "heart.fill", duration: 2.6)
     }
     @objc private func togglePause() { ClipboardStore.shared.paused.toggle() }
 
@@ -208,10 +208,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func clearHistory() {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "Apagar todo o histórico?"
-        alert.informativeText = "Os itens fixados serão mantidos. Essa ação não pode ser desfeita."
-        alert.addButton(withTitle: "Apagar")
-        alert.addButton(withTitle: "Cancelar")
+        alert.messageText = L("Apagar todo o histórico?")
+        alert.informativeText = L("Os itens fixados serão mantidos. Essa ação não pode ser desfeita.")
+        alert.addButton(withTitle: L("Apagar"))
+        alert.addButton(withTitle: L("Cancelar"))
         alert.buttons.first?.hasDestructiveAction = true
         if alert.runModal() == .alertFirstButtonReturn {
             ClipboardStore.shared.clear(keepPinned: true)
@@ -249,7 +249,7 @@ final class WindowManager: NSObject, NSWindowDelegate {
             let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 560, height: 680),
                              styleMask: [.titled, .closable, .resizable],
                              backing: .buffered, defer: false)
-            w.title = "Configurações do CopyPaste"
+            w.title = L("Configurações do CopyPaste")
             w.isReleasedWhenClosed = false
             w.contentView = NSHostingView(rootView: SettingsView())
             w.center()

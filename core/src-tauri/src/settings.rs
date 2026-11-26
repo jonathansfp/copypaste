@@ -21,6 +21,8 @@ pub fn default_hotkey(action: &str) -> &'static str {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Settings {
+    /// Interface language: "auto" (the system's), "pt", "en" or "es".
+    pub language: String,
     /// action → accelerator ("Ctrl+Shift+V"); empty = disabled.
     pub hotkeys: BTreeMap<String, String>,
     pub capture_dir: String,
@@ -71,6 +73,7 @@ fn user_dir(base: Option<PathBuf>, fallback: &str) -> String {
 impl Default for Settings {
     fn default() -> Self {
         Settings {
+            language: "auto".into(),
             hotkeys: ACTIONS.iter().map(|a| (a.to_string(), default_hotkey(a).to_string())).collect(),
             capture_dir: user_dir(picture_dir(), "Pictures"),
             capture_format: "png".into(),
@@ -87,7 +90,8 @@ impl Default for Settings {
             autostart: true,
             first_run_done: false,
             dict_engine: "local".into(),
-            dict_language: "pt-BR".into(),
+            // A fresh install dictates in the system's language; a saved choice is kept.
+            dict_language: crate::i18n::default_dict_language(),
             dict_style: "natural".into(),
             dict_polish: "local".into(),
             dict_terms: String::new(),
@@ -146,6 +150,9 @@ impl Settings {
         }
         s.record_fps = s.record_fps.clamp(10, 60);
         s.history_limit = s.history_limit.clamp(20, 5000);
+        if !["auto", "pt", "en", "es"].contains(&s.language.as_str()) {
+            s.language = "auto".into();
+        }
         s
     }
 

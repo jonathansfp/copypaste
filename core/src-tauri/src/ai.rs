@@ -7,6 +7,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::time::Duration;
 
+use crate::i18n::{t, tf};
+
 /// Providers that take an API key ("local" is the built-in AI and needs none).
 pub const PROVIDERS: [&str; 5] = ["claude", "openai", "gemini", "deepseek", "grok"];
 
@@ -17,8 +19,8 @@ pub fn name(p: &str) -> &'static str {
         "gemini" => "Gemini",
         "deepseek" => "DeepSeek",
         "grok" => "Grok",
-        "local" => "IA local",
-        _ => "IA",
+        "local" => t("IA local"),
+        _ => t("IA"),
     }
 }
 
@@ -94,13 +96,13 @@ fn friendly(p: &str, status: u16, body: &str) -> String {
     let lower = detail.to_lowercase();
     let quota = lower.contains("quota") || lower.contains("billing") || lower.contains("credit");
     let base = match status {
-        401 | 403 => format!("{n}: chave inválida ou sem permissão."),
-        402 => format!("{n}: sem saldo ou créditos na conta."),
-        404 => format!("{n}: modelo não encontrado. Atualize a lista de modelos."),
-        429 if quota => format!("{n}: cota esgotada. Confira o plano ou os créditos da sua conta."),
-        429 => format!("{n}: limite por minuto atingido. Espere alguns segundos e tente de novo."),
-        500..=599 => format!("{n} está instável agora. Tente de novo em instantes."),
-        _ => format!("{n} recusou o pedido (erro {status})."),
+        401 | 403 => tf("{}: chave inválida ou sem permissão.", &[&n]),
+        402 => tf("{}: sem saldo ou créditos na conta.", &[&n]),
+        404 => tf("{}: modelo não encontrado. Atualize a lista de modelos.", &[&n]),
+        429 if quota => tf("{}: cota esgotada. Confira o plano ou os créditos da sua conta.", &[&n]),
+        429 => tf("{}: limite por minuto atingido. Espere alguns segundos e tente de novo.", &[&n]),
+        500..=599 => tf("{} está instável agora. Tente de novo em instantes.", &[&n]),
+        _ => tf("{} recusou o pedido (erro {}).", &[&n, &status]),
     };
     if detail.is_empty() || matches!(status, 401 | 403) {
         base
@@ -123,10 +125,10 @@ fn send(p: &str, make: impl Fn() -> Result<ureq::Response, ureq::Error>) -> Resu
 
 fn read(p: &str, r: Result<ureq::Response, ureq::Error>) -> Result<Value, String> {
     match r {
-        Ok(resp) => resp.into_json::<Value>().map_err(|e| format!("{}: resposta inválida ({e})", name(p))),
+        Ok(resp) => resp.into_json::<Value>().map_err(|e| tf("{}: resposta inválida ({})", &[&name(p), &e])),
         Err(ureq::Error::Status(code, resp)) => Err(friendly(p, code, &resp.into_string().unwrap_or_default())),
-        Err(e) if e.to_string().to_lowercase().contains("timed out") => Err(format!("{} demorou demais para responder.", name(p))),
-        Err(e) => Err(format!("Sem conexão com {}: {e}", name(p))),
+        Err(e) if e.to_string().to_lowercase().contains("timed out") => Err(tf("{} demorou demais para responder.", &[&name(p)])),
+        Err(e) => Err(tf("Sem conexão com {}: {}", &[&name(p), &e])),
     }
 }
 
@@ -175,7 +177,7 @@ pub fn list_models(p: &str, key: &str) -> Result<ModelList, String> {
             (chat, stt)
         }
         _ => {
-            let base = chat_base(p).ok_or("provedor desconhecido")?;
+            let base = chat_base(p).ok_or(t("provedor desconhecido"))?;
             let v = read(p, a.get(&format!("{base}/models")).set("Authorization", &format!("Bearer {key}")).call())?;
             let all = ids(&v, "/data", "id");
             let stt: Vec<String> = all.iter().filter(|m| m.contains("transcribe") || m.starts_with("whisper")).cloned().collect();
@@ -323,7 +325,7 @@ pub fn complete(p: &str, key: &str, model: &str, system: &str, user: &str, limit
             }
             let v = send(p, || req.clone().send_json(body.clone()))?;
             if v.get("stop_reason").and_then(|s| s.as_str()) == Some("refusal") {
-                return Err("Claude recusou ajustar esse texto.".into());
+                return Err(t("Claude recusou ajustar esse texto.").into());
             }
             let text: String = v
                 .get("content")
@@ -373,7 +375,7 @@ pub fn complete(p: &str, key: &str, model: &str, system: &str, user: &str, limit
             Err(last)
         }
         _ => {
-            let base = chat_base(p).ok_or("provedor desconhecido")?;
+            let base = chat_base(p).ok_or(t("provedor desconhecido"))?;
             let mut body = json!({
                 "model": model,
                 "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
@@ -435,7 +437,7 @@ pub fn transcribe(p: &str, key: &str, model: &str, wav: &[u8], language: Option<
             if p == "local" {
                 // In llama.cpp the prompt replaces the instruction, so it must still ask for a transcription.
                 if !hint.is_empty() {
-                    field("prompt", &format!("Transcreva o áudio exatamente como foi falado. Grafias corretas de termos que podem aparecer: {hint}."));
+                    field("prompt", &format!("Transcribe the audio exactly as spoken, in the language spoken, without translating. Correct spellings of terms that may appear: {hint}."));
                 }
             } else if !hint.is_empty() {
                 field("prompt", hint);
@@ -462,13 +464,13 @@ pub fn transcribe(p: &str, key: &str, model: &str, wav: &[u8], language: Option<
         }
         "gemini" => {
             let mut prompt = String::from(
-                "Transcreva exatamente o que é falado neste áudio, no idioma falado. Devolva somente a transcrição, sem comentários. Se não houver fala, devolva vazio.",
+                "Transcribe exactly what is said in this audio, in the language spoken; never translate. Return only the transcription, with no comments. If there is no speech, return nothing.",
             );
             if let Some(l) = language {
-                prompt.push_str(&format!(" Idioma esperado: {l}."));
+                prompt.push_str(&format!(" Expected language: {l}."));
             }
             if !hint.is_empty() {
-                prompt.push_str(&format!(" Grafias corretas de termos que podem aparecer: {hint}."));
+                prompt.push_str(&format!(" Correct spellings of terms that may appear: {hint}."));
             }
             let body = json!({
                 "contents": [{"role": "user", "parts": [
@@ -481,6 +483,6 @@ pub fn transcribe(p: &str, key: &str, model: &str, wav: &[u8], language: Option<
             let v = send(p, || a.post(&url).set("x-goog-api-key", key).send_json(body.clone()))?;
             Ok(gemini_text(&v))
         }
-        _ => Err(format!("{} não transcreve áudio. Use a IA local, a OpenAI ou o Gemini.", name(p))),
+        _ => Err(tf("{} não transcreve áudio. Use a IA local, a OpenAI ou o Gemini.", &[&name(p)])),
     }
 }

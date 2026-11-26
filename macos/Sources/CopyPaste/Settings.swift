@@ -7,8 +7,8 @@ enum DoubleClickAction: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .paste: return "Colar direto onde está o cursor"
-        case .copy: return "Apenas copiar (vira o primeiro do ⌘V)"
+        case .paste: return L("Colar direto onde está o cursor")
+        case .copy: return L("Apenas copiar (vira o primeiro do ⌘V)")
         }
     }
 }
@@ -18,9 +18,9 @@ enum PanelPosition: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .caret: return "Junto ao cursor de texto"
-        case .mouse: return "Junto ao ponteiro do mouse"
-        case .center: return "Centro da tela"
+        case .caret: return L("Junto ao cursor de texto")
+        case .mouse: return L("Junto ao ponteiro do mouse")
+        case .center: return L("Centro da tela")
         }
     }
 }
@@ -31,14 +31,14 @@ struct RetentionOption: Identifiable, Hashable {
     var id: Int { hours }
 
     static let all: [RetentionOption] = [
-        .init(hours: 1, label: "1 hora"),
-        .init(hours: 12, label: "12 horas"),
-        .init(hours: 24, label: "1 dia"),
-        .init(hours: 24 * 7, label: "7 dias"),
-        .init(hours: 24 * 30, label: "30 dias"),
-        .init(hours: 24 * 90, label: "90 dias"),
-        .init(hours: 24 * 365, label: "1 ano"),
-        .init(hours: 0, label: "Para sempre"),
+        .init(hours: 1, label: L("1 hora")),
+        .init(hours: 12, label: L("12 horas")),
+        .init(hours: 24, label: L("1 dia")),
+        .init(hours: 24 * 7, label: L("7 dias")),
+        .init(hours: 24 * 30, label: L("30 dias")),
+        .init(hours: 24 * 90, label: L("90 dias")),
+        .init(hours: 24 * 365, label: L("1 ano")),
+        .init(hours: 0, label: L("Para sempre")),
     ]
 }
 
@@ -164,7 +164,7 @@ final class AppSettings: ObservableObject {
 enum CaptureFormat: String, CaseIterable, Identifiable {
     case png, jpg
     var id: String { rawValue }
-    var label: String { self == .png ? "PNG (sem perda)" : "JPG (arquivo menor)" }
+    var label: String { self == .png ? L("PNG (sem perda)") : L("JPG (arquivo menor)") }
 }
 
 enum CaptureEnterAction: String, CaseIterable, Identifiable {
@@ -172,9 +172,9 @@ enum CaptureEnterAction: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .copy: return "Copiar"
-        case .save: return "Salvar na pasta"
-        case .copyAndSave: return "Copiar e salvar"
+        case .copy: return L("Copiar")
+        case .save: return L("Salvar na pasta")
+        case .copyAndSave: return L("Copiar e salvar")
         }
     }
 }
@@ -203,10 +203,10 @@ enum LoginItem {
 
     static var statusText: String {
         switch SMAppService.mainApp.status {
-        case .enabled: return "Ativo"
-        case .requiresApproval: return "Precisa aprovar em Ajustes do Sistema › Itens de Início"
+        case .enabled: return L("Ativo")
+        case .requiresApproval: return L("Precisa aprovar em Ajustes do Sistema › Itens de Início")
         default:
-            return FileManager.default.fileExists(atPath: agentURL.path) ? "Ativo (LaunchAgent)" : "Desativado"
+            return FileManager.default.fileExists(atPath: agentURL.path) ? L("Ativo (LaunchAgent)") : L("Desativado")
         }
     }
 
@@ -256,12 +256,12 @@ enum KeyNames {
            !c.unicodeScalars.contains(where: { (0xF700...0xF8FF).contains($0.value) || $0.properties.generalCategory == .control }) {
             return c.uppercased()
         }
-        return "Tecla \(keyCode)"
+        return L("Tecla %d", keyCode)
     }
 
     /// Nome legível para teclas que não têm um caractere imprimível.
     static let special: [Int: String] = [
-        kVK_Space: "Espaço", kVK_Return: "↩", kVK_Tab: "⇥", kVK_Delete: "⌫", kVK_Escape: "⎋",
+        kVK_Space: L("Espaço"), kVK_Return: "↩", kVK_Tab: "⇥", kVK_Delete: "⌫", kVK_Escape: "⎋",
         kVK_ForwardDelete: "⌦", kVK_Help: "Help", kVK_Home: "↖", kVK_End: "↘",
         kVK_PageUp: "⇞", kVK_PageDown: "⇟",
         kVK_LeftArrow: "←", kVK_RightArrow: "→", kVK_DownArrow: "↓", kVK_UpArrow: "↑",

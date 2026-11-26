@@ -39,20 +39,20 @@ final class LocalAI: ObservableObject {
         #if arch(arm64)
         return Asset(url: URL(string: "https://github.com/ggml-org/llama.cpp/releases/download/b12751/llama-b12751-bin-macos-arm64.tar.gz")!,
                      sha256: "d6b2790ee9a8f528016976d8f23c0fcbd6310dd739538d0c00088805ef52a490",
-                     size: 16_840_406, file: "llama-runtime.tar.gz", label: "motor llama.cpp")
+                     size: 16_840_406, file: "llama-runtime.tar.gz", label: L("motor llama.cpp"))
         #else
         return Asset(url: URL(string: "https://github.com/ggml-org/llama.cpp/releases/download/b12751/llama-b12751-bin-macos-x64.tar.gz")!,
                      sha256: "80985ebbe0ac3029afb45b9442d1c9aa3cd8ac08b3b22b15f234e5360772377b",
-                     size: 12_568_191, file: "llama-runtime.tar.gz", label: "motor llama.cpp")
+                     size: 12_568_191, file: "llama-runtime.tar.gz", label: L("motor llama.cpp"))
         #endif
     }
 
     nonisolated static let modelAsset = Asset(url: URL(string: hfBase + "gemma-4-E2B-it-Q4_K_M.gguf")!,
                                   sha256: "740185b21d22ceb83a11c3aa62ad5842ef32c70f6096d756bbee85a1e4ec34b8",
-                                  size: 3_106_738_272, file: "gemma-4-E2B-it-Q4_K_M.gguf", label: "modelo Gemma 4")
+                                  size: 3_106_738_272, file: "gemma-4-E2B-it-Q4_K_M.gguf", label: L("modelo Gemma 4"))
     nonisolated static let audioAsset = Asset(url: URL(string: hfBase + "mmproj-F16.gguf")!,
                                   sha256: "140be8d7849741f88c50757d529b84373ee8e27052cc2236855b537f4a8215fa",
-                                  size: 985_654_080, file: "mmproj-F16.gguf", label: "módulo de voz e imagem")
+                                  size: 985_654_080, file: "mmproj-F16.gguf", label: L("módulo de voz e imagem"))
 
     nonisolated static var totalBytes: Int64 { runtimeAsset.size + modelAsset.size + audioAsset.size }
 
@@ -114,7 +114,7 @@ final class LocalAI: ObservableObject {
 
     func install() {
         guard downloadTask == nil else { return }
-        state = .downloading(0, "Preparando…")
+        state = .downloading(0, L("Preparando…"))
         Diag.log("IA local: instalação iniciada")
         downloadTask = Task { [weak self] in
             guard let self else { return }
@@ -132,14 +132,14 @@ final class LocalAI: ObservableObject {
                     try await Downloader.fetch(a, to: dest) { got in
                         Task { @MainActor in
                             let p = Double(base + got) / Double(Self.totalBytes)
-                            self.state = .downloading(p, "Baixando \(a.label)…")
+                            self.state = .downloading(p, L("Baixando %@…", a.label))
                         }
                     }
-                    state = .downloading(Double(base + a.size) / Double(Self.totalBytes), "Conferindo \(a.label)…")
+                    state = .downloading(Double(base + a.size) / Double(Self.totalBytes), L("Conferindo %@…", a.label))
                     let ok = await Task.detached { Self.sha256(of: dest) == a.sha256 }.value
                     guard ok else {
                         try? FileManager.default.removeItem(at: dest)
-                        throw AIError(message: "O arquivo \(a.label) chegou corrompido. Tente de novo.")
+                        throw AIError(message: L("O arquivo %@ chegou corrompido. Tente de novo.", a.label))
                     }
                     done += a.size
                 }
@@ -153,7 +153,7 @@ final class LocalAI: ObservableObject {
                 tar.waitUntilExit()
                 try? FileManager.default.removeItem(at: dir.appendingPathComponent(Self.runtimeAsset.file))
                 guard tar.terminationStatus == 0, serverBinary != nil else {
-                    throw AIError(message: "Não consegui instalar o motor da IA local.")
+                    throw AIError(message: L("Não consegui instalar o motor da IA local."))
                 }
                 state = .installed
                 Diag.log("IA local instalada")
@@ -209,25 +209,29 @@ final class LocalAI: ObservableObject {
         do {
             var t = Date()
             _ = try await ensureRunning()
-            lines.append(String(format: "Modelo carregado em %.1f s", Date().timeIntervalSince(t)))
+            lines.append(L("Modelo carregado em %@ s", Self.seconds(t)))
             if let wav {
                 t = Date()
                 let text = try await AIClient.transcribe(.local, key: "local", model: Self.modelName, wav: wav, language: "pt", hint: "")
-                lines.append(String(format: "Transcrição em %.1f s: \"%@\"", Date().timeIntervalSince(t), text))
+                lines.append(L("Transcrição em %@ s: \"%@\"", Self.seconds(t), text))
             }
             t = Date()
             let sample = "é então tipo amanhã a gente se fala às três não quer dizer às quatro e aí vírgula leva o relatório né"
             let out = try await AIClient.complete(.local, key: "local", model: Self.modelName,
-                                                  system: DictationPrompts.cleanup(style: .natural, app: nil, terms: []),
+                                                  system: DictationPrompts.cleanup(style: .natural, app: nil, terms: [], language: "pt-BR"),
                                                   user: "<transcricao>\n\(sample)\n</transcricao>")
-            lines.append(String(format: "Ajuste do texto em %.1f s: \"%@\"", Date().timeIntervalSince(t), DictationPrompts.stripWrappers(out)))
+            lines.append(L("Ajuste do texto em %@ s: \"%@\"", Self.seconds(t), DictationPrompts.stripWrappers(out)))
         } catch {
-            lines.append("Falhou: \(error.localizedDescription)")
+            lines.append(L("Falhou: %@", error.localizedDescription))
         }
         let report = lines.joined(separator: "\n")
         Diag.log("IA local, teste:\n\(report)")
         testResult = report
         return report
+    }
+
+    private static func seconds(_ since: Date) -> String {
+        String(format: "%.1f", Date().timeIntervalSince(since))
     }
 
     // MARK: Server
@@ -241,7 +245,7 @@ final class LocalAI: ObservableObject {
     /// Base URL of the OpenAI-compatible API, starting the server if needed.
     func ensureRunning() async throws -> URL {
         guard isInstalled, let bin = serverBinary else {
-            throw AIError(message: "Baixe a IA local em Configurações › Ditado por voz.")
+            throw AIError(message: L("Baixe a IA local em Configurações › Ditado por voz."))
         }
         lastUse = Date()
         if let p = process, p.isRunning, running { return baseURL }
@@ -252,7 +256,7 @@ final class LocalAI: ObservableObject {
             let deadline = Date().addingTimeInterval(180)
             while Date() < deadline {
                 guard let p = process, p.isRunning else {
-                    throw AIError(message: "A IA local não conseguiu iniciar. \(logTail())")
+                    throw AIError(message: L("A IA local não conseguiu iniciar. %@", logTail()))
                 }
                 if await healthy() {
                     running = true
@@ -262,7 +266,7 @@ final class LocalAI: ObservableObject {
                 try await Task.sleep(nanoseconds: 300_000_000)
             }
             stop()
-            throw AIError(message: "A IA local demorou demais para carregar.")
+            throw AIError(message: L("A IA local demorou demais para carregar."))
         }
         starting = task
         return try await task.value
@@ -368,7 +372,7 @@ private enum Downloader {
         func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
             let code = (downloadTask.response as? HTTPURLResponse)?.statusCode ?? 0
             guard (200..<300).contains(code) else {
-                finish(AIError(message: "O download falhou (erro \(code)). Tente de novo mais tarde."))
+                finish(AIError(message: L("O download falhou (erro %d). Tente de novo mais tarde.", code)))
                 return
             }
             do {
@@ -382,7 +386,7 @@ private enum Downloader {
         func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
             if let error {
                 let cancelled = (error as? URLError)?.code == .cancelled
-                finish(cancelled ? CancellationError() : AIError(message: "O download parou: \(error.localizedDescription)"))
+                finish(cancelled ? CancellationError() : AIError(message: L("O download parou: %@", error.localizedDescription)))
             }
         }
         private func finish(_ error: Error?) {

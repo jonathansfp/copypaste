@@ -5,6 +5,7 @@ use tauri::{AppHandle, Manager};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 use crate::{capture, dictation, settings::ACTIONS, ui, AppState};
+use crate::i18n::tf;
 
 /// Runs an action. Capture work goes to a separate thread so the event loop never stalls.
 pub fn run(app: &AppHandle, action: &str) {
@@ -66,7 +67,7 @@ pub fn register_all(app: &AppHandle) -> BTreeMap<String, String> {
         let shortcut: Shortcut = match accel.parse() {
             Ok(s) => s,
             Err(e) => {
-                errors.insert(action.to_string(), format!("Atalho inválido: {e}"));
+                errors.insert(action.to_string(), tf("Atalho inválido: {}", &[&e]));
                 continue;
             }
         };
@@ -85,7 +86,7 @@ pub fn register_all(app: &AppHandle) -> BTreeMap<String, String> {
             }
         });
         if let Err(e) = res {
-            errors.insert(action.to_string(), format!("Não foi possível registrar (talvez outro app já use esse atalho): {e}"));
+            errors.insert(action.to_string(), tf("Não foi possível registrar (talvez outro app já use esse atalho): {}", &[&e]));
         }
     }
     *app.state::<AppState>().hotkey_errors.lock().unwrap() = errors.clone();

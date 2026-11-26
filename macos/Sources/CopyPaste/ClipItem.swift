@@ -6,12 +6,12 @@ enum ClipKind: String, Codable, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .text: return "Texto"
-        case .link: return "Links"
-        case .image: return "Imagens"
-        case .color: return "Cores"
-        case .code: return "Código"
-        case .file: return "Arquivos"
+        case .text: return L("Texto")
+        case .link: return L("Links")
+        case .image: return L("Imagens")
+        case .color: return L("Cores")
+        case .code: return L("Código")
+        case .file: return L("Arquivos")
         }
     }
 
@@ -51,11 +51,11 @@ struct ClipItem: Identifiable, Codable, Equatable {
     var title: String {
         switch kind {
         case .image:
-            return "Imagem"
+            return L("Imagem")
         case .file:
             let urls = fileURLs
             if urls.count == 1 { return urls[0].lastPathComponent }
-            return "\(urls.count) arquivos"
+            return L("%d arquivos", urls.count)
         default:
             let t = (text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             let lines = t.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
@@ -78,7 +78,7 @@ struct ClipItem: Identifiable, Codable, Equatable {
         case .color:
             return nil
         default:
-            return "\((text ?? "").count) caracteres"
+            return L("%d caracteres", (text ?? "").count)
         }
     }
 
@@ -87,7 +87,7 @@ struct ClipItem: Identifiable, Codable, Equatable {
         let q = query.lowercased()
         if (text ?? "").lowercased().contains(q) { return true }
         if (sourceAppName ?? "").lowercased().contains(q) { return true }
-        if kind == .image && ("imagem".contains(q) || "image".contains(q)) { return true }
+        if kind == .image && ("imagem".contains(q) || "image".contains(q) || "imagen".contains(q)) { return true }
         return false
     }
 }
@@ -160,15 +160,21 @@ enum ColorParser {
 }
 
 enum TimeText {
-    private static let formatter: RelativeDateTimeFormatter = {
+    nonisolated(unsafe) private static var cached: (AppLanguage, RelativeDateTimeFormatter)?
+
+    /// Rebuilt when the interface language changes.
+    private static var formatter: RelativeDateTimeFormatter {
+        let lang = AppLanguage.current
+        if let c = cached, c.0 == lang { return c.1 }
         let f = RelativeDateTimeFormatter()
-        f.locale = Locale(identifier: "pt_BR")
+        f.locale = Locale(identifier: lang.localeTag)
         f.unitsStyle = .abbreviated
+        cached = (lang, f)
         return f
-    }()
+    }
 
     static func relative(_ date: Date, now: Date = Date()) -> String {
-        if now.timeIntervalSince(date) < 60 { return "agora" }
+        if now.timeIntervalSince(date) < 60 { return L("agora") }
         return formatter.localizedString(for: date, relativeTo: now)
     }
 }

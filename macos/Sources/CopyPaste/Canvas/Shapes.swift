@@ -10,28 +10,28 @@ enum ShapeKind: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .pen: return "Caneta"
-        case .highlighter: return "Marca-texto"
-        case .line: return "Linha"
-        case .arrow: return "Seta"
-        case .doubleArrow: return "Seta dupla"
-        case .rect: return "Retângulo"
-        case .ellipse: return "Elipse"
-        case .diamond: return "Losango"
-        case .text: return "Texto"
-        case .step: return "Passo numerado"
-        case .sticky: return "Nota adesiva"
-        case .blur: return "Desfocar / ocultar"
-        case .image: return "Imagem"
-        case .cylinder: return "Banco de dados"
-        case .person: return "Pessoa"
-        case .cloud: return "Nuvem"
-        case .bubble: return "Balão de fala"
-        case .star: return "Estrela"
-        case .check: return "Certo"
-        case .cross: return "Errado"
-        case .browser: return "Janela / navegador"
-        case .phone: return "Celular"
+        case .pen: return L("Caneta")
+        case .highlighter: return L("Marca-texto")
+        case .line: return L("Linha")
+        case .arrow: return L("Seta")
+        case .doubleArrow: return L("Seta dupla")
+        case .rect: return L("Retângulo")
+        case .ellipse: return L("Elipse")
+        case .diamond: return L("Losango")
+        case .text: return L("Texto")
+        case .step: return L("Passo numerado")
+        case .sticky: return L("Nota adesiva")
+        case .blur: return L("Desfocar / ocultar")
+        case .image: return L("Imagem")
+        case .cylinder: return L("Banco de dados")
+        case .person: return L("Pessoa")
+        case .cloud: return L("Nuvem")
+        case .bubble: return L("Balão de fala")
+        case .star: return L("Estrela")
+        case .check: return L("Certo")
+        case .cross: return L("Errado")
+        case .browser: return L("Janela / navegador")
+        case .phone: return L("Celular")
         }
     }
 
@@ -78,9 +78,9 @@ enum Tool: Hashable {
 
     var label: String {
         switch self {
-        case .select: return "Selecionar e mover"
-        case .eraser: return "Borracha"
-        case .laser: return "Laser (apresentação)"
+        case .select: return L("Selecionar e mover")
+        case .eraser: return L("Borracha")
+        case .laser: return L("Laser (apresentação)")
         case .draw(let k): return k.label
         }
     }
@@ -126,11 +126,11 @@ enum FontChoice: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .system: return "Sistema"
-        case .rounded: return "Arredondada"
-        case .hand: return "Manuscrita"
-        case .serif: return "Serifada"
-        case .mono: return "Código"
+        case .system: return L("Sistema")
+        case .rounded: return L("Arredondada")
+        case .hand: return L("Manuscrita")
+        case .serif: return L("Serifada")
+        case .mono: return L("Código")
         }
     }
 

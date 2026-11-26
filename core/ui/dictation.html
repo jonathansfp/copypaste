@@ -38,13 +38,16 @@
       <svg width="13" height="13" viewBox="0 0 14 14"><path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
   </div>
-  <script>
+  <script type="module">
+    import { t, translatePage, onLanguageChange } from './js/i18n.js';
+    translatePage();
+    onLanguageChange(() => location.reload());
     const T = window.__TAURI__;
     const bars = document.getElementById('bars');
     const N = 26;
     for (let i = 0; i < N; i++) bars.append(document.createElement('i'));
     const levels = new Array(N).fill(0);
-    const pretty = a => (a || 'o atalho').split('+').map(k => ({ Super: 'Win', Space: 'Espaço', Control: 'Ctrl' }[k] || k)).join('+');
+    const pretty = a => (a || t('o atalho')).split('+').map(k => ({ Super: 'Win', Space: t('Espaço'), Control: 'Ctrl' }[k] || k)).join('+');
     T.event.listen('dict-level', e => {
       levels.shift(); levels.push(e.payload);
       [...bars.children].forEach((el, i) => { el.style.height = (4 + levels[i] * 20) + 'px'; });
@@ -58,8 +61,8 @@
         [...bars.children].forEach(el => { el.style.height = '4px'; });
         const k = pretty(s.key);
         document.getElementById('hint').textContent = s.command
-          ? (s.handsFree ? `Diga o que fazer · ${k} termina` : 'Diga o que fazer com o texto selecionado')
-          : (s.handsFree ? `Ouvindo · ${k} termina` : 'Ouvindo · solte para terminar');
+          ? (s.handsFree ? t('Diga o que fazer · {0} termina', k) : t('Diga o que fazer com o texto selecionado'))
+          : (s.handsFree ? t('Ouvindo · {0} termina', k) : t('Ouvindo · solte para terminar'));
       } else {
         document.getElementById('what').textContent = s.text;
       }

@@ -29,7 +29,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
 
     func start(screen: NSScreen, rect: CGRect?, mic: Bool, systemAudio: Bool) {
         guard #available(macOS 15.0, *) else {
-            Toast.show("Gravação de tela requer macOS 15 ou mais recente", symbol: "exclamationmark.triangle", duration: 3)
+            Toast.show(L("Gravação de tela requer macOS 15 ou mais recente"), symbol: "exclamationmark.triangle", duration: 3)
             return
         }
         guard !isRecording else { return }
@@ -39,7 +39,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
                 let granted = await AVCaptureDevice.requestAccess(for: .audio)
                 if !granted {
                     useMic = false
-                    Toast.show("Sem permissão do microfone: gravando sem a sua voz", symbol: "mic.slash", duration: 3)
+                    Toast.show(L("Sem permissão do microfone: gravando sem a sua voz"), symbol: "mic.slash", duration: 3)
                 }
             }
             do {
@@ -47,7 +47,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
             } catch {
                 NSLog("CopyPaste: gravação falhou: \(error)")
                 cleanup()
-                Toast.show("Não foi possível gravar: \(error.localizedDescription)", symbol: "exclamationmark.triangle", duration: 4)
+                Toast.show(L("Não foi possível gravar: %@", error.localizedDescription), symbol: "exclamationmark.triangle", duration: 4)
             }
         }
     }
@@ -89,7 +89,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
         if mic { try stream.addStreamOutput(sink, type: .microphone, sampleHandlerQueue: queue) }
 
         try FileManager.default.createDirectory(at: s.recordURL, withIntermediateDirectories: true)
-        let url = s.recordURL.appendingPathComponent(ImageOutput.fileName(prefix: "Gravação", ext: "mov"))
+        let url = s.recordURL.appendingPathComponent(ImageOutput.fileName(prefix: L("Gravação"), ext: "mov"))
         let rc = SCRecordingOutputConfiguration()
         rc.outputURL = url
         rc.outputFileType = .mov
@@ -106,7 +106,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
         self.fileURL = url
         isRecording = true
         startedAt = Date()
-        Toast.show("Gravando… pare com \(s.hotKey(for: .record)?.display ?? "o menu") ou pelo ícone na barra", symbol: "record.circle", duration: 2.5)
+        Toast.show(L("Gravando… pare com %@ ou pelo ícone na barra", s.hotKey(for: .record)?.display ?? L("o menu")), symbol: "record.circle", duration: 2.5)
     }
 
     func stop() {
@@ -124,9 +124,9 @@ final class ScreenRecorder: NSObject, ObservableObject {
         let url = fileURL
         cleanup()
         if let error {
-            Toast.show("Erro na gravação: \(error.localizedDescription)", symbol: "exclamationmark.triangle", duration: 4)
+            Toast.show(L("Erro na gravação: %@", error.localizedDescription), symbol: "exclamationmark.triangle", duration: 4)
         } else if let url, FileManager.default.fileExists(atPath: url.path) {
-            Toast.show("Gravação salva: \(url.lastPathComponent)", symbol: "film", duration: 3)
+            Toast.show(L("Gravação salva: %@", url.lastPathComponent), symbol: "film", duration: 3)
             NSWorkspace.shared.activateFileViewerSelecting([url])
         }
     }
@@ -165,7 +165,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
 
     enum RecorderError: LocalizedError {
         case noDisplay
-        var errorDescription: String? { "tela não encontrada" }
+        var errorDescription: String? { L("tela não encontrada") }
     }
 }
 

@@ -7,6 +7,7 @@ use std::sync::atomic::Ordering;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 
+use crate::i18n::t;
 use crate::{platform, AppState};
 
 fn builder<'a>(app: &'a AppHandle, label: &str, url: &str) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle> {
@@ -25,7 +26,7 @@ pub fn create_windows(app: &AppHandle) -> tauri::Result<()> {
         .shadow(true)
         .build()?;
     builder(app, "editor", "editor.html")
-        .title("CopyPaste — captura")
+        .title(t("CopyPaste — captura"))
         .decorations(false)
         .resizable(false)
         .always_on_top(true)
@@ -34,7 +35,7 @@ pub fn create_windows(app: &AppHandle) -> tauri::Result<()> {
         .shadow(false)
         .build()?;
     builder(app, "dictation", "dictation.html")
-        .title("CopyPaste — ditado")
+        .title(t("CopyPaste — ditado"))
         .inner_size(360.0, 64.0)
         .decorations(false)
         .resizable(false)
@@ -89,6 +90,21 @@ pub fn toggle_history(app: &AppHandle) {
     let _ = win.set_focus();
 }
 
+/// Window titles in the current language (after the language changes).
+pub fn retitle(app: &AppHandle) {
+    for (label, win) in app.webview_windows() {
+        let title = match label.as_str() {
+            "editor" => t("CopyPaste — captura"),
+            "dictation" => t("CopyPaste — ditado"),
+            "settings" => t("CopyPaste — Configurações"),
+            "recbar" => t("CopyPaste — gravando"),
+            l if l.starts_with("pin-") => t("CopyPaste — imagem fixada"),
+            _ => continue,
+        };
+        let _ = win.set_title(title);
+    }
+}
+
 pub fn hide_history(app: &AppHandle) {
     if let Some(win) = app.get_webview_window("history") {
         let _ = win.hide();
@@ -111,7 +127,7 @@ pub fn open_settings(app: &AppHandle, tab: Option<&str>) {
     // Windows are created outside the main thread (avoids blocking the event loop on Windows).
     std::thread::spawn(move || {
         let _ = builder(&app, "settings", &url)
-            .title("CopyPaste — Configurações")
+            .title(t("CopyPaste — Configurações"))
             .inner_size(760.0, 680.0)
             .min_inner_size(640.0, 520.0)
             .center()
@@ -175,7 +191,7 @@ pub fn open_pin(app: &AppHandle, png: Vec<u8>, at: Option<(f64, f64)>) {
     let app = app.clone();
     std::thread::spawn(move || {
         let mut b = builder(&app, &format!("pin-{n}"), &format!("pin.html?n={n}&w={lw}&h={lh}"))
-            .title("CopyPaste — imagem fixada")
+            .title(t("CopyPaste — imagem fixada"))
             .inner_size(lw, lh)
             .decorations(false)
             .resizable(true)
@@ -196,7 +212,7 @@ pub fn show_recbar(app: &AppHandle, mon_x: i32, mon_y: i32, x: u32, y: u32, w: u
         let win = match app.get_webview_window("recbar") {
             Some(w) => w,
             None => match builder(&app, "recbar", "recbar.html")
-                .title("CopyPaste — gravando")
+                .title(t("CopyPaste — gravando"))
                 .inner_size(236.0, 44.0)
                 .decorations(false)
                 .resizable(false)

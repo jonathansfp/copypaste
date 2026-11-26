@@ -4,6 +4,7 @@ use tauri::menu::{Menu, MenuBuilder, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Manager, Wry};
 
+use crate::i18n::t;
 use crate::{actions, recorder, AppState, PIX_KEY};
 
 fn item(app: &AppHandle, id: &str, text: &str, accel: Option<String>) -> tauri::Result<MenuItem<Wry>> {
@@ -18,27 +19,27 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     let recording = recorder::is_recording(app);
     let mut m = MenuBuilder::new(app);
     if recording {
-        m = m.item(&item(app, "record", "■ Parar gravação", hk("record"))?).item(&PredefinedMenuItem::separator(app)?);
+        m = m.item(&item(app, "record", t("■ Parar gravação"), hk("record"))?).item(&PredefinedMenuItem::separator(app)?);
     }
     m = m
-        .item(&item(app, "clipboard", "Abrir histórico", hk("clipboard"))?)
+        .item(&item(app, "clipboard", t("Abrir histórico"), hk("clipboard"))?)
         .item(&PredefinedMenuItem::separator(app)?)
-        .item(&item(app, "captureArea", "Capturar área ou janela", hk("captureArea"))?)
-        .item(&item(app, "captureScreen", "Capturar tela inteira", hk("captureScreen"))?)
-        .item(&item(app, "board", "Modo apresentação (quadro)", hk("board"))?);
+        .item(&item(app, "captureArea", t("Capturar área ou janela"), hk("captureArea"))?)
+        .item(&item(app, "captureScreen", t("Capturar tela inteira"), hk("captureScreen"))?)
+        .item(&item(app, "board", t("Modo apresentação (quadro)"), hk("board"))?);
     if !recording {
-        m = m.item(&item(app, "record", "Gravar tela…", hk("record"))?);
+        m = m.item(&item(app, "record", t("Gravar tela…"), hk("record"))?);
     }
     m = m
-        .item(&item(app, "dictate", "Ditado por voz", hk("dictate"))?)
-        .item(&item(app, "voiceCommand", "Comando de voz", hk("voiceCommand"))?);
+        .item(&item(app, "dictate", t("Ditado por voz"), hk("dictate"))?)
+        .item(&item(app, "voiceCommand", t("Comando de voz"), hk("voiceCommand"))?);
     m.item(&PredefinedMenuItem::separator(app)?)
-        .item(&MenuItem::with_id(app, "pause", if s.paused { "Retomar histórico" } else { "Pausar histórico" }, true, None::<&str>)?)
-        .item(&MenuItem::with_id(app, "settings", "Configurações…", true, None::<&str>)?)
-        .item(&MenuItem::with_id(app, "updates", "Verificar atualizações…", true, None::<&str>)?)
-        .item(&MenuItem::with_id(app, "donate", "Doar via Pix ♥", true, None::<&str>)?)
+        .item(&MenuItem::with_id(app, "pause", t(if s.paused { "Retomar histórico" } else { "Pausar histórico" }), true, None::<&str>)?)
+        .item(&MenuItem::with_id(app, "settings", t("Configurações…"), true, None::<&str>)?)
+        .item(&MenuItem::with_id(app, "updates", t("Verificar atualizações…"), true, None::<&str>)?)
+        .item(&MenuItem::with_id(app, "donate", t("Doar via Pix ♥"), true, None::<&str>)?)
         .item(&PredefinedMenuItem::separator(app)?)
-        .item(&MenuItem::with_id(app, "quit", "Sair do CopyPaste", true, None::<&str>)?)
+        .item(&MenuItem::with_id(app, "quit", t("Sair do CopyPaste"), true, None::<&str>)?)
         .build()
 }
 
@@ -60,7 +61,7 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
                 "donate" => {
                     let _ = crate::set_clipboard_text(app, PIX_KEY);
                     crate::ui::open_settings(app, Some("apoie"));
-                    crate::ui::toast(app, "Chave Pix copiada — obrigado pelo apoio! ♥");
+                    crate::ui::toast(app, t("Chave Pix copiada — obrigado pelo apoio! ♥"));
                 }
                 "pause" => {
                     let st = app.state::<AppState>();
@@ -70,7 +71,7 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
                         s.save(&st.paths.settings);
                         s.paused
                     };
-                    crate::ui::toast(app, if paused { "Histórico pausado" } else { "Histórico retomado" });
+                    crate::ui::toast(app, t(if paused { "Histórico pausado" } else { "Histórico retomado" }));
                     refresh(app);
                 }
                 other => actions::run(app, other),
@@ -94,7 +95,7 @@ pub fn refresh(app: &AppHandle) {
     let _ = app.run_on_main_thread(move || {
         if let (Some(tray), Ok(menu)) = (app2.tray_by_id("main"), build_menu(&app2)) {
             let _ = tray.set_menu(Some(menu));
-            let tip = if recorder::is_recording(&app2) { "CopyPaste — gravando" } else { "CopyPaste" };
+            let tip = if recorder::is_recording(&app2) { t("CopyPaste — gravando") } else { "CopyPaste" };
             let _ = tray.set_tooltip(Some(tip));
         }
     });

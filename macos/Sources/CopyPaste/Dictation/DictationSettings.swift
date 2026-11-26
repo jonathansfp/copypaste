@@ -6,10 +6,10 @@ enum TranscriptionEngine: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .apple: return "Apple (no Mac, grátis e offline)"
-        case .local: return "IA local Gemma 4 (no Mac, grátis e offline)"
-        case .openai: return "OpenAI (mais preciso, usa sua chave)"
-        case .gemini: return "Gemini (usa sua chave)"
+        case .apple: return L("Apple (no Mac, grátis e offline)")
+        case .local: return L("IA local Gemma 4 (no Mac, grátis e offline)")
+        case .openai: return L("OpenAI (mais preciso, usa sua chave)")
+        case .gemini: return L("Gemini (usa sua chave)")
         }
     }
     var provider: AIProvider? {
@@ -28,17 +28,24 @@ enum DictationStyle: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .natural: return "Natural: limpo, com o seu jeito de falar"
-        case .formal: return "Formal: e-mails e documentos"
-        case .casual: return "Descontraído: chats e mensagens"
-        case .literal: return "Literal: só a transcrição, sem IA"
+        case .natural: return L("Natural: limpo, com o seu jeito de falar")
+        case .formal: return L("Formal: e-mails e documentos")
+        case .casual: return L("Descontraído: chats e mensagens")
+        case .literal: return L("Literal: só a transcrição, sem IA")
         }
     }
-    var instruction: String {
+    /// Style line of the AI prompt, in Portuguese or English (the prompt's own language).
+    func instruction(portuguese: Bool) -> String {
         switch self {
-        case .natural: return "Mantenha o jeito e o vocabulário da pessoa; só deixe o texto limpo e bem pontuado."
-        case .formal: return "Use um tom profissional e claro, adequado a e-mails e documentos, sem mudar o sentido."
-        case .casual: return "Use um tom leve de conversa, adequado a chats; pode manter expressões informais."
+        case .natural:
+            return portuguese ? "Mantenha o jeito e o vocabulário da pessoa; só deixe o texto limpo e bem pontuado."
+                : "Keep the person's way of speaking and vocabulary; just make the text clean and well punctuated."
+        case .formal:
+            return portuguese ? "Use um tom profissional e claro, adequado a e-mails e documentos, sem mudar o sentido."
+                : "Use a clear, professional tone suited to emails and documents, without changing the meaning."
+        case .casual:
+            return portuguese ? "Use um tom leve de conversa, adequado a chats; pode manter expressões informais."
+                : "Use a light, conversational tone suited to chats; informal expressions may stay."
         case .literal: return ""
         }
     }
@@ -50,14 +57,14 @@ struct DictationLanguage: Identifiable, Hashable {
     var id: String { code }
 
     static let all: [DictationLanguage] = [
-        .init(code: "pt-BR", label: "Português (Brasil)"),
-        .init(code: "pt-PT", label: "Português (Portugal)"),
-        .init(code: "en-US", label: "Inglês (EUA)"),
-        .init(code: "es-ES", label: "Espanhol"),
-        .init(code: "fr-FR", label: "Francês"),
-        .init(code: "it-IT", label: "Italiano"),
-        .init(code: "de-DE", label: "Alemão"),
-        .init(code: "auto", label: "Detectar automaticamente (OpenAI/Gemini)"),
+        .init(code: "pt-BR", label: L("Português (Brasil)")),
+        .init(code: "pt-PT", label: L("Português (Portugal)")),
+        .init(code: "en-US", label: L("Inglês (EUA)")),
+        .init(code: "es-ES", label: L("Espanhol")),
+        .init(code: "fr-FR", label: L("Francês")),
+        .init(code: "it-IT", label: L("Italiano")),
+        .init(code: "de-DE", label: L("Alemão")),
+        .init(code: "auto", label: L("Detectar automaticamente (OpenAI/Gemini)")),
     ]
 }
 
@@ -83,7 +90,8 @@ final class DictationSettings: ObservableObject {
     private init() {
         d.register(defaults: [
             "dict.engine": TranscriptionEngine.apple.rawValue,
-            "dict.language": "pt-BR",
+            // Until the user picks one, dictation follows the app's language.
+            "dict.language": AppLanguage.current.localeTag,
             "dict.style": DictationStyle.natural.rawValue,
             "dict.polish": AIProvider.local.rawValue,
             "dict.terms": "",
@@ -91,7 +99,7 @@ final class DictationSettings: ObservableObject {
             "dict.appContext": true,
         ])
         engine = TranscriptionEngine(rawValue: d.string(forKey: "dict.engine") ?? "") ?? .apple
-        language = d.string(forKey: "dict.language") ?? "pt-BR"
+        language = d.string(forKey: "dict.language") ?? AppLanguage.current.localeTag
         style = DictationStyle(rawValue: d.string(forKey: "dict.style") ?? "") ?? .natural
         polishProvider = AIProvider(rawValue: d.string(forKey: "dict.polish") ?? "")
         terms = d.string(forKey: "dict.terms") ?? ""
@@ -142,9 +150,9 @@ final class DictationSettings: ObservableObject {
     @MainActor
     func connect(_ p: AIProvider, key raw: String) async throws {
         let key = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !key.isEmpty else { throw AIError(message: "Cole a chave da API.") }
+        guard !key.isEmpty else { throw AIError(message: L("Cole a chave da API.")) }
         let list = try await AIClient.listModels(p, key: key)
-        guard !list.chat.isEmpty else { throw AIError(message: "A chave funciona, mas nenhum modelo de texto está disponível nela.") }
+        guard !list.chat.isEmpty else { throw AIError(message: L("A chave funciona, mas nenhum modelo de texto está disponível nela.")) }
         AIKeys.set(key, for: p)
         storeModels(list, for: p)
         connected.insert(p)

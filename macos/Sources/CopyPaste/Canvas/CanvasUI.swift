@@ -91,7 +91,7 @@ struct StyleToggle: View {
             }
         }
         .buttonStyle(.plain)
-        .help("Cor, espessura, preenchimento e fonte")
+        .help(L("Cor, espessura, preenchimento e fonte"))
     }
 }
 
@@ -114,13 +114,13 @@ struct StylePanel: View {
                                 ColorDot(color: color, selected: model.style.color.isSameColor(color))
                             }
                             .buttonStyle(.plain)
-                            .help("Atalho: \(r * columns + c + 1 <= 9 ? "\(r * columns + c + 1)" : "—")")
+                            .help(L("Atalho: %@", r * columns + c + 1 <= 9 ? "\(r * columns + c + 1)" : "—"))
                         }
                     }
                 }
             }
 
-            row("Espessura") {
+            row(L("Espessura")) {
                 ForEach([2.0, 4.0, 7.0, 11.0], id: \.self) { w in
                     choice(active: model.style.width == w, help: "\(Int(w)) pt") {
                         model.updateStyle { $0.width = w }
@@ -130,34 +130,34 @@ struct StylePanel: View {
                 }
             }
 
-            row("Preenchimento") {
-                choice(active: model.style.fill == .none, help: "Sem preenchimento") { model.updateStyle { $0.fill = .none } } label: {
+            row(L("Preenchimento")) {
+                choice(active: model.style.fill == .none, help: L("Sem preenchimento")) { model.updateStyle { $0.fill = .none } } label: {
                     RoundedRectangle(cornerRadius: 3).strokeBorder(Color.white, lineWidth: 1.5).frame(width: 16, height: 14)
                 }
-                choice(active: model.style.fill == .soft, help: "Preenchimento suave") { model.updateStyle { $0.fill = .soft } } label: {
+                choice(active: model.style.fill == .soft, help: L("Preenchimento suave")) { model.updateStyle { $0.fill = .soft } } label: {
                     RoundedRectangle(cornerRadius: 3).fill(Color(nsColor: model.style.color).opacity(0.35))
                         .overlay(RoundedRectangle(cornerRadius: 3).strokeBorder(Color.white, lineWidth: 1.5)).frame(width: 16, height: 14)
                 }
-                choice(active: model.style.fill == .solid, help: "Preenchimento sólido") { model.updateStyle { $0.fill = .solid } } label: {
+                choice(active: model.style.fill == .solid, help: L("Preenchimento sólido")) { model.updateStyle { $0.fill = .solid } } label: {
                     RoundedRectangle(cornerRadius: 3).fill(Color(nsColor: model.style.color)).frame(width: 16, height: 14)
                 }
             }
 
-            row("Traço") {
-                choice(active: !model.style.dashed, help: "Contínuo") { model.updateStyle { $0.dashed = false } } label: {
+            row(L("Traço")) {
+                choice(active: !model.style.dashed, help: L("Contínuo")) { model.updateStyle { $0.dashed = false } } label: {
                     Rectangle().fill(Color.white).frame(width: 18, height: 2)
                 }
-                choice(active: model.style.dashed, help: "Tracejado") { model.updateStyle { $0.dashed = true } } label: {
+                choice(active: model.style.dashed, help: L("Tracejado")) { model.updateStyle { $0.dashed = true } } label: {
                     HStack(spacing: 2) { ForEach(0..<3) { _ in Rectangle().fill(Color.white).frame(width: 4, height: 2) } }
                 }
-                choice(active: model.style.sketchy, help: "Estilo desenhado à mão (como Excalidraw)") {
+                choice(active: model.style.sketchy, help: L("Estilo desenhado à mão (como Excalidraw)")) {
                     model.updateStyle { $0.sketchy.toggle() }
                 } label: {
                     Image(systemName: "scribble.variable").font(.system(size: 13))
                 }
             }
 
-            row("Texto") {
+            row(L("Texto")) {
                 Menu {
                     ForEach(FontChoice.allCases) { f in
                         Button(f.label) { model.updateStyle { $0.font = f } }
@@ -167,11 +167,11 @@ struct StylePanel: View {
                 }
                 .menuStyle(.borderlessButton)
                 .fixedSize()
-                choice(active: false, help: "Diminuir fonte") { model.updateStyle { $0.fontSize = max(10, $0.fontSize - 4) } } label: {
+                choice(active: false, help: L("Diminuir fonte")) { model.updateStyle { $0.fontSize = max(10, $0.fontSize - 4) } } label: {
                     Image(systemName: "textformat.size.smaller").font(.system(size: 12))
                 }
                 Text("\(Int(model.style.fontSize))").font(.system(size: 11, design: .monospaced)).frame(width: 22)
-                choice(active: false, help: "Aumentar fonte") { model.updateStyle { $0.fontSize = min(160, $0.fontSize + 4) } } label: {
+                choice(active: false, help: L("Aumentar fonte")) { model.updateStyle { $0.fontSize = min(160, $0.fontSize + 4) } } label: {
                     Image(systemName: "textformat.size.larger").font(.system(size: 12))
                 }
             }
@@ -218,7 +218,7 @@ struct LibraryMenu: View {
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
-        .help("Componentes: nota, banco de dados, pessoa, nuvem, balão, janela, celular…")
+        .help(L("Componentes: nota, banco de dados, pessoa, nuvem, balão, janela, celular…"))
     }
 
     private var isLibraryTool: Bool {

@@ -18,7 +18,10 @@
     <button data-a="zoom100">Tamanho original</button>
     <button data-a="close">Fechar</button>
   </div>
-  <script>
+  <script type="module">
+    import { translatePage, onLanguageChange } from './js/i18n.js';
+    translatePage();
+    onLanguageChange(() => translatePage());
     const T = window.__TAURI__;
     const win = T.window.getCurrentWindow();
     const PROTO = /Windows/i.test(navigator.userAgent) ? 'http://cpframe.localhost' : 'cpframe://localhost';

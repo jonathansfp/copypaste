@@ -108,7 +108,7 @@ final class PinWindow: NSPanel {
 
     override func keyDown(with e: NSEvent) {
         if e.keyCode == 53 { closePin(); return }
-        if e.modifierFlags.contains(.command), e.charactersIgnoringModifiers == "c" { ImageOutput.copy(image); Toast.show("Copiada"); return }
+        if e.modifierFlags.contains(.command), e.charactersIgnoringModifiers == "c" { ImageOutput.copy(image); Toast.show(L("Copiada")); return }
         super.keyDown(with: e)
     }
 
@@ -123,17 +123,17 @@ final class PinWindow: NSPanel {
 
     fileprivate func menu() -> NSMenu {
         let m = NSMenu()
-        m.addItem(withTitle: "Copiar", action: #selector(copyImage), keyEquivalent: "c").target = self
-        m.addItem(withTitle: "Salvar na pasta", action: #selector(saveImage), keyEquivalent: "s").target = self
-        m.addItem(withTitle: "Abrir no quadro", action: #selector(openBoard), keyEquivalent: "").target = self
+        m.addItem(withTitle: L("Copiar"), action: #selector(copyImage), keyEquivalent: "c").target = self
+        m.addItem(withTitle: L("Salvar na pasta"), action: #selector(saveImage), keyEquivalent: "s").target = self
+        m.addItem(withTitle: L("Abrir no quadro"), action: #selector(openBoard), keyEquivalent: "").target = self
         m.addItem(.separator())
-        m.addItem(withTitle: "Fechar", action: #selector(closeAction), keyEquivalent: "")
+        m.addItem(withTitle: L("Fechar"), action: #selector(closeAction), keyEquivalent: "")
             .target = self
         return m
     }
 
-    @objc private func copyImage() { ImageOutput.copy(image); Toast.show("Copiada") }
-    @objc private func saveImage() { if let u = ImageOutput.saveToFolder(image) { Toast.show("Salva: \(u.lastPathComponent)") } }
+    @objc private func copyImage() { ImageOutput.copy(image); Toast.show(L("Copiada")) }
+    @objc private func saveImage() { if let u = ImageOutput.saveToFolder(image) { Toast.show(L("Salva: %@", u.lastPathComponent)) } }
     @objc private func openBoard() { BoardController.shared.open(with: image) }
     @objc private func closeAction() { closePin() }
 }

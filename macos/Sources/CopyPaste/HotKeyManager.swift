@@ -9,13 +9,13 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .clipboard: return "Abrir histórico de cópias"
-        case .captureArea: return "Capturar área ou janela"
-        case .captureScreen: return "Capturar tela inteira"
-        case .board: return "Modo apresentação (quadro)"
-        case .record: return "Gravar tela (iniciar / parar)"
-        case .dictate: return "Ditado por voz (segure ou toque)"
-        case .voiceCommand: return "Comando de voz sobre o texto selecionado"
+        case .clipboard: return L("Abrir histórico de cópias")
+        case .captureArea: return L("Capturar área ou janela")
+        case .captureScreen: return L("Capturar tela inteira")
+        case .board: return L("Modo apresentação (quadro)")
+        case .record: return L("Gravar tela (iniciar / parar)")
+        case .dictate: return L("Ditado por voz (segure ou toque)")
+        case .voiceCommand: return L("Comando de voz sobre o texto selecionado")
         }
     }
 
@@ -40,8 +40,8 @@ enum HotKeyAction: String, CaseIterable, Identifiable {
         case .captureScreen: return HotKey(code: kVK_ANSI_2, mods: cmdKey | shiftKey, display: "⇧⌘2")
         case .board: return HotKey(code: kVK_ANSI_D, mods: cmdKey | shiftKey | optionKey, display: "⌥⇧⌘D")
         case .record: return HotKey(code: kVK_ANSI_R, mods: cmdKey | shiftKey | optionKey, display: "⌥⇧⌘R")
-        case .dictate: return HotKey(code: kVK_Space, mods: optionKey, display: "⌥Espaço")
-        case .voiceCommand: return HotKey(code: kVK_Space, mods: optionKey | shiftKey, display: "⌥⇧Espaço")
+        case .dictate: return HotKey(code: kVK_Space, mods: optionKey, display: "⌥" + L("Espaço"))
+        case .voiceCommand: return HotKey(code: kVK_Space, mods: optionKey | shiftKey, display: "⌥⇧" + L("Espaço"))
         }
     }
 }

@@ -1,5 +1,7 @@
 <div align="center">
 
+🇧🇷 **Português** · 🇺🇸 [English](README.en.md) · 🇪🇸 [Español](README.es.md)
+
 # 📋 CopyPaste
 
 ### 100% gratuito · sem anúncios · sem cadastro · código aberto

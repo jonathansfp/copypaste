@@ -7,9 +7,9 @@ enum LibrarySection: Hashable {
 
     var title: String {
         switch self {
-        case .all: return "Todos os itens"
-        case .pinned: return "Fixados"
-        case .mostUsed: return "Mais usados"
+        case .all: return L("Todos os itens")
+        case .pinned: return L("Fixados")
+        case .mostUsed: return L("Mais usados")
         case .kind(let k): return k.label
         }
     }
@@ -68,7 +68,7 @@ struct LibraryView: View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                TextField("Buscar no histórico", text: $search).textFieldStyle(.plain)
+                TextField(L("Buscar no histórico"), text: $search).textFieldStyle(.plain)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
@@ -77,7 +77,7 @@ struct LibraryView: View {
             .padding(.top, 44)
             .padding(.bottom, 12)
 
-            Text("Biblioteca").font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+            Text(L("Biblioteca")).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
                 .padding(.horizontal, 18).padding(.bottom, 4)
 
             ForEach(sections, id: \.self) { s in
@@ -89,7 +89,7 @@ struct LibraryView: View {
             Button { WindowManager.shared.showSettings() } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "gearshape").frame(width: 20).foregroundStyle(Color.accentColor)
-                    Text("Configurações")
+                    Text(L("Configurações"))
                     Spacer()
                 }
                 .padding(.horizontal, 10).padding(.vertical, 6)
@@ -152,7 +152,7 @@ struct LibraryView: View {
                 VStack(spacing: 8) {
                     Spacer()
                     Image(systemName: "clipboard").font(.system(size: 32)).foregroundStyle(.tertiary)
-                    Text("Nenhum item").foregroundStyle(.secondary)
+                    Text(L("Nenhum item")).foregroundStyle(.secondary)
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
@@ -195,7 +195,7 @@ struct LibraryView: View {
             }
 
             Divider()
-            Text("\(list.count) itens · clique para detalhes · duplo clique ou ↩ para copiar")
+            Text(L("%d itens · clique para detalhes · duplo clique ou ↩ para copiar", list.count))
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -206,10 +206,10 @@ struct LibraryView: View {
 
     @ViewBuilder
     private func itemMenu(_ item: ClipItem) -> some View {
-        Button("Copiar") { ClipboardStore.shared.copy(item) }
-        Button(item.pinned ? "Desafixar" : "Fixar") { ClipboardStore.shared.togglePin(item) }
+        Button(L("Copiar")) { ClipboardStore.shared.copy(item) }
+        Button(item.pinned ? L("Desafixar") : L("Fixar")) { ClipboardStore.shared.togglePin(item) }
         Divider()
-        Button("Excluir", role: .destructive) {
+        Button(L("Excluir"), role: .destructive) {
             if selection == item.id { selection = nil }
             ClipboardStore.shared.delete(item)
         }
@@ -266,24 +266,24 @@ struct LibraryView: View {
                     .padding(.horizontal, 12)
 
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
-                    info("Tipo", item.kind.label)
-                    info("Origem", item.sourceAppName ?? "—")
-                    info("Copiado", item.date.formatted(date: .abbreviated, time: .shortened))
-                    info("Primeira vez", item.firstCopied.formatted(date: .abbreviated, time: .shortened))
-                    info("Usos", "\(item.useCount)")
-                    if let d = item.detail { info("Detalhe", d) }
+                    info(L("Tipo"), item.kind.label)
+                    info(L("Origem"), item.sourceAppName ?? "—")
+                    info(L("Copiado"), item.date.formatted(date: .abbreviated, time: .shortened))
+                    info(L("Primeira vez"), item.firstCopied.formatted(date: .abbreviated, time: .shortened))
+                    info(L("Usos"), "\(item.useCount)")
+                    if let d = item.detail { info(L("Detalhe"), d) }
                 }
                 .font(.system(size: 12))
                 .padding(16)
 
                 HStack {
                     Button { ClipboardStore.shared.copy(item) } label: {
-                        Label("Copiar", systemImage: "doc.on.doc")
+                        Label(L("Copiar"), systemImage: "doc.on.doc")
                     }
                     .keyboardShortcut(.return, modifiers: [])
                     .buttonStyle(.borderedProminent)
                     Button { ClipboardStore.shared.togglePin(item) } label: {
-                        Label(item.pinned ? "Desafixar" : "Fixar", systemImage: item.pinned ? "pin.slash" : "pin")
+                        Label(item.pinned ? L("Desafixar") : L("Fixar"), systemImage: item.pinned ? "pin.slash" : "pin")
                     }
                     Spacer()
                     Button(role: .destructive) {
@@ -299,7 +299,7 @@ struct LibraryView: View {
         } else {
             VStack(spacing: 10) {
                 Image(systemName: "sidebar.right").font(.system(size: 34)).foregroundStyle(.tertiary)
-                Text("Clique em um item para ver os detalhes").foregroundStyle(.secondary)
+                Text(L("Clique em um item para ver os detalhes")).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }

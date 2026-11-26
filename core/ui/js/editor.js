@@ -1,6 +1,7 @@
 // Editor em tela cheia: captura (área, janela ou tela), gravação (escolha da área) e quadro de apresentação.
 import * as S from './shapes.js';
 import { icon } from './icons.js';
+import { t as tr } from './i18n.js';
 
 const T = window.__TAURI__;
 const invoke = T.core.invoke;
@@ -641,14 +642,14 @@ function btn(name, title, onClick, extra = '') {
 const sep = () => { const s = document.createElement('i'); s.className = 'sep'; return s; };
 
 function toolButton(t) {
-  const b = btn(t, `${TOOL_LABELS[t]}${TOOL_KEYS[t] ? ` (${TOOL_KEYS[t]})` : ''}`, () => setTool(t), 'tool');
+  const b = btn(t, `${tr(TOOL_LABELS[t])}${TOOL_KEYS[t] ? ` (${TOOL_KEYS[t]})` : ''}`, () => setTool(t), 'tool');
   b.dataset.tool = t;
   return b;
 }
 function colorButton() {
   const b = document.createElement('button');
   b.className = 'b color';
-  b.title = 'Cor e estilo (1–9 trocam a cor)';
+  b.title = tr('Cor e estilo (1–9 trocam a cor)');
   b.innerHTML = `<span class="dot" style="background:${st.style.color}"></span>`;
   b.addEventListener('pointerdown', e => e.stopPropagation());
   b.addEventListener('click', e => { e.stopPropagation(); togglePopover('style', b); });
@@ -662,18 +663,18 @@ function buildBars() {
   if (isBoard()) {
     const bb = bars.board;
     const grip = document.createElement('div');
-    grip.className = 'grip'; grip.innerHTML = icon('grip'); grip.title = 'Arraste para mover a barra · duplo clique volta ao padrão';
+    grip.className = 'grip'; grip.innerHTML = icon('grip'); grip.title = tr('Arraste para mover a barra · duplo clique volta ao padrão');
     setupGrip(grip);
     bb.append(grip);
     ['select', 'pen', 'highlighter', 'line', 'arrow', 'rect', 'ellipse', 'diamond', 'text', 'sticky', 'step'].forEach(t => bb.append(toolButton(t)));
-    bb.append(btn('library', 'Biblioteca de componentes', b => togglePopover('library', b)));
+    bb.append(btn('library', tr('Biblioteca de componentes'), b => togglePopover('library', b)));
     bb.append(toolButton('eraser'), toolButton('laser'), sep(), colorButton(), sep());
-    bb.append(btn('undo', 'Desfazer (Ctrl+Z)', undo), btn('redo', 'Refazer (Ctrl+Shift+Z)', redo), sep());
-    bb.append(btn('layers', 'Fundo do quadro (G)', b => togglePopover('bg', b)), sep());
-    bb.append(btn('copy', 'Copiar o quadro como imagem (Ctrl+C) — depois é só colar no chat ou e-mail', () => finish('copy')));
-    bb.append(btn('save', 'Salvar o quadro na pasta (Ctrl+S)', () => finish('save')));
-    bb.append(btn('more', 'Mais: salvar como, colar, limpar', b => togglePopover('more', b)));
-    bb.append(btn('close', 'Fechar o quadro (Esc) — o desenho fica guardado', close, 'danger'));
+    bb.append(btn('undo', tr('Desfazer (Ctrl+Z)'), undo), btn('redo', tr('Refazer (Ctrl+Shift+Z)'), redo), sep());
+    bb.append(btn('layers', tr('Fundo do quadro (G)'), b => togglePopover('bg', b)), sep());
+    bb.append(btn('copy', tr('Copiar o quadro como imagem (Ctrl+C) — depois é só colar no chat ou e-mail'), () => finish('copy')));
+    bb.append(btn('save', tr('Salvar o quadro na pasta (Ctrl+S)'), () => finish('save')));
+    bb.append(btn('more', tr('Mais: salvar como, colar, limpar'), b => togglePopover('more', b)));
+    bb.append(btn('close', tr('Fechar o quadro (Esc) — o desenho fica guardado'), close, 'danger'));
     bb.hidden = false;
     placeBoardBar();
     markTool();
@@ -681,8 +682,8 @@ function buildBars() {
   }
   if (st.phase === 'choose') {
     hint.textContent = isRecord()
-      ? 'Selecione a área que será gravada · clique numa janela ou em qualquer lugar para a tela inteira · Esc para sair'
-      : 'Arraste para selecionar · clique numa janela · C copia a cor · Esc para sair';
+      ? tr('Selecione a área que será gravada · clique numa janela ou em qualquer lugar para a tela inteira · Esc para sair')
+      : tr('Arraste para selecionar · clique numa janela · C copia a cor · Esc para sair');
     hint.hidden = false;
     return;
   }
@@ -690,31 +691,31 @@ function buildBars() {
   if (isRecord()) {
     const rb = bars.rec;
     const go = document.createElement('button');
-    go.className = 'b go'; go.innerHTML = `${icon('record')}<span>Gravar</span>`; go.title = 'Começar a gravar (Enter)';
+    go.className = 'b go'; go.innerHTML = `${icon('record')}<span>${tr('Gravar')}</span>`; go.title = tr('Começar a gravar (Enter)');
     go.addEventListener('pointerdown', e => e.stopPropagation());
     go.addEventListener('click', startRecording);
     rb.append(go, sep());
-    const mic = btn('mic', 'Gravar o microfone', b => { st.settings.mic = !st.settings.mic; b.classList.toggle('on', st.settings.mic); }, st.settings.mic ? 'on' : '');
-    const sys = btn('speaker', 'Gravar o áudio do sistema', b => { st.settings.systemAudio = !st.settings.systemAudio; b.classList.toggle('on', st.settings.systemAudio); }, st.settings.systemAudio ? 'on' : '');
-    rb.append(mic, sys, sep(), btn('fullscreen', 'Tela inteira', () => { st.sel = { x: 0, y: 0, w: W, h: H }; placeBars(); render(); }), btn('close', 'Cancelar (Esc)', close, 'danger'));
+    const mic = btn('mic', tr('Gravar o microfone'), b => { st.settings.mic = !st.settings.mic; b.classList.toggle('on', st.settings.mic); }, st.settings.mic ? 'on' : '');
+    const sys = btn('speaker', tr('Gravar o áudio do sistema'), b => { st.settings.systemAudio = !st.settings.systemAudio; b.classList.toggle('on', st.settings.systemAudio); }, st.settings.systemAudio ? 'on' : '');
+    rb.append(mic, sys, sep(), btn('fullscreen', tr('Tela inteira'), () => { st.sel = { x: 0, y: 0, w: W, h: H }; placeBars(); render(); }), btn('close', tr('Cancelar (Esc)'), close, 'danger'));
     rb.hidden = false;
     placeBars();
     return;
   }
   const tb = bars.tools;
   ['select', 'pen', 'highlighter', 'line', 'arrow', 'rect', 'ellipse', 'text', 'step', 'blur'].forEach(t => tb.append(toolButton(t)));
-  tb.append(btn('library', 'Mais formas', b => togglePopover('library', b)));
-  tb.append(toolButton('eraser'), sep(), colorButton(), sep(), btn('undo', 'Desfazer (Ctrl+Z)', undo), btn('redo', 'Refazer (Ctrl+Shift+Z)', redo));
+  tb.append(btn('library', tr('Mais formas'), b => togglePopover('library', b)));
+  tb.append(toolButton('eraser'), sep(), colorButton(), sep(), btn('undo', tr('Desfazer (Ctrl+Z)'), undo), btn('redo', tr('Refazer (Ctrl+Shift+Z)'), redo));
   const ab = bars.actions;
   ab.append(
-    btn('copy', 'Copiar (Ctrl+C)', () => finish('copy')),
-    btn('save', 'Salvar na pasta (Ctrl+S)', () => finish('save')),
-    btn('saveAs', 'Salvar como… (Ctrl+Shift+S)', () => finish('saveAs')),
-    btn('pin', 'Fixar na tela (Ctrl+P)', () => finish('pin')),
-    btn('ocr', 'Copiar o texto da imagem (Ctrl+T)', () => finish('ocr')),
-    btn('record', 'Gravar esta área', () => { st.mode = 'record'; buildBars(); render(); }),
+    btn('copy', tr('Copiar (Ctrl+C)'), () => finish('copy')),
+    btn('save', tr('Salvar na pasta (Ctrl+S)'), () => finish('save')),
+    btn('saveAs', tr('Salvar como… (Ctrl+Shift+S)'), () => finish('saveAs')),
+    btn('pin', tr('Fixar na tela (Ctrl+P)'), () => finish('pin')),
+    btn('ocr', tr('Copiar o texto da imagem (Ctrl+T)'), () => finish('ocr')),
+    btn('record', tr('Gravar esta área'), () => { st.mode = 'record'; buildBars(); render(); }),
     sep(),
-    btn('close', 'Cancelar (Esc)', close, 'danger'),
+    btn('close', tr('Cancelar (Esc)'), close, 'danger'),
   );
   tb.hidden = false; ab.hidden = false;
   tb.classList.add('vertical');
@@ -793,7 +794,7 @@ function setupGrip(grip) {
 function markTool() {
   document.querySelectorAll('.b.tool').forEach(b => b.classList.toggle('active', b.dataset.tool === st.tool));
   const lib = S.LIBRARY.includes(st.tool);
-  document.querySelectorAll('.b').forEach(b => { if (b.title.startsWith('Biblioteca') || b.title.startsWith('Mais formas')) b.classList.toggle('active', lib); });
+  document.querySelectorAll('.b').forEach(b => { if (b.title === tr('Biblioteca de componentes') || b.title === tr('Mais formas')) b.classList.toggle('active', lib); });
   document.querySelectorAll('.b.color .dot').forEach(d => { d.style.background = st.style.color; });
 }
 
@@ -818,7 +819,7 @@ function togglePopover(kind, anchor) {
     for (const k of S.LIBRARY) {
       const b = document.createElement('button');
       b.className = `libitem ${st.tool === k ? 'active' : ''}`;
-      b.innerHTML = `${icon(k, 22)}<span>${S.KINDS[k]}</span>`;
+      b.innerHTML = `${icon(k, 22)}<span>${tr(S.KINDS[k])}</span>`;
       b.addEventListener('click', () => setTool(k));
       grid.append(b);
     }
@@ -826,7 +827,7 @@ function togglePopover(kind, anchor) {
       for (const k of ['diamond']) {
         const b = document.createElement('button');
         b.className = `libitem ${st.tool === k ? 'active' : ''}`;
-        b.innerHTML = `${icon(k, 22)}<span>${S.KINDS[k]}</span>`;
+        b.innerHTML = `${icon(k, 22)}<span>${tr(S.KINDS[k])}</span>`;
         b.addEventListener('click', () => setTool(k));
         grid.prepend(b);
       }
@@ -837,13 +838,13 @@ function togglePopover(kind, anchor) {
     for (const [k, label] of BACKGROUNDS) {
       const b = document.createElement('button');
       b.className = `row ${st.bg === k ? 'active' : ''}`;
-      b.innerHTML = `<span class="sw bg-${k}"></span>${label}`;
+      b.innerHTML = `<span class="sw bg-${k}"></span>${tr(label)}`;
       b.addEventListener('click', () => { setBg(k); closePopover(); });
       pop.append(b);
     }
   }
   if (kind === 'more') {
-    const row = (ic, label, fn) => { const b = document.createElement('button'); b.className = 'row'; b.innerHTML = `${icon(ic, 16)}${label}`; b.addEventListener('click', () => { closePopover(); fn(); }); pop.append(b); };
+    const row = (ic, label, fn) => { const b = document.createElement('button'); b.className = 'row'; b.innerHTML = `${icon(ic, 16)}${tr(label)}`; b.addEventListener('click', () => { closePopover(); fn(); }); pop.append(b); };
     row('saveAs', 'Salvar como… (Ctrl+Shift+S)', () => finish('saveAs'));
     row('image', 'Colar imagem ou texto (Ctrl+V)', pasteFromClipboard);
     row('trash', 'Limpar o quadro', () => { if (docShapes().length) { checkpoint(); st.doc.shapes = []; st.selected.clear(); render(); } });
@@ -863,18 +864,18 @@ function buildStylePanel() {
   const pal = document.createElement('div'); pal.className = 'pal';
   S.PALETTE.forEach((c, i) => {
     const b = document.createElement('button');
-    b.className = `sw ${s.color.toLowerCase() === c ? 'active' : ''}`; b.style.background = c; b.title = i < 9 ? `Tecla ${i + 1}` : c;
+    b.className = `sw ${s.color.toLowerCase() === c ? 'active' : ''}`; b.style.background = c; b.title = i < 9 ? tr('Tecla {0}', i + 1) : c;
     b.addEventListener('click', () => { applyStyle({ color: c }); pal.querySelectorAll('.sw').forEach(x => x.classList.toggle('active', x === b)); });
     pal.append(b);
   });
-  const custom = document.createElement('input'); custom.type = 'color'; custom.value = s.color.length === 7 ? s.color : '#ff3b30'; custom.title = 'Outra cor';
+  const custom = document.createElement('input'); custom.type = 'color'; custom.value = s.color.length === 7 ? s.color : '#ff3b30'; custom.title = tr('Outra cor');
   custom.addEventListener('input', () => applyStyle({ color: custom.value }));
   pal.append(custom);
   pop.append(pal);
 
   const range = (label, min, max, val, fn) => {
     const w = document.createElement('label'); w.className = 'rng';
-    w.innerHTML = `<span>${label}</span><input type="range" min="${min}" max="${max}" value="${val}"><b>${val}</b>`;
+    w.innerHTML = `<span>${tr(label)}</span><input type="range" min="${min}" max="${max}" value="${val}"><b>${val}</b>`;
     const inp = w.querySelector('input'), out = w.querySelector('b');
     inp.addEventListener('input', () => { out.textContent = inp.value; fn(+inp.value); });
     pop.append(w);
@@ -883,10 +884,10 @@ function buildStylePanel() {
 
   const seg = (label, opts, cur, fn) => {
     const w = document.createElement('div'); w.className = 'seg';
-    w.innerHTML = `<span>${label}</span>`;
+    w.innerHTML = `<span>${tr(label)}</span>`;
     const g = document.createElement('div'); g.className = 'segs';
     for (const [k, t] of opts) {
-      const b = document.createElement('button'); b.textContent = t; b.className = cur === k ? 'active' : '';
+      const b = document.createElement('button'); b.textContent = tr(t); b.className = cur === k ? 'active' : '';
       b.addEventListener('click', () => { fn(k); g.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b)); });
       g.append(b);
     }
@@ -896,9 +897,9 @@ function buildStylePanel() {
   seg('Traço', [['plain', 'Contínuo'], ['dashed', 'Tracejado']], s.dashed ? 'dashed' : 'plain', v => applyStyle({ dashed: v === 'dashed' }));
   seg('Estilo', [['clean', 'Preciso'], ['sketchy', 'À mão']], s.sketchy ? 'sketchy' : 'clean', v => applyStyle({ sketchy: v === 'sketchy' }));
   const fw = document.createElement('div'); fw.className = 'seg';
-  fw.innerHTML = '<span>Fonte</span>';
+  fw.innerHTML = `<span>${tr('Fonte')}</span>`;
   const sel = document.createElement('select');
-  for (const [k, t] of Object.entries(S.FONT_LABELS)) { const o = document.createElement('option'); o.value = k; o.textContent = t; o.selected = s.font === k; sel.append(o); }
+  for (const [k, t] of Object.entries(S.FONT_LABELS)) { const o = document.createElement('option'); o.value = k; o.textContent = tr(t); o.selected = s.font === k; sel.append(o); }
   sel.addEventListener('change', () => applyStyle({ font: sel.value }));
   fw.append(sel); pop.append(fw);
   range('Tamanho do texto', 12, 96, s.fontSize, v => applyStyle({ fontSize: v }));
@@ -1028,7 +1029,7 @@ addEventListener('keydown', e => {
     return;
   }
   if (!isBoard() && st.phase === 'choose') {
-    if (k === 'c' && !ctrl) { const p = pixelAt(st.mouse.x, st.mouse.y); if (p) { invoke('copy_text', { text: p.hex, toast: `Cor ${p.hex} copiada` }); close(); } }
+    if (k === 'c' && !ctrl) { const p = pixelAt(st.mouse.x, st.mouse.y); if (p) { invoke('copy_text', { text: p.hex, toast: tr('Cor {0} copiada', p.hex) }); close(); } }
     if (e.key === 'Enter') { st.sel = st.hover ? { ...st.hover } : { x: 0, y: 0, w: W, h: H }; st.phase = 'edit'; buildBars(); render(); }
     return;
   }

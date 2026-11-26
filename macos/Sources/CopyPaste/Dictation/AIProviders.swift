@@ -17,7 +17,7 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .gemini: return "Gemini (Google)"
         case .deepseek: return "DeepSeek"
         case .grok: return "Grok (xAI)"
-        case .local: return "IA local (Gemma 4, no Mac)"
+        case .local: return L("IA local (Gemma 4, no Mac)")
         }
     }
 
@@ -28,7 +28,7 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .gemini: return "Gemini"
         case .deepseek: return "DeepSeek"
         case .grok: return "Grok"
-        case .local: return "IA local"
+        case .local: return L("IA local")
         }
     }
 
@@ -93,7 +93,7 @@ enum AIKeys {
         var q = base(p)
         q[kSecValueData as String] = Data(key.utf8)
         q[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
-        q[kSecAttrLabel as String] = "CopyPaste — chave \(p.shortName)"
+        q[kSecAttrLabel as String] = L("CopyPaste — chave %@", p.shortName)
         SecItemAdd(q as CFDictionary, nil)
     }
 
@@ -263,7 +263,7 @@ enum AIClient {
             r.httpBody = try JSONSerialization.data(withJSONObject: body)
             let json = try await send(r, p)
             if json["stop_reason"] as? String == "refusal" {
-                throw AIError(message: "O Claude recusou este pedido.")
+                throw AIError(message: L("O Claude recusou este pedido."))
             }
             let text = (json["content"] as? [[String: Any]] ?? [])
                 .filter { $0["type"] as? String == "text" }
@@ -374,7 +374,11 @@ enum AIClient {
             if let language { field("language", language) }
             if p == .local {
                 // In llama.cpp the prompt replaces the instruction, so it must still ask for a transcription.
-                if !hint.isEmpty { field("prompt", "Transcreva o áudio exatamente como foi falado. Grafias corretas de termos que podem aparecer: \(hint).") }
+                if !hint.isEmpty {
+                    field("prompt", language == "pt"
+                          ? "Transcreva o áudio exatamente como foi falado, no idioma falado, sem traduzir. Grafias corretas de termos que podem aparecer: \(hint)."
+                          : "Transcribe the audio exactly as spoken, in the language spoken, without translating. Correct spellings of terms that may appear: \(hint).")
+                }
             } else if !hint.isEmpty {
                 field("prompt", hint)
             }
@@ -391,8 +395,14 @@ enum AIClient {
             r.httpMethod = "POST"
             r.setValue("application/json", forHTTPHeaderField: "content-type")
             r.setValue(key, forHTTPHeaderField: "x-goog-api-key")
-            var prompt = "Transcreva este áudio exatamente como foi falado, no idioma falado, com pontuação. Responda somente com a transcrição, sem comentários. Se não houver fala, responda com uma string vazia."
-            if !hint.isEmpty { prompt += " Palavras que podem aparecer: \(hint)." }
+            var prompt: String
+            if language == "pt" {
+                prompt = "Transcreva este áudio exatamente como foi falado, no idioma falado, com pontuação, sem traduzir. Responda somente com a transcrição, sem comentários. Se não houver fala, responda com uma string vazia."
+                if !hint.isEmpty { prompt += " Palavras que podem aparecer: \(hint)." }
+            } else {
+                prompt = "Transcribe this audio exactly as spoken, in the language spoken, with punctuation. Never translate. Reply only with the transcript, no comments. If there is no speech, reply with an empty string."
+                if !hint.isEmpty { prompt += " Words that may appear: \(hint)." }
+            }
             let body: [String: Any] = [
                 "contents": [["role": "user", "parts": [
                     ["text": prompt],
@@ -402,7 +412,7 @@ enum AIClient {
             r.httpBody = try JSONSerialization.data(withJSONObject: body)
             return geminiText(try await send(r, p)).trimmingCharacters(in: .whitespacesAndNewlines)
         default:
-            throw AIError(message: "\(p.shortName) não transcreve áudio. Use a transcrição da Apple, do OpenAI ou do Gemini.")
+            throw AIError(message: L("%@ não transcreve áudio. Use a transcrição da Apple, do OpenAI ou do Gemini.", p.shortName))
         }
     }
 
@@ -423,7 +433,7 @@ enum AIClient {
 
     private static func nonEmpty(_ s: String, _ p: AIProvider) throws -> String {
         let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !t.isEmpty else { throw AIError(message: "\(p.shortName) devolveu uma resposta vazia.") }
+        guard !t.isEmpty else { throw AIError(message: L("%@ devolveu uma resposta vazia.", p.shortName)) }
         return t
     }
 
@@ -432,9 +442,9 @@ enum AIClient {
         do {
             (data, resp) = try await session.data(for: r)
         } catch let e as URLError where e.code == .timedOut {
-            throw AIError(message: "\(p.shortName) demorou demais para responder.")
+            throw AIError(message: L("%@ demorou demais para responder.", p.shortName))
         } catch {
-            throw AIError(message: "Sem conexão com \(p.shortName): \(error.localizedDescription)")
+            throw AIError(message: L("Sem conexão com %@: %@", p.shortName, error.localizedDescription))
         }
         let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
         let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
@@ -456,18 +466,18 @@ enum AIClient {
         else if let e = json["error"] as? String { detail = e }
         else if let m = json["message"] as? String { detail = m }
         switch code {
-        case 401, 403: return "Chave do \(p.shortName) inválida ou sem permissão."
-        case 402: return "Sem créditos na conta do \(p.shortName)."
-        case 404: return "Modelo não encontrado no \(p.shortName). Escolha outro nas configurações."
+        case 401, 403: return L("Chave do %@ inválida ou sem permissão.", p.shortName)
+        case 402: return L("Sem créditos na conta do %@.", p.shortName)
+        case 404: return L("Modelo não encontrado no %@. Escolha outro nas configurações.", p.shortName)
         case 429:
             let quota = detail.localizedCaseInsensitiveContains("quota") || detail.localizedCaseInsensitiveContains("billing")
                 || detail.localizedCaseInsensitiveContains("credit")
             return quota
-                ? "Cota do \(p.shortName) esgotada (\(detail.prefix(120))). Confira o plano ou os créditos da sua conta."
-                : "Limite por minuto do \(p.shortName) atingido. Espere alguns segundos e tente de novo."
+                ? L("Cota do %@ esgotada (%@). Confira o plano ou os créditos da sua conta.", p.shortName, String(detail.prefix(120)))
+                : L("Limite por minuto do %@ atingido. Espere alguns segundos e tente de novo.", p.shortName)
         default:
             let d = detail.isEmpty ? "" : ": \(detail.prefix(160))"
-            return "\(p.shortName) respondeu com erro \(code)\(d)"
+            return L("%@ respondeu com erro %d", p.shortName, code) + d
         }
     }
 }

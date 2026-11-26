@@ -1,0 +1,3 @@
+/* Textos de las solicitudes de permiso de macOS (español). */
+"NSMicrophoneUsageDescription" = "CopyPaste usa el micrófono para el dictado por voz y para grabar tu voz junto con la grabación de pantalla.";
+"NSSpeechRecognitionUsageDescription" = "CopyPaste convierte tu voz en texto en el propio Mac cuando usas el dictado por voz.";

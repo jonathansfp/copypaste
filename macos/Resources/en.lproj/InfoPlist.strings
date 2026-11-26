@@ -1,0 +1,3 @@
+/* macOS permission prompts (English). */
+"NSMicrophoneUsageDescription" = "CopyPaste uses the microphone for voice dictation and to record your voice along with screen recordings.";
+"NSSpeechRecognitionUsageDescription" = "CopyPaste turns your speech into text on the Mac itself when you use voice dictation.";

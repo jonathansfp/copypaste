@@ -8,6 +8,7 @@ use std::sync::Arc;
 use std::time::Instant;
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize};
 
+use crate::i18n::{t, tf};
 use crate::{platform, ui, AppState};
 
 #[derive(Serialize, Clone, Debug)]
@@ -62,11 +63,11 @@ pub fn start(app: &AppHandle, mode: &str) {
     let t0 = Instant::now();
     let cursor = app.cursor_position().unwrap_or(PhysicalPosition::new(0.0, 0.0));
     let monitor = match xcap::Monitor::from_point(cursor.x as i32, cursor.y as i32)
-        .or_else(|_| xcap::Monitor::all().map_err(|e| e).and_then(|m| m.into_iter().next().ok_or(xcap::XCapError::new("sem monitor"))))
+        .or_else(|_| xcap::Monitor::all().map_err(|e| e).and_then(|m| m.into_iter().next().ok_or(xcap::XCapError::new(t("sem monitor")))))
     {
         Ok(m) => m,
         Err(e) => {
-            ui::toast(app, &format!("Não consegui acessar a tela: {e}"));
+            ui::toast(app, &tf("Não consegui acessar a tela: {}", &[&e]));
             return;
         }
     };
@@ -74,7 +75,7 @@ pub fn start(app: &AppHandle, mode: &str) {
     let image = match monitor.capture_image() {
         Ok(i) => i,
         Err(e) => {
-            ui::toast(app, &format!("Falha ao capturar a tela: {e}"));
+            ui::toast(app, &tf("Falha ao capturar a tela: {}", &[&e]));
             return;
         }
     };
@@ -183,7 +184,7 @@ pub fn frame_bytes(app: &AppHandle) -> Option<(u32, u32, Arc<Vec<u8>>)> {
 }
 
 pub fn file_name(ext: &str) -> String {
-    format!("Captura {}.{ext}", chrono::Local::now().format("%Y-%m-%d às %H.%M.%S"))
+    format!("{}.{ext}", chrono::Local::now().format(t("Captura %Y-%m-%d às %H.%M.%S")))
 }
 
 fn encode(png: &[u8], format: &str) -> Result<(Vec<u8>, &'static str), String> {
@@ -201,7 +202,7 @@ fn encode(png: &[u8], format: &str) -> Result<(Vec<u8>, &'static str), String> {
 pub fn save_to_folder(app: &AppHandle, png: &[u8]) -> Result<PathBuf, String> {
     let s = app.state::<AppState>().settings.lock().unwrap().clone();
     let dir = PathBuf::from(&s.capture_dir);
-    std::fs::create_dir_all(&dir).map_err(|e| format!("Não consegui criar {}: {e}", dir.display()))?;
+    std::fs::create_dir_all(&dir).map_err(|e| tf("Não consegui criar {}: {}", &[&dir.display(), &e]))?;
     let (bytes, ext) = encode(png, &s.capture_format)?;
     let path = dir.join(file_name(ext));
     std::fs::write(&path, bytes).map_err(|e| e.to_string())?;
@@ -220,11 +221,11 @@ pub fn finish(app: &AppHandle, action: &str, png: Vec<u8>, pin_at: Option<(f64, 
         hide_editor(app);
     }
     // `keep` means the image came from the board, which stays open.
-    let saved = if keep { "Quadro salvo" } else { "Captura salva" };
+    let saved = t(if keep { "Quadro salvo" } else { "Captura salva" });
     match action {
         "copy" => {
             copy_png(app, &png)?;
-            ui::toast(app, if keep { "Quadro copiado — cole no chat ou e-mail" } else { "Captura copiada" });
+            ui::toast(app, t(if keep { "Quadro copiado — cole no chat ou e-mail" } else { "Captura copiada" }));
             Ok("ok".into())
         }
         "save" => {
@@ -235,7 +236,7 @@ pub fn finish(app: &AppHandle, action: &str, png: Vec<u8>, pin_at: Option<(f64, 
         "copyAndSave" => {
             copy_png(app, &png)?;
             let p = save_to_folder(app, &png)?;
-            ui::toast_path(app, "Copiada e salva", &p);
+            ui::toast_path(app, t("Copiada e salva"), &p);
             Ok(p.to_string_lossy().into())
         }
         "saveAs" => {
@@ -245,7 +246,7 @@ pub fn finish(app: &AppHandle, action: &str, png: Vec<u8>, pin_at: Option<(f64, 
             let picked = app
                 .dialog()
                 .file()
-                .set_title("Salvar captura")
+                .set_title(t("Salvar captura"))
                 .set_directory(&s.capture_dir)
                 .set_file_name(file_name(ext))
                 .add_filter("PNG", &["png"])
@@ -271,13 +272,13 @@ pub fn finish(app: &AppHandle, action: &str, png: Vec<u8>, pin_at: Option<(f64, 
             let text = platform::ocr_png(&png)?;
             let text = text.trim().to_string();
             if text.is_empty() {
-                ui::toast(app, "Nenhum texto encontrado na área");
+                ui::toast(app, t("Nenhum texto encontrado na área"));
             } else {
                 crate::set_clipboard_text(app, &text)?;
-                ui::toast(app, &format!("Texto copiado ({} caracteres)", text.chars().count()));
+                ui::toast(app, &tf("Texto copiado ({} caracteres)", &[&text.chars().count()]));
             }
             Ok(text)
         }
-        other => Err(format!("ação desconhecida: {other}")),
+        other => Err(tf("ação desconhecida: {}", &[&other])),
     }
 }

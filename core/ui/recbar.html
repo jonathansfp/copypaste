@@ -23,9 +23,13 @@
   </div>
   <script type="module">
     import { icon } from './js/icons.js';
+    import { t as tr, translatePage, onLanguageChange } from './js/i18n.js';
+    translatePage();
     const T = window.__TAURI__;
     const stop = document.getElementById('stop');
-    stop.innerHTML = `${icon('stop', 14)}Parar`;
+    const label = () => { stop.innerHTML = `${icon('stop', 14)}${tr('Parar')}`; };
+    label();
+    onLanguageChange(() => { translatePage(); label(); });
     stop.addEventListener('click', () => T.core.invoke('stop_recording'));
     const t = document.getElementById('t');
     setInterval(async () => {

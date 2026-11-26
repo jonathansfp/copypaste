@@ -22,13 +22,10 @@ enum ScreenGrabber {
         CGRequestScreenCaptureAccess()
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "Permita a gravação de tela"
-        alert.informativeText = """
-        Para capturar e gravar a tela, ative o CopyPaste em Ajustes do Sistema › Privacidade e Segurança › \
-        Gravação de Tela e Áudio do Sistema. Depois feche e abra o CopyPaste de novo.
-        """
-        alert.addButton(withTitle: "Abrir Ajustes")
-        alert.addButton(withTitle: "Agora não")
+        alert.messageText = L("Permita a gravação de tela")
+        alert.informativeText = L("Para capturar e gravar a tela, ative o CopyPaste em Ajustes do Sistema › Privacidade e Segurança › Gravação de Tela e Áudio do Sistema. Depois feche e abra o CopyPaste de novo.")
+        alert.addButton(withTitle: L("Abrir Ajustes"))
+        alert.addButton(withTitle: L("Agora não"))
         if alert.runModal() == .alertFirstButtonReturn { openSettings() }
         return false
     }
@@ -133,11 +130,11 @@ enum ImageOutput {
         }
     }
 
-    static func fileName(prefix: String = "Captura", ext: String) -> String {
+    static func fileName(prefix: String? = nil, ext: String) -> String {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "pt_BR")
-        f.dateFormat = "yyyy-MM-dd 'às' HH.mm.ss"
-        return "\(prefix) \(f.string(from: Date())).\(ext)"
+        f.locale = Locale(identifier: AppLanguage.current.localeTag)
+        f.dateFormat = L("yyyy-MM-dd 'às' HH.mm.ss")
+        return "\(prefix ?? L("Captura")) \(f.string(from: Date())).\(ext)"
     }
 
     @discardableResult
@@ -147,7 +144,7 @@ enum ImageOutput {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let url = dir.appendingPathComponent(fileName(ext: s.captureFormat.rawValue))
         guard let d = data(image, format: s.captureFormat), (try? d.write(to: url)) != nil else {
-            Toast.show("Não foi possível salvar em \(dir.path)", symbol: "exclamationmark.triangle")
+            Toast.show(L("Não foi possível salvar em %@", dir.path), symbol: "exclamationmark.triangle")
             return nil
         }
         return url
@@ -163,6 +160,6 @@ enum ImageOutput {
         guard panel.runModal() == .OK, let url = panel.url else { return }
         let fmt: CaptureFormat = url.pathExtension.lowercased().hasPrefix("jp") ? .jpg : .png
         if let d = data(image, format: fmt) { try? d.write(to: url) }
-        Toast.show("Salvo: \(url.lastPathComponent)", symbol: "checkmark.circle")
+        Toast.show(L("Salvo: %@", url.lastPathComponent), symbol: "checkmark.circle")
     }
 }

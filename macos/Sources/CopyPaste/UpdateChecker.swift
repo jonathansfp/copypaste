@@ -35,7 +35,7 @@ enum UpdateChecker {
               let tag = json["tag_name"] as? String
         else {
             Diag.log("atualização: não consegui verificar")
-            if manual { alert("Não consegui verificar agora", "Confira a conexão com a internet e tente de novo.", update: false) }
+            if manual { alert(L("Não consegui verificar agora"), L("Confira a conexão com a internet e tente de novo."), update: false) }
             return
         }
         UserDefaults.standard.set(Date(), forKey: lastKey)
@@ -43,11 +43,11 @@ enum UpdateChecker {
         Diag.log("atualização: atual \(current), mais recente \(latest)")
         if isNewer(latest, than: current) {
             let notes = (json["name"] as? String).map { "\n\n\($0)" } ?? ""
-            alert("Nova versão do CopyPaste: \(latest)",
-                  "Você está na \(current). Baixe a nova versão, abra o arquivo e arraste o CopyPaste para Aplicativos, substituindo o atual. Seu histórico e as configurações são mantidos.\(notes)",
+            alert(L("Nova versão do CopyPaste: %@", latest),
+                  L("Você está na %@. Baixe a nova versão, abra o arquivo e arraste o CopyPaste para Aplicativos, substituindo o atual. Seu histórico e as configurações são mantidos.", current) + notes,
                   update: true)
         } else if manual {
-            alert("Você já tem a versão mais recente", "CopyPaste \(current).", update: false)
+            alert(L("Você já tem a versão mais recente"), "CopyPaste \(current).", update: false)
         }
     }
 
@@ -68,9 +68,9 @@ enum UpdateChecker {
         a.informativeText = text
         a.icon = NSApp.applicationIconImage
         if update {
-            a.addButton(withTitle: "Baixar atualização")
-            a.addButton(withTitle: "Ver novidades")
-            a.addButton(withTitle: "Depois")
+            a.addButton(withTitle: L("Baixar atualização"))
+            a.addButton(withTitle: L("Ver novidades"))
+            a.addButton(withTitle: L("Depois"))
             switch a.runModal() {
             case .alertFirstButtonReturn: NSWorkspace.shared.open(downloadURL)
             case .alertSecondButtonReturn:
