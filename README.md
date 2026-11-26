@@ -91,7 +91,8 @@ copypaste/
 | Copiar texto da imagem (OCR) | ✅ Vision | ✅ OCR do Windows | ✅ Tesseract |
 | Quadro de apresentação estilo Excalidraw + laser | ✅ | ✅ | ✅ |
 | Gravação de tela MP4 + microfone + áudio do sistema | ✅ | ✅ (ffmpeg) | ✅ (ffmpeg) |
-| Ditado por voz com a sua IA (Claude, GPT, Gemini, DeepSeek, Grok) | ✅ (transcrição da Apple, grátis, ou OpenAI/Gemini) | ✅ (OpenAI/Gemini) | ✅ (OpenAI/Gemini) |
+| Ditado por voz com IA local (Gemma 4, offline) ou a sua (Claude, GPT, Gemini, DeepSeek, Grok) | ✅ (+ transcrição da Apple) | ✅ | ✅ |
+| Aviso semanal de nova versão | ✅ | ✅ | ✅ |
 | Comando de voz sobre o texto selecionado | ✅ | ✅ | ✅ (X11: xdotool · Wayland: wtype/ydotool) |
 | Atalhos globais configuráveis | ✅ | ✅ | ✅ (Wayland: atalho do sistema → `copypaste --capture-area`) |
 
@@ -253,8 +254,9 @@ Fale em vez de digitar, **em qualquer app**: segure o atalho, fale e solte. O te
 
 - **Segure e fale** (`⌥Espaço` no Mac, `Ctrl+Shift+Espaço` no Windows e no Linux), ou **toque uma vez** para ficar ouvindo e toque de novo para terminar. `Esc` ou o ✕ cancela.
 - **Comando de voz** (`⌥⇧Espaço` / `Ctrl+Alt+Espaço`): selecione um texto e diga o que fazer, como "traduza para inglês", "deixe mais formal" ou "resuma em três tópicos". O resultado substitui a seleção. Sem seleção, a IA escreve o que você pedir.
-- **Use a sua própria IA.** Conecte a sua chave de API em **Configurações**: **Claude** (Anthropic), **ChatGPT** (OpenAI), **Gemini** (Google), **DeepSeek** ou **Grok** (xAI). Escolha o modelo de cada uma; o app já sugere um rápido.
-- **Transcrição:** no Mac, a da **Apple**, grátis e no próprio computador, ou a da **OpenAI** ou do **Gemini** (mais precisas, com a sua chave). No Windows e no Linux, OpenAI ou Gemini.
+- **IA local, padrão e grátis:** o **Gemma 4 E2B** do Google roda no seu computador pelo [llama.cpp](https://github.com/ggml-org/llama.cpp), sem internet e sem chave. Ele transcreve a voz e ajusta o texto. É baixado uma vez em **Configurações** (cerca de 4 GB), com versões fixas e conferidas por SHA-256, e libera a memória após 10 minutos sem uso. É a IA usada quando nenhuma outra está ativa.
+- **Ou use a sua própria IA.** Conecte a sua chave de API em **Configurações**: **Claude** (Anthropic), **ChatGPT** (OpenAI), **Gemini** (Google), **DeepSeek** ou **Grok** (xAI). Escolha o modelo de cada uma; o app já sugere um rápido (no Gemini, o `gemini-flash-latest`).
+- **Transcrição:** IA local (todos os sistemas), **Apple** (Mac, grátis e no próprio computador), **OpenAI** ou **Gemini** (com a sua chave).
 - **Estilos:** natural, formal (e-mails), descontraído (chats) ou literal (só a transcrição, sem IA). No Mac, o tom se adapta ao app em uso.
 - **Vocabulário:** cadastre nomes, siglas e termos técnicos para saírem com a grafia certa.
 - Uma pílula discreta na parte de baixo da tela mostra o nível da voz e o andamento, e **não aparece em capturas nem gravações**.
@@ -466,7 +468,8 @@ macos/Sources/CopyPaste/
 ## Privacidade
 
 - **Nada sai do seu Mac.** Não há telemetria nem conta. O OCR roda localmente pelo Vision.
-- **Ditado por voz:** com a transcrição da Apple e sem IA conectada, tudo fica no Mac. Ao conectar uma IA, só o áudio do ditado e o texto vão, direto do seu Mac, para o provedor que **você** escolheu, com a **sua** chave. Não há servidor do CopyPaste no meio.
+- **Atualizações:** uma vez por semana o app consulta a página de versões do GitHub; se houver uma nova, mostra um aviso com o botão para baixar. Nada é enviado além da consulta.
+- **Ditado por voz:** com a IA local ou a transcrição da Apple, tudo fica no computador. Ao conectar uma IA, só o áudio do ditado e o texto vão, direto do seu Mac, para o provedor que **você** escolheu, com a **sua** chave. Não há servidor do CopyPaste no meio.
 - O histórico fica em `~/Library/Application Support/CopyPaste/`.
 - Conteúdo marcado como confidencial por gerenciadores de senha **nunca é salvo**.
 - A única ação que abre algo na internet é **Pesquisar no Google Lens**, e só quando você clica: ela abre o navegador e a imagem fica copiada para você colar.

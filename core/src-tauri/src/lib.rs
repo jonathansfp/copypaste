@@ -5,12 +5,14 @@ mod actions;
 mod ai;
 mod capture;
 mod dictation;
+mod local;
 mod history;
 mod platform;
 mod recorder;
 mod settings;
 mod tray;
 mod ui;
+mod updates;
 
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -95,6 +97,7 @@ struct SettingsView {
     pix_key: String,
     ffmpeg: bool,
     ai_connected: Vec<String>,
+    local: local::Status,
 }
 
 #[tauri::command]
@@ -109,6 +112,7 @@ fn get_settings(app: AppHandle, state: State<AppState>) -> SettingsView {
         pix_key: PIX_KEY.into(),
         ffmpeg: recorder::find_ffmpeg().is_some(),
         ai_connected: state.ai_keys.lock().unwrap().keys().cloned().collect(),
+        local: local::status(&app),
     }
 }
 
@@ -376,11 +380,12 @@ async fn ai_connect(app: AppHandle, provider: String, key: String) -> Result<Set
     }
     s.ai_model_lists.insert(provider.clone(), list.chat);
     s.ai_stt_lists.insert(provider.clone(), list.transcription);
-    if s.dict_polish.is_empty() {
+    // The local AI is the default only while no AI of the user's own is connected.
+    if s.dict_polish.is_empty() || s.dict_polish == "local" {
         s.dict_polish = provider.clone();
     }
     let has_engine = state.ai_keys.lock().unwrap().contains_key(&s.dict_engine);
-    if !has_engine && (provider == "openai" || provider == "gemini") {
+    if !has_engine && s.dict_engine != "local" && (provider == "openai" || provider == "gemini") {
         s.dict_engine = provider.clone();
     }
     s.save(&state.paths.settings);
@@ -394,10 +399,36 @@ fn ai_disconnect(state: State<AppState>, provider: String) -> Settings {
     ai::save_keys(&state.paths.ai_keys, &keys);
     let mut s = state.settings.lock().unwrap();
     if s.dict_polish == provider {
-        s.dict_polish = keys.keys().next().cloned().unwrap_or_default();
+        s.dict_polish = keys.keys().next().cloned().unwrap_or_else(|| "local".into());
     }
     s.save(&state.paths.settings);
     s.clone()
+}
+
+#[tauri::command]
+fn local_status(app: AppHandle) -> local::Status {
+    local::status(&app)
+}
+
+#[tauri::command]
+fn local_install(app: AppHandle) {
+    local::install(&app);
+}
+
+#[tauri::command]
+fn local_cancel() {
+    local::cancel_install();
+}
+
+#[tauri::command]
+fn local_remove(app: AppHandle) -> Settings {
+    local::remove(&app);
+    app.state::<AppState>().settings.lock().unwrap().clone()
+}
+
+#[tauri::command]
+fn check_updates(app: AppHandle) {
+    std::thread::spawn(move || updates::check(&app, true));
 }
 
 #[tauri::command]
@@ -507,6 +538,11 @@ pub fn run() {
             dictation_finish,
             dictation_cancel,
             dictation_start,
+            local_status,
+            local_install,
+            local_cancel,
+            local_remove,
+            check_updates,
         ])
         .setup(|app| {
             #[cfg(target_os = "macos")]
@@ -564,6 +600,7 @@ pub fn run() {
                 apply_autostart(&handle, autostart);
                 ui::open_settings(&handle, Some("inicio"));
             }
+            updates::start(&handle);
             let args: Vec<String> = std::env::args().skip(1).collect();
             actions::from_args(&handle, &args);
             Ok(())
@@ -582,6 +619,9 @@ pub fn run() {
         .expect("falha ao iniciar o CopyPaste");
 
     app.run(|_app, ev| {
+        if let RunEvent::Exit = ev {
+            local::stop();
+        }
         // Keeps running in the tray when the last window closes; quits only from the menu.
         if let RunEvent::ExitRequested { api, code, .. } = ev {
             if code.is_none() {

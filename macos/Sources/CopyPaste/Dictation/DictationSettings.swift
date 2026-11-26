@@ -2,11 +2,12 @@ import Foundation
 
 /// Who turns speech into text.
 enum TranscriptionEngine: String, CaseIterable, Identifiable {
-    case apple, openai, gemini
+    case apple, local, openai, gemini
     var id: String { rawValue }
     var label: String {
         switch self {
         case .apple: return "Apple (no Mac, grátis e offline)"
+        case .local: return "IA local Gemma 4 (no Mac, grátis e offline)"
         case .openai: return "OpenAI (mais preciso, usa sua chave)"
         case .gemini: return "Gemini (usa sua chave)"
         }
@@ -14,6 +15,7 @@ enum TranscriptionEngine: String, CaseIterable, Identifiable {
     var provider: AIProvider? {
         switch self {
         case .apple: return nil
+        case .local: return .local
         case .openai: return .openai
         case .gemini: return .gemini
         }
@@ -83,7 +85,7 @@ final class DictationSettings: ObservableObject {
             "dict.engine": TranscriptionEngine.apple.rawValue,
             "dict.language": "pt-BR",
             "dict.style": DictationStyle.natural.rawValue,
-            "dict.polish": "",
+            "dict.polish": AIProvider.local.rawValue,
             "dict.terms": "",
             "dict.sounds": true,
             "dict.appContext": true,
@@ -95,16 +97,39 @@ final class DictationSettings: ObservableObject {
         terms = d.string(forKey: "dict.terms") ?? ""
         sounds = d.bool(forKey: "dict.sounds")
         useAppContext = d.bool(forKey: "dict.appContext")
-        connected = Set(AIProvider.allCases.filter { AIKeys.get($0) != nil })
-        for p in AIProvider.allCases {
-            chatModels[p] = d.stringArray(forKey: "ai.models.\(p.rawValue)") ?? []
+        connected = Set(AIProvider.cloud.filter { AIKeys.get($0) != nil })
+        for p in AIProvider.cloud {
+            // Older versions kept transcription-only models in the text list (Gemini "…-transcribe").
+            chatModels[p] = (d.stringArray(forKey: "ai.models.\(p.rawValue)") ?? []).filter { AIClient.isTextModel(p, $0) }
             sttModels[p] = d.stringArray(forKey: "ai.sttModels.\(p.rawValue)") ?? []
+            if let m = model(for: p), !AIClient.isTextModel(p, m) {
+                d.removeObject(forKey: "ai.model.\(p.rawValue)")
+                if let better = AIClient.preferredChatModel(p, from: chatModels[p] ?? []) { d.set(better, forKey: "ai.model.\(p.rawValue)") }
+            }
         }
+        chatModels[.local] = [LocalAI.modelName]
+        sttModels[.local] = [LocalAI.modelName]
     }
 
-    func model(for p: AIProvider) -> String? { d.string(forKey: "ai.model.\(p.rawValue)") }
+    /// Cloud AIs with a key, plus the local AI once downloaded.
+    var available: [AIProvider] {
+        AIProvider.allCases.filter { $0 == .local ? LocalAI.installedOnDisk : connected.contains($0) }
+    }
+
+    /// The AI that cleans up the text: the one chosen, or the local AI when nothing else is active.
+    var effectivePolish: AIProvider? {
+        if let p = polishProvider, p == .local ? LocalAI.installedOnDisk : connected.contains(p) { return p }
+        if polishProvider == .local || polishProvider == nil, LocalAI.installedOnDisk { return .local }
+        return nil
+    }
+
+    func model(for p: AIProvider) -> String? {
+        p == .local ? LocalAI.modelName : d.string(forKey: "ai.model.\(p.rawValue)")
+    }
     func setModel(_ m: String, for p: AIProvider) { d.set(m, forKey: "ai.model.\(p.rawValue)"); objectWillChange.send() }
-    func sttModel(for p: AIProvider) -> String? { d.string(forKey: "ai.sttModel.\(p.rawValue)") }
+    func sttModel(for p: AIProvider) -> String? {
+        p == .local ? LocalAI.modelName : d.string(forKey: "ai.sttModel.\(p.rawValue)")
+    }
     func setSttModel(_ m: String, for p: AIProvider) { d.set(m, forKey: "ai.sttModel.\(p.rawValue)"); objectWillChange.send() }
 
     /// Validates the key by listing the provider's models, then stores it in the Keychain.
@@ -117,7 +142,8 @@ final class DictationSettings: ObservableObject {
         AIKeys.set(key, for: p)
         storeModels(list, for: p)
         connected.insert(p)
-        if polishProvider == nil { polishProvider = p }
+        // The local AI is the default only while no AI of the user's own is connected.
+        if polishProvider == nil || polishProvider == .local { polishProvider = p }
     }
 
     /// Re-reads the model list with the saved key (models change over time).
@@ -146,7 +172,7 @@ final class DictationSettings: ObservableObject {
     func disconnect(_ p: AIProvider) {
         AIKeys.set(nil, for: p)
         connected.remove(p)
-        if polishProvider == p { polishProvider = connected.sorted { $0.rawValue < $1.rawValue }.first }
+        if polishProvider == p { polishProvider = connected.sorted { $0.rawValue < $1.rawValue }.first ?? .local }
         if engine.provider == p { engine = .apple }
     }
 

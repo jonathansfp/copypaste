@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         _ = AppSettings.shared
+        _ = DictationSettings.shared // also fixes models saved by older versions
         ClipboardStore.shared.start()
         HotKeyManager.shared.handlers = [
             .clipboard: { PanelController.shared.toggle() },
@@ -26,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         ]
         HotKeyManager.shared.registerFromSettings()
         setupStatusItem()
+        UpdateChecker.start()
         ScreenRecorder.shared.$isRecording
             .receive(on: RunLoop.main)
             .sink { [weak self] on in self?.updateRecordingIndicator(on) }
@@ -42,6 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         ClipboardStore.shared.saveNow()
+        LocalAI.shared.stop()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -158,6 +161,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(pause)
         menu.addItem(withTitle: "Limpar histórico…", action: #selector(clearHistory), keyEquivalent: "").target = self
         menu.addItem(withTitle: "Configurações…", action: #selector(openSettings), keyEquivalent: ",").target = self
+        menu.addItem(withTitle: "Verificar atualizações…", action: #selector(checkUpdates), keyEquivalent: "").target = self
         menu.addItem(withTitle: "Doar via Pix ♥", action: #selector(donatePix), keyEquivalent: "").target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: "Sair do CopyPaste", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
@@ -178,6 +182,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
     @objc private func openLibrary() { WindowManager.shared.showLibrary() }
     @objc private func openSettings() { WindowManager.shared.showSettings() }
+    @objc private func checkUpdates() { Task { await UpdateChecker.check(manual: true) } }
     @objc private func startDictation() { DictationController.shared.start(.dictate) }
     @objc private func startVoiceCommand() { DictationController.shared.start(.command) }
     @objc private func donatePix() {

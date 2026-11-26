@@ -1,11 +1,14 @@
 import Foundation
 import Security
 
-/// AIs the user can connect with their own API key.
+/// AIs the user can connect with their own API key, plus the built-in local AI.
 enum AIProvider: String, CaseIterable, Identifiable, Codable {
-    case claude, openai, gemini, deepseek, grok
+    case claude, openai, gemini, deepseek, grok, local
 
     var id: String { rawValue }
+
+    /// The ones that need an API key.
+    static let cloud: [AIProvider] = [.claude, .openai, .gemini, .deepseek, .grok]
 
     var name: String {
         switch self {
@@ -14,6 +17,7 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .gemini: return "Gemini (Google)"
         case .deepseek: return "DeepSeek"
         case .grok: return "Grok (xAI)"
+        case .local: return "IA local (Gemma 4, no Mac)"
         }
     }
 
@@ -24,6 +28,7 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .gemini: return "Gemini"
         case .deepseek: return "DeepSeek"
         case .grok: return "Grok"
+        case .local: return "IA local"
         }
     }
 
@@ -35,6 +40,7 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .gemini: return URL(string: "https://aistudio.google.com/apikey")!
         case .deepseek: return URL(string: "https://platform.deepseek.com/api_keys")!
         case .grok: return URL(string: "https://console.x.ai")!
+        case .local: return URL(string: "https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF")!
         }
     }
 
@@ -45,11 +51,12 @@ enum AIProvider: String, CaseIterable, Identifiable, Codable {
         case .gemini: return "AIza…"
         case .deepseek: return "sk-…"
         case .grok: return "xai-…"
+        case .local: return ""
         }
     }
 
     /// Can turn audio into text (Claude, DeepSeek and Grok only handle text here).
-    var canTranscribe: Bool { self == .openai || self == .gemini }
+    var canTranscribe: Bool { self == .openai || self == .gemini || self == .local }
 
     /// Base URL of the OpenAI-compatible chat API.
     fileprivate var chatBase: String? {
@@ -68,6 +75,8 @@ enum AIKeys {
     private static let service = "local.copypaste.ai"
 
     static func get(_ p: AIProvider) -> String? {
+        // The local AI needs no key: it is "connected" once downloaded.
+        if p == .local { return LocalAI.installedOnDisk ? "local" : nil }
         var q = base(p)
         q[kSecReturnData as String] = true
         q[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -78,6 +87,7 @@ enum AIKeys {
     }
 
     static func set(_ key: String?, for p: AIProvider) {
+        guard p != .local else { return }
         SecItemDelete(base(p) as CFDictionary)
         guard let key, !key.isEmpty else { return }
         var q = base(p)
@@ -126,6 +136,8 @@ enum AIClient {
     /// Lists the models the key can use; also validates the key.
     static func listModels(_ p: AIProvider, key: String) async throws -> ModelList {
         switch p {
+        case .local:
+            return ModelList(chat: [LocalAI.modelName], transcription: [LocalAI.modelName])
         case .claude:
             var r = URLRequest(url: URL(string: "https://api.anthropic.com/v1/models?limit=100")!)
             r.setValue(key, forHTTPHeaderField: "x-api-key")
@@ -141,10 +153,12 @@ enum AIClient {
                 guard let name = m["name"] as? String,
                       (m["supportedGenerationMethods"] as? [String] ?? []).contains("generateContent") else { return nil }
                 let id = name.replacingOccurrences(of: "models/", with: "")
-                let skip = ["embedding", "image", "tts", "live", "aqa", "veo", "imagen", "learnlm"]
+                let skip = ["embedding", "image", "tts", "live", "aqa", "veo", "imagen", "learnlm", "robotics", "computer-use", "native-audio"]
                 return id.hasPrefix("gemini") && !skip.contains(where: id.contains) ? id : nil
             }
-            return ModelList(chat: ids, transcription: ids)
+            // Transcription-only models ("…-transcribe") reject system instructions: they never clean up text.
+            let chat = ids.filter { isTextModel(.gemini, $0) }
+            return ModelList(chat: chat, transcription: ids)
         case .openai, .deepseek, .grok:
             var r = URLRequest(url: URL(string: p.chatBase! + "/models")!)
             r.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
@@ -164,19 +178,39 @@ enum AIClient {
         }
     }
 
+    /// Whether a model id is meant for text (not transcription, speech, images…).
+    static func isTextModel(_ p: AIProvider, _ id: String) -> Bool {
+        let notText = ["transcribe", "tts", "audio", "realtime", "live", "image", "embedding", "whisper", "moderation",
+                       "robotics", "computer-use", "veo", "imagen", "aqa", "banana"]
+        return !notText.contains(where: id.contains)
+    }
+
+    /// Version number in a model id ("gemini-3.5-flash" → 3.5), to pick the newest.
+    private static func version(_ id: String) -> Double {
+        guard let r = id.range(of: #"\d+(\.\d+)?"#, options: .regularExpression) else { return 0 }
+        return Double(id[r]) ?? 0
+    }
+
     /// Picks a sensible default: fast and capable enough for cleaning up dictated text.
-    static func preferredChatModel(_ p: AIProvider, from ids: [String]) -> String? {
+    static func preferredChatModel(_ p: AIProvider, from all: [String]) -> String? {
+        let ids = all.filter { isTextModel(p, $0) }
         guard !ids.isEmpty else { return nil }
         let sorted = ids.sorted(by: >)
         switch p {
+        case .local:
+            return ids.first
         case .claude:
             return ids.first { $0 == "claude-opus-5-5" } ?? sorted.first { $0.hasPrefix("claude-opus") } ?? sorted.first
         case .openai:
             let undated = sorted.filter { $0.hasPrefix("gpt-") && $0.range(of: #"\d{4}-\d{2}-\d{2}"#, options: .regularExpression) == nil }
             return undated.first { $0.hasSuffix("-mini") } ?? undated.first ?? sorted.first
         case .gemini:
-            let stable = sorted.filter { !$0.contains("preview") && !$0.contains("exp") && !$0.contains("lite") }
-            return stable.first { $0.contains("flash") } ?? sorted.first { $0.contains("flash") } ?? sorted.first
+            // "gemini-flash-latest" always points to the current Flash; otherwise the newest stable Flash.
+            if let alias = ids.first(where: { $0 == "gemini-flash-latest" }) { return alias }
+            let byVersion = ids.sorted { version($0) > version($1) }
+            let stable = byVersion.filter { !$0.contains("preview") && !$0.contains("exp") && !$0.contains("lite") && !$0.contains("latest") }
+            return stable.first { $0.contains("flash") } ?? byVersion.first { $0.contains("flash") }
+                ?? stable.first ?? byVersion.first
         case .deepseek:
             return ids.first { $0 == "deepseek-chat" } ?? sorted.first
         case .grok:
@@ -192,7 +226,10 @@ enum AIClient {
             return sorted.first { $0.contains("mini-transcribe") } ?? sorted.first { $0.contains("transcribe") }
                 ?? ids.first { $0 == "whisper-1" } ?? sorted.first
         case .gemini:
-            return preferredChatModel(.gemini, from: ids)
+            let sorted = ids.sorted { version($0) > version($1) }
+            return sorted.first { $0.contains("transcribe") } ?? preferredChatModel(.gemini, from: ids)
+        case .local:
+            return LocalAI.modelName
         default:
             return nil
         }
@@ -234,16 +271,43 @@ enum AIClient {
             return try nonEmpty(text, p)
         case .gemini:
             let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
-            var r = URLRequest(url: url)
+            func request(separateSystem: Bool) throws -> URLRequest {
+                var r = URLRequest(url: url)
+                r.httpMethod = "POST"
+                r.setValue("application/json", forHTTPHeaderField: "content-type")
+                r.setValue(key, forHTTPHeaderField: "x-goog-api-key")
+                var body: [String: Any] = ["generationConfig": ["temperature": 0.2]]
+                if separateSystem {
+                    body["systemInstruction"] = ["parts": [["text": system]]]
+                    body["contents"] = [["role": "user", "parts": [["text": user]]]]
+                } else {
+                    body["contents"] = [["role": "user", "parts": [["text": system + "\n\n" + user]]]]
+                }
+                r.httpBody = try JSONSerialization.data(withJSONObject: body)
+                return r
+            }
+            do {
+                return try nonEmpty(geminiText(try await send(try request(separateSystem: true), p)), p)
+            } catch let e as AIError where e.message.localizedCaseInsensitiveContains("instruction") {
+                // Some models (Gemma, transcription models) take no system instruction: send it inline.
+                return try nonEmpty(geminiText(try await send(try request(separateSystem: false), p)), p)
+            }
+        case .local:
+            let base = try await LocalAI.shared.ensureRunning()
+            var r = URLRequest(url: base.appendingPathComponent("chat/completions"))
             r.httpMethod = "POST"
+            r.timeoutInterval = 120
             r.setValue("application/json", forHTTPHeaderField: "content-type")
-            r.setValue(key, forHTTPHeaderField: "x-goog-api-key")
             let body: [String: Any] = [
-                "systemInstruction": ["parts": [["text": system]]],
-                "contents": [["role": "user", "parts": [["text": user]]]],
+                "messages": [["role": "system", "content": system], ["role": "user", "content": user]],
+                "temperature": 0.2,
+                "chat_template_kwargs": ["enable_thinking": false],
             ]
             r.httpBody = try JSONSerialization.data(withJSONObject: body)
-            return try nonEmpty(geminiText(try await send(r, p)), p)
+            let json = try await send(r, p)
+            await LocalAI.shared.touch()
+            let msg = ((json["choices"] as? [[String: Any]])?.first?["message"] as? [String: Any])
+            return try nonEmpty(msg?["content"] as? String ?? "", p)
         case .openai, .deepseek, .grok:
             var r = URLRequest(url: URL(string: p.chatBase! + "/chat/completions")!)
             r.httpMethod = "POST"
@@ -266,10 +330,17 @@ enum AIClient {
     static func transcribe(_ p: AIProvider, key: String, model: String, wav: URL, language: String?, hint: String) async throws -> String {
         let audio = try Data(contentsOf: wav)
         switch p {
-        case .openai:
-            var r = URLRequest(url: URL(string: "https://api.openai.com/v1/audio/transcriptions")!)
+        case .openai, .local:
+            let url: URL
+            if p == .local {
+                url = try await LocalAI.shared.ensureRunning().appendingPathComponent("audio/transcriptions")
+            } else {
+                url = URL(string: "https://api.openai.com/v1/audio/transcriptions")!
+            }
+            var r = URLRequest(url: url)
             r.httpMethod = "POST"
-            r.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+            r.timeoutInterval = 180
+            if p == .openai { r.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization") }
             let boundary = "cp-\(UUID().uuidString)"
             r.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "content-type")
             var body = Data()
@@ -279,12 +350,18 @@ enum AIClient {
             field("model", model)
             field("response_format", "json")
             if let language { field("language", language) }
-            if !hint.isEmpty { field("prompt", hint) }
+            if p == .local {
+                // In llama.cpp the prompt replaces the instruction, so it must still ask for a transcription.
+                if !hint.isEmpty { field("prompt", "Transcreva o áudio exatamente como foi falado. Grafias corretas de termos que podem aparecer: \(hint).") }
+            } else if !hint.isEmpty {
+                field("prompt", hint)
+            }
             body.append("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"ditado.wav\"\r\nContent-Type: audio/wav\r\n\r\n".data(using: .utf8)!)
             body.append(audio)
             body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
             r.httpBody = body
             let json = try await send(r, p)
+            if p == .local { await LocalAI.shared.touch() }
             return (json["text"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         case .gemini:
             let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!
@@ -320,7 +397,7 @@ enum AIClient {
         return t
     }
 
-    private static func send(_ r: URLRequest, _ p: AIProvider) async throws -> [String: Any] {
+    private static func send(_ r: URLRequest, _ p: AIProvider, retry: Bool = true) async throws -> [String: Any] {
         let data: Data, resp: URLResponse
         do {
             (data, resp) = try await session.data(for: r)
@@ -332,6 +409,12 @@ enum AIClient {
         let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
         let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
         guard (200..<300).contains(code) else {
+            // Momentary overload or a per-minute limit: one quick retry before giving up.
+            if retry, code == 429 || code == 503 || code == 529 {
+                let wait = Double((resp as? HTTPURLResponse)?.value(forHTTPHeaderField: "retry-after") ?? "") ?? 2
+                try await Task.sleep(nanoseconds: UInt64(min(max(wait, 1), 5) * 1_000_000_000))
+                return try await send(r, p, retry: false)
+            }
             throw AIError(message: friendlyError(code: code, json: json, p))
         }
         return json
@@ -346,7 +429,12 @@ enum AIClient {
         case 401, 403: return "Chave do \(p.shortName) inválida ou sem permissão."
         case 402: return "Sem créditos na conta do \(p.shortName)."
         case 404: return "Modelo não encontrado no \(p.shortName). Escolha outro nas configurações."
-        case 429: return "Limite de uso do \(p.shortName) atingido. Tente de novo em instantes ou confira seus créditos."
+        case 429:
+            let quota = detail.localizedCaseInsensitiveContains("quota") || detail.localizedCaseInsensitiveContains("billing")
+                || detail.localizedCaseInsensitiveContains("credit")
+            return quota
+                ? "Cota do \(p.shortName) esgotada (\(detail.prefix(120))). Confira o plano ou os créditos da sua conta."
+                : "Limite por minuto do \(p.shortName) atingido. Espere alguns segundos e tente de novo."
         default:
             let d = detail.isEmpty ? "" : ": \(detail.prefix(160))"
             return "\(p.shortName) respondeu com erro \(code)\(d)"

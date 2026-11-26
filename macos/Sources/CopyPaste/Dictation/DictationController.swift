@@ -60,14 +60,16 @@ final class DictationController: ObservableObject {
 
     func start(_ m: Mode) {
         guard phase == .idle else { return }
-        if m == .command, settings.polishProvider == nil || !settings.connected.contains(settings.polishProvider!) {
-            Toast.show("Conecte uma IA em Configurações › Ditado por voz para usar comandos de voz.",
+        if m == .command, settings.effectivePolish == nil {
+            Toast.show("Baixe a IA local ou conecte uma IA em Configurações › Ditado por voz para usar comandos de voz.",
                        symbol: "exclamationmark.triangle", duration: 3)
             WindowManager.shared.showSettings()
             return
         }
         if let p = settings.engine.provider, AIKeys.get(p) == nil {
-            Toast.show("Conecte a chave do \(p.shortName) para transcrever, ou use a transcrição da Apple.",
+            Toast.show(p == .local
+                       ? "Baixe a IA local em Configurações › Ditado por voz, ou use a transcrição da Apple."
+                       : "Conecte a chave do \(p.shortName) para transcrever, ou use a transcrição da Apple.",
                        symbol: "exclamationmark.triangle", duration: 3)
             WindowManager.shared.showSettings()
             return
@@ -79,6 +81,8 @@ final class DictationController: ObservableObject {
         targetApp = NSWorkspace.shared.frontmostApplication
         phase = .listening
         DictationPill.show()
+        // Loads the local model while the user talks, so the answer comes faster.
+        if settings.engine == .local || settings.effectivePolish == .local { LocalAI.shared.prewarm() }
 
         Task {
             guard await Self.ensurePermissions(engine: settings.engine) else {
@@ -199,8 +203,9 @@ final class DictationController: ObservableObject {
         switch settings.engine {
         case .apple:
             return await rec.finalAppleText()
-        case .openai, .gemini:
+        case .openai, .gemini, .local:
             let p = settings.engine.provider!
+            if p == .local { phase = .processing("Transcrevendo no Mac…") }
             guard let key = AIKeys.get(p) else { throw AIError(message: "Conecte a chave do \(p.shortName).") }
             guard let model = settings.sttModel(for: p) ?? AIClient.preferredTranscriptionModel(p, from: settings.sttModels[p] ?? [])
             else { throw AIError(message: "Nenhum modelo de transcrição disponível no \(p.shortName).") }
@@ -212,8 +217,9 @@ final class DictationController: ObservableObject {
     }
 
     private func aiConfig() -> (AIProvider, String, String)? {
-        guard let p = settings.polishProvider, let key = AIKeys.get(p) else { return nil }
-        guard let model = settings.model(for: p) ?? AIClient.preferredChatModel(p, from: settings.chatModels[p] ?? []) else { return nil }
+        guard let p = settings.effectivePolish, let key = AIKeys.get(p) else { return nil }
+        let saved = settings.model(for: p).flatMap { AIClient.isTextModel(p, $0) ? $0 : nil }
+        guard let model = saved ?? AIClient.preferredChatModel(p, from: settings.chatModels[p] ?? []) else { return nil }
         return (p, key, model)
     }
 

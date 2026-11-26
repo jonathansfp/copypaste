@@ -313,20 +313,22 @@ footer a { color: var(--ink2); }
         <li><b>Comando de voz:</b> selecione um texto e diga "traduza para inglês", "deixe mais formal" ou "resuma em tópicos".</li>
         <li><b>Estilos:</b> natural, formal para e-mails, descontraído para chats ou literal, sem IA.</li>
         <li><b>Vocabulário próprio:</b> nomes, siglas e termos técnicos com a grafia certa.</li>
+        <li><b>IA local grátis:</b> o Gemma 4 do Google roda no seu computador, sem internet e sem chave. É o padrão quando você não conecta outra IA.</li>
       </ul>
       <div class="pilldemo" aria-hidden="true"><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span>Ouvindo · solte para terminar</span></div>
     </div>
     <div class="ais">
-      <h3>Conecte a sua própria IA</h3>
-      <p>Cole a chave de API em Configurações e escolha o modelo. Sem servidor do CopyPaste e sem mensalidade: você paga só o uso na sua conta, normalmente centavos por mês.</p>
+      <h3>IA local ou a sua própria IA</h3>
+      <p>Use a IA local, grátis e offline, ou cole a chave de API de uma destas em Configurações. Sem servidor do CopyPaste e sem mensalidade: com a sua chave, você paga só o uso na sua conta, normalmente centavos por mês.</p>
       <div class="chips">
+        <span class="chip">Gemma 4<small>local · texto e voz · grátis</small></span>
         <span class="chip">Claude<small>Anthropic</small></span>
         <span class="chip">ChatGPT<small>OpenAI · texto e voz</small></span>
         <span class="chip">Gemini<small>Google · texto e voz</small></span>
         <span class="chip">DeepSeek</span>
         <span class="chip">Grok<small>xAI</small></span>
       </div>
-      <p style="margin:16px 0 0">No Mac, a transcrição pode ser a da <b>Apple</b>, grátis e no próprio computador. No Windows e no Linux, a voz é transcrita pela OpenAI ou pelo Gemini, com a sua chave.</p>
+      <p style="margin:16px 0 0">A voz pode ser transcrita pela IA local em qualquer sistema, pela <b>Apple</b> no Mac, ou pela OpenAI ou pelo Gemini com a sua chave.</p>
     </div>
   </div>
 </section>
@@ -510,7 +512,8 @@ footer a { color: var(--ink2); }
     <h2 style="margin-bottom:24px">Perguntas frequentes</h2>
     <details><summary>É gratuito mesmo?</summary><p>Sim. Sem anúncios, sem cadastro e sem limites. O código é aberto sob a licença GPL-3.0. Se quiser apoiar, há a opção de <a href="#apoie">doar via Pix</a>.</p></details>
     <details><summary>Meus dados saem do computador?</summary><p>Não. O histórico, as capturas e o OCR ficam e rodam só no seu computador, sem internet. O que gerenciadores de senha marcam como confidencial nunca é salvo. A única exceção é o ditado por voz quando você conecta uma IA: aí só o áudio do ditado e o texto vão, direto do seu computador, para o provedor que você escolheu.</p></details>
-    <details><summary>Preciso pagar pela IA do ditado?</summary><p>O CopyPaste não cobra nada. Você usa a sua própria chave de API (Claude, ChatGPT, Gemini, DeepSeek ou Grok) e paga só o que usar na conta do provedor, em geral centavos por mês. No Mac, dá para ditar sem chave nenhuma, com a transcrição gratuita da Apple.</p></details>
+    <details><summary>Preciso pagar pela IA do ditado?</summary><p>Não. A IA local (Gemma 4) é grátis e roda no seu computador, sem internet; basta baixá-la uma vez em Configurações (cerca de 4 GB). Se preferir, use a sua própria chave de API (Claude, ChatGPT, Gemini, DeepSeek ou Grok) e pague só o que usar na conta do provedor, em geral centavos por mês.</p></details>
+    <details><summary>Como fico sabendo de novas versões?</summary><p>Uma vez por semana o CopyPaste confere se há uma versão nova e, se houver, mostra um aviso com o botão para baixar. Também dá para verificar na hora pelo menu do ícone: <b>Verificar atualizações…</b>.</p></details>
     <details><summary>Onde consigo a chave de API?</summary><p>No painel de cada provedor: <a href="https://platform.claude.com/settings/keys">Claude</a>, <a href="https://platform.openai.com/api-keys">OpenAI</a>, <a href="https://aistudio.google.com/apikey">Gemini</a>, <a href="https://platform.deepseek.com/api_keys">DeepSeek</a> e <a href="https://console.x.ai">Grok</a>. Em Configurações, o link "Obter chave" leva direto à página certa. A chave fica guardada só no seu computador.</p></details>
     <details><summary>Por que o sistema pede confirmação ao abrir?</summary><p>O app não é distribuído por uma loja. No Windows, clique em <b>Mais informações → Executar assim mesmo</b>. No Mac, clique com o botão direito no app → <b>Abrir</b>. Isso só acontece na primeira vez.</p></details>
     <details><summary>Como envio o que desenhei no quadro?</summary><p>Pelos botões da barra do quadro: <b>Copiar</b> (cole direto no WhatsApp, Teams, Slack ou e-mail), <b>Salvar</b> na pasta de capturas ou, no Mac, <b>Enviar</b> pelo AirDrop, Mensagens ou Mail.</p></details>

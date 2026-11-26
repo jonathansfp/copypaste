@@ -7,6 +7,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::time::Duration;
 
+/// Providers that take an API key ("local" is the built-in AI and needs none).
 pub const PROVIDERS: [&str; 5] = ["claude", "openai", "gemini", "deepseek", "grok"];
 
 pub fn name(p: &str) -> &'static str {
@@ -16,6 +17,7 @@ pub fn name(p: &str) -> &'static str {
         "gemini" => "Gemini",
         "deepseek" => "DeepSeek",
         "grok" => "Grok",
+        "local" => "IA local",
         _ => "IA",
     }
 }
@@ -63,14 +65,19 @@ pub fn save_keys(path: &Path, keys: &BTreeMap<String, String>) {
 
 // ───────────────────────────── HTTP ─────────────────────────────
 
-fn agent() -> ureq::Agent {
-    let b = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(15)).timeout(Duration::from_secs(120));
+/// HTTPS client with the system's TLS on Windows and macOS (rustls on Linux).
+pub fn agent_builder() -> ureq::AgentBuilder {
+    let b = ureq::AgentBuilder::new();
     #[cfg(not(target_os = "linux"))]
     let b = match native_tls::TlsConnector::new() {
         Ok(c) => b.tls_connector(std::sync::Arc::new(c)),
         Err(_) => b,
     };
-    b.build()
+    b
+}
+
+fn agent() -> ureq::Agent {
+    agent_builder().timeout_connect(Duration::from_secs(15)).timeout(Duration::from_secs(180)).build()
 }
 
 fn friendly(p: &str, status: u16, body: &str) -> String {
@@ -84,11 +91,14 @@ fn friendly(p: &str, status: u16, body: &str) -> String {
         })
         .unwrap_or_default();
     let n = name(p);
+    let lower = detail.to_lowercase();
+    let quota = lower.contains("quota") || lower.contains("billing") || lower.contains("credit");
     let base = match status {
         401 | 403 => format!("{n}: chave inválida ou sem permissão."),
         402 => format!("{n}: sem saldo ou créditos na conta."),
         404 => format!("{n}: modelo não encontrado. Atualize a lista de modelos."),
-        429 => format!("{n}: limite de uso atingido ou sem créditos. Tente de novo em instantes."),
+        429 if quota => format!("{n}: cota esgotada. Confira o plano ou os créditos da sua conta."),
+        429 => format!("{n}: limite por minuto atingido. Espere alguns segundos e tente de novo."),
         500..=599 => format!("{n} está instável agora. Tente de novo em instantes."),
         _ => format!("{n} recusou o pedido (erro {status})."),
     };
@@ -96,6 +106,18 @@ fn friendly(p: &str, status: u16, body: &str) -> String {
         base
     } else {
         format!("{base} {}", detail.chars().take(160).collect::<String>())
+    }
+}
+
+/// Sends a request, retrying once on a momentary overload or per-minute limit.
+fn send(p: &str, make: impl Fn() -> Result<ureq::Response, ureq::Error>) -> Result<Value, String> {
+    match make() {
+        Err(ureq::Error::Status(code, resp)) if matches!(code, 429 | 503 | 529) => {
+            let wait = resp.header("retry-after").and_then(|v| v.parse::<f64>().ok()).unwrap_or(2.0).clamp(1.0, 5.0);
+            std::thread::sleep(Duration::from_secs_f64(wait));
+            read(p, make())
+        }
+        r => read(p, r),
     }
 }
 
@@ -146,7 +168,9 @@ pub fn list_models(p: &str, key: &str) -> Result<ModelList, String> {
                     chat.push(id);
                 }
             }
+            // Transcription-only models ("…-transcribe") reject system instructions: never for text.
             let stt = chat.clone();
+            let chat = chat.into_iter().filter(|m| is_text_model(m)).collect();
             (chat, stt)
         }
         _ => {
@@ -173,6 +197,21 @@ fn ids(v: &Value, ptr: &str, field: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
+/// Whether a model id is meant for text (not transcription, speech, images…).
+pub fn is_text_model(id: &str) -> bool {
+    !["transcribe", "tts", "audio", "realtime", "live", "image", "embedding", "whisper", "moderation", "robotics", "computer-use", "veo", "imagen", "aqa", "banana"]
+        .iter()
+        .any(|w| id.contains(w))
+}
+
+/// Version number in a model id ("gemini-3.5-flash" → 3.5), to pick the newest.
+fn version(id: &str) -> f64 {
+    let start = id.find(|c: char| c.is_ascii_digit());
+    let Some(i) = start else { return 0.0 };
+    let num: String = id[i..].chars().take_while(|c| c.is_ascii_digit() || *c == '.').collect();
+    num.trim_end_matches('.').parse().unwrap_or(0.0)
+}
+
 fn first_match(ids: &[String], prefs: &[&str]) -> Option<String> {
     for p in prefs {
         if let Some(m) = ids.iter().find(|m| m.as_str() == *p) {
@@ -188,7 +227,29 @@ fn first_match(ids: &[String], prefs: &[&str]) -> Option<String> {
 }
 
 /// A fast, capable default for cleaning up dictated text.
-pub fn preferred_chat(p: &str, ids: &[String]) -> Option<String> {
+pub fn preferred_chat(p: &str, all: &[String]) -> Option<String> {
+    if p == "local" {
+        return Some(crate::local::MODEL_NAME.into());
+    }
+    let ids: Vec<String> = all.iter().filter(|m| is_text_model(m)).cloned().collect();
+    if p == "gemini" {
+        // "gemini-flash-latest" always points to the current Flash; otherwise the newest stable Flash.
+        if ids.iter().any(|m| m == "gemini-flash-latest") {
+            return Some("gemini-flash-latest".into());
+        }
+        let mut v = ids.clone();
+        v.sort_by(|a, b| version(b).partial_cmp(&version(a)).unwrap_or(std::cmp::Ordering::Equal));
+        let stable = |m: &&String| !m.contains("preview") && !m.contains("exp") && !m.contains("lite") && !m.contains("latest");
+        return v
+            .iter()
+            .filter(stable)
+            .find(|m| m.contains("flash"))
+            .or_else(|| v.iter().find(|m| m.contains("flash")))
+            .or_else(|| v.iter().find(stable))
+            .or_else(|| v.first())
+            .cloned();
+    }
+    let ids = &ids[..];
     let prefs: &[&str] = match p {
         "claude" => &["claude-opus-5-5", "claude-sonnet-5-5", "claude-opus-5", "claude-haiku-5-5", "claude-sonnet"],
         "openai" => &["gpt-5-mini", "gpt-5.1-mini", "gpt-5", "gpt-4.1-mini", "gpt-4o-mini", "gpt-4o"],
@@ -201,6 +262,17 @@ pub fn preferred_chat(p: &str, ids: &[String]) -> Option<String> {
 }
 
 pub fn preferred_stt(p: &str, ids: &[String]) -> Option<String> {
+    if p == "local" {
+        return Some(crate::local::MODEL_NAME.into());
+    }
+    if p == "gemini" {
+        let mut v = ids.to_vec();
+        v.sort_by(|a, b| version(b).partial_cmp(&version(a)).unwrap_or(std::cmp::Ordering::Equal));
+        if let Some(t) = v.iter().find(|m| m.contains("transcribe")) {
+            return Some(t.clone());
+        }
+        return preferred_chat(p, ids);
+    }
     let prefs: &[&str] = match p {
         "openai" => &["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"],
         "gemini" => &["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash", "gemini"],
@@ -211,9 +283,20 @@ pub fn preferred_stt(p: &str, ids: &[String]) -> Option<String> {
 
 // ───────────────────────────── Text ─────────────────────────────
 
+/// For "local", `key` is the base URL of the local server (`local::ensure_running`).
 pub fn complete(p: &str, key: &str, model: &str, system: &str, user: &str) -> Result<String, String> {
     let a = agent();
     match p {
+        "local" => {
+            let body = json!({
+                "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
+                "temperature": 0.2,
+                "chat_template_kwargs": {"enable_thinking": false},
+            });
+            let v = send(p, || a.post(&format!("{key}/chat/completions")).send_json(body.clone()))?;
+            crate::local::touch();
+            Ok(v.pointer("/choices/0/message/content").and_then(|c| c.as_str()).unwrap_or("").to_string())
+        }
         "claude" => {
             let newer = !model.contains("claude-3") && !model.contains("claude-2");
             let mut body = json!({
@@ -234,7 +317,7 @@ pub fn complete(p: &str, key: &str, model: &str, system: &str, user: &str) -> Re
                 req = req.set("anthropic-beta", "server-side-fallback-2026-07-01");
                 body["fallbacks"] = json!("default");
             }
-            let v = read(p, req.send_json(body))?;
+            let v = send(p, || req.clone().send_json(body.clone()))?;
             if v.get("stop_reason").and_then(|s| s.as_str()) == Some("refusal") {
                 return Err("Claude recusou ajustar esse texto.".into());
             }
@@ -246,14 +329,25 @@ pub fn complete(p: &str, key: &str, model: &str, system: &str, user: &str) -> Re
             Ok(text)
         }
         "gemini" => {
+            let url = format!("https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent");
             let body = json!({
                 "system_instruction": {"parts": [{"text": system}]},
                 "contents": [{"role": "user", "parts": [{"text": user}]}],
                 "generationConfig": {"temperature": 0.2},
             });
-            let url = format!("https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent");
-            let v = read(p, a.post(&url).set("x-goog-api-key", key).send_json(body))?;
-            Ok(gemini_text(&v))
+            match send(p, || a.post(&url).set("x-goog-api-key", key).send_json(body.clone())) {
+                Ok(v) => Ok(gemini_text(&v)),
+                // Some models (Gemma, transcription models) take no system instruction: send it inline.
+                Err(e) if e.to_lowercase().contains("instruction") => {
+                    let inline = json!({
+                        "contents": [{"role": "user", "parts": [{"text": format!("{system}\n\n{user}")}]}],
+                        "generationConfig": {"temperature": 0.2},
+                    });
+                    let v = send(p, || a.post(&url).set("x-goog-api-key", key).send_json(inline.clone()))?;
+                    Ok(gemini_text(&v))
+                }
+                Err(e) => Err(e),
+            }
         }
         _ => {
             let base = chat_base(p).ok_or("provedor desconhecido")?;
@@ -266,7 +360,7 @@ pub fn complete(p: &str, key: &str, model: &str, system: &str, user: &str) -> Re
             if !reasoning {
                 body["temperature"] = json!(0.2);
             }
-            let v = read(p, a.post(&format!("{base}/chat/completions")).set("Authorization", &format!("Bearer {key}")).send_json(body))?;
+            let v = send(p, || a.post(&format!("{base}/chat/completions")).set("Authorization", &format!("Bearer {key}")).send_json(body.clone()))?;
             Ok(v.pointer("/choices/0/message/content").and_then(|c| c.as_str()).unwrap_or("").to_string())
         }
     }
@@ -281,11 +375,11 @@ fn gemini_text(v: &Value) -> String {
 
 // ───────────────────────────── Speech ─────────────────────────────
 
-/// Transcribes a 16 kHz mono WAV with OpenAI or Gemini.
+/// Transcribes a 16 kHz mono WAV with OpenAI, Gemini or the local AI (`key` = local base URL).
 pub fn transcribe(p: &str, key: &str, model: &str, wav: &[u8], language: Option<&str>, hint: &str) -> Result<String, String> {
     let a = agent();
     match p {
-        "openai" => {
+        "openai" | "local" => {
             let boundary = format!("----copypaste{}", uuid::Uuid::new_v4().simple());
             let mut body: Vec<u8> = vec![];
             let mut field = |name: &str, value: &str| {
@@ -296,7 +390,12 @@ pub fn transcribe(p: &str, key: &str, model: &str, wav: &[u8], language: Option<
             if let Some(l) = language {
                 field("language", l);
             }
-            if !hint.is_empty() {
+            if p == "local" {
+                // In llama.cpp the prompt replaces the instruction, so it must still ask for a transcription.
+                if !hint.is_empty() {
+                    field("prompt", &format!("Transcreva o áudio exatamente como foi falado. Grafias corretas de termos que podem aparecer: {hint}."));
+                }
+            } else if !hint.is_empty() {
                 field("prompt", hint);
             }
             body.extend_from_slice(
@@ -304,13 +403,19 @@ pub fn transcribe(p: &str, key: &str, model: &str, wav: &[u8], language: Option<
             );
             body.extend_from_slice(wav);
             body.extend_from_slice(format!("\r\n--{boundary}--\r\n").as_bytes());
-            let v = read(
-                p,
-                a.post("https://api.openai.com/v1/audio/transcriptions")
-                    .set("Authorization", &format!("Bearer {key}"))
-                    .set("Content-Type", &format!("multipart/form-data; boundary={boundary}"))
-                    .send_bytes(&body),
-            )?;
+            let ctype = format!("multipart/form-data; boundary={boundary}");
+            let v = if p == "local" {
+                let v = send(p, || a.post(&format!("{key}/audio/transcriptions")).set("Content-Type", &ctype).send_bytes(&body))?;
+                crate::local::touch();
+                v
+            } else {
+                send(p, || {
+                    a.post("https://api.openai.com/v1/audio/transcriptions")
+                        .set("Authorization", &format!("Bearer {key}"))
+                        .set("Content-Type", &ctype)
+                        .send_bytes(&body)
+                })?
+            };
             Ok(v.get("text").and_then(|t| t.as_str()).unwrap_or("").to_string())
         }
         "gemini" => {
@@ -331,9 +436,9 @@ pub fn transcribe(p: &str, key: &str, model: &str, wav: &[u8], language: Option<
                 "generationConfig": {"temperature": 0},
             });
             let url = format!("https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent");
-            let v = read(p, a.post(&url).set("x-goog-api-key", key).send_json(body))?;
+            let v = send(p, || a.post(&url).set("x-goog-api-key", key).send_json(body.clone()))?;
             Ok(gemini_text(&v))
         }
-        _ => Err(format!("{} não transcreve áudio. Use OpenAI ou Gemini.", name(p))),
+        _ => Err(format!("{} não transcreve áudio. Use a IA local, a OpenAI ou o Gemini.", name(p))),
     }
 }

@@ -5,6 +5,7 @@ import AppKit
 struct DictationSettingsSections: View {
     @ObservedObject var dict = DictationSettings.shared
     @ObservedObject private var hotkeys = AppSettings.shared
+    @ObservedObject private var local = LocalAI.shared
 
     var body: some View {
         Section("Ditado por voz") {
@@ -16,8 +17,8 @@ struct DictationSettingsSections: View {
                     Text(e.label).tag(e)
                 }
             }
-            if let p = dict.engine.provider, !dict.connected.contains(p) {
-                Text("Conecte o \(p.name) abaixo para usar essa transcrição.")
+            if let p = dict.engine.provider, !dict.available.contains(p) {
+                Text(p == .local ? "Baixe a IA local abaixo para usar essa transcrição." : "Conecte o \(p.name) abaixo para usar essa transcrição.")
                     .font(.caption).foregroundStyle(.orange)
             }
             Picker("Idioma", selection: $dict.language) {
@@ -25,12 +26,12 @@ struct DictationSettingsSections: View {
             }
             Picker("IA que ajusta o texto", selection: $dict.polishProvider) {
                 Text("Nenhuma (texto como foi transcrito)").tag(AIProvider?.none)
-                ForEach(AIProvider.allCases.filter { dict.connected.contains($0) }) { p in
-                    Text(p.name).tag(AIProvider?.some(p))
+                ForEach(AIProvider.allCases.filter { $0 == .local || dict.connected.contains($0) }) { p in
+                    Text(p == .local && !local.isInstalled ? "\(p.name) — baixar abaixo" : p.name).tag(AIProvider?.some(p))
                 }
             }
-            if dict.connected.isEmpty {
-                Text("Conecte uma IA abaixo para tirar vícios de fala, pontuar e formatar o texto automaticamente.")
+            if dict.effectivePolish == nil {
+                Text("Baixe a IA local (grátis) ou conecte uma IA abaixo para tirar vícios de fala, pontuar e formatar o texto automaticamente.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Picker("Estilo", selection: $dict.style) {
@@ -47,7 +48,16 @@ struct DictationSettingsSections: View {
         }
 
         Section {
-            ForEach(AIProvider.allCases) { p in
+            LocalAIRow(local: local)
+        } header: {
+            Text("IA local (padrão, grátis e offline)")
+        } footer: {
+            Text("O Gemma 4 E2B, do Google, roda no próprio Mac pelo llama.cpp: transcreve e ajusta o texto sem internet e sem chave. É usado quando nenhuma outra IA está ativa. Precisa de uns 4 GB de disco e de memória enquanto está em uso; libera a memória após 10 minutos parado.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+
+        Section {
+            ForEach(AIProvider.cloud) { p in
                 AIConnectionRow(provider: p, dict: dict)
             }
         } header: {
@@ -143,5 +153,51 @@ private struct AIConnectionRow: View {
                 self.error = error.localizedDescription
             }
         }
+    }
+}
+
+private struct LocalAIRow: View {
+    @ObservedObject var local: LocalAI
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Gemma 4 E2B").fontWeight(.medium)
+                Text("texto e voz").font(.caption2).padding(.horizontal, 5).padding(.vertical, 1)
+                    .background(Color.secondary.opacity(0.15), in: Capsule())
+                Spacer()
+                switch local.state {
+                case .installed:
+                    Label(local.running ? "Pronta · carregada" : "Pronta", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green).font(.callout)
+                    Button("Remover", role: .destructive) { local.remove() }
+                case .downloading:
+                    Button("Cancelar") { local.cancelInstall() }
+                case .notInstalled, .failed:
+                    Button(local.hasModelFiles ? "Instalar (≈ 17 MB)" : "Baixar (≈ \(Self.gb(LocalAI.totalBytes)))") { local.install() }
+                        .buttonStyle(.borderedProminent)
+                }
+            }
+            switch local.state {
+            case .downloading(let p, let label):
+                ProgressView(value: p) {
+                    Text(label).font(.caption)
+                } currentValueLabel: {
+                    Text("\(Int(p * 100))% de \(Self.gb(LocalAI.totalBytes))").font(.caption).foregroundStyle(.secondary)
+                }
+            case .failed(let msg):
+                Text(msg).font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+            case .installed:
+                Text("Usando \(Self.gb(local.diskUsage)) em ~/Library/Application Support/CopyPaste/IA local")
+                    .font(.caption).foregroundStyle(.secondary)
+            case .notInstalled:
+                EmptyView()
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    static func gb(_ bytes: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
 }

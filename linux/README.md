@@ -33,7 +33,7 @@ sudo apt install ydotool    # GNOME
 | Pastas padrão | lidas de `~/.config/user-dirs.dirs` (ex.: `~/Imagens/CopyPaste`) | igual |
 | Comando de voz sobre a seleção | `xdotool key ctrl+c` | `wtype` ou `ydotool` |
 
-**Ditado por voz:** o microfone é lido pelo ALSA/PipeWire (`cpal`, no núcleo), a transcrição usa a sua chave da OpenAI ou do Gemini e o texto é ajustado pela IA que você conectar (Claude, GPT, Gemini, DeepSeek ou Grok) em *Configurações › IA e ditado*. As chaves ficam em `~/.config/io.github.jonathansfp.copypaste/ai-keys.json`, com permissão só para o seu usuário (0600).
+**Ditado por voz:** o microfone é lido pelo ALSA/PipeWire (`cpal`, no núcleo), a transcrição e o ajuste do texto usam a **IA local** (Gemma 4 E2B no llama.cpp, baixada em *Configurações*, grátis e offline) ou a IA que você conectar (Claude, GPT, Gemini, DeepSeek ou Grok) em *Configurações › IA e ditado*. As chaves ficam em `~/.config/io.github.jonathansfp.copypaste/ai-keys.json`, com permissão só para o seu usuário (0600).
 
 ## Atalhos no Wayland
 

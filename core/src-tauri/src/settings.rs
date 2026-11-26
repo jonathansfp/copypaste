@@ -56,6 +56,8 @@ pub struct Settings {
     /// provider → models available with the saved key.
     pub ai_model_lists: BTreeMap<String, Vec<String>>,
     pub ai_stt_lists: BTreeMap<String, Vec<String>>,
+    /// When the app last looked for a new version (ms since 1970).
+    pub last_update_check: i64,
 }
 
 fn user_dir(base: Option<PathBuf>, fallback: &str) -> String {
@@ -84,15 +86,16 @@ impl Default for Settings {
             paused: false,
             autostart: true,
             first_run_done: false,
-            dict_engine: "openai".into(),
+            dict_engine: "local".into(),
             dict_language: "pt-BR".into(),
             dict_style: "natural".into(),
-            dict_polish: String::new(),
+            dict_polish: "local".into(),
             dict_terms: String::new(),
             ai_models: BTreeMap::new(),
             ai_stt_models: BTreeMap::new(),
             ai_model_lists: BTreeMap::new(),
             ai_stt_lists: BTreeMap::new(),
+            last_update_check: 0,
         }
     }
 }
@@ -128,6 +131,18 @@ impl Settings {
             .unwrap_or_default();
         for a in ACTIONS {
             s.hotkeys.entry(a.to_string()).or_insert_with(|| default_hotkey(a).to_string());
+        }
+        for (p, m) in s.ai_models.clone() {
+            if !crate::ai::is_text_model(&m) {
+                let list = s.ai_model_lists.get(&p).cloned().unwrap_or_default();
+                match crate::ai::preferred_chat(&p, &list) {
+                    Some(better) => s.ai_models.insert(p, better),
+                    None => s.ai_models.remove(&p),
+                };
+            }
+        }
+        for list in s.ai_model_lists.values_mut() {
+            list.retain(|m| crate::ai::is_text_model(m));
         }
         s.record_fps = s.record_fps.clamp(10, 60);
         s.history_limit = s.history_limit.clamp(20, 5000);

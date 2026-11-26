@@ -114,7 +114,7 @@ function build() {
     <h1>IA e ditado por voz</h1>
     <p class="sub">Segure ${hk('dictate')} e fale; solte para o texto aparecer onde está o cursor, em qualquer app. Um toque rápido deixa ouvindo até o próximo toque. Com um texto selecionado, ${hk('voiceCommand')} aplica o que você pedir ("traduza para inglês", "deixe mais formal").</p>
     <div class="card">
-      <div class="row"><div class="l">Transcrição da voz<small>Precisa de uma chave da OpenAI ou do Gemini</small></div><select data-k="dictEngine"><option value="openai">OpenAI (mais preciso)</option><option value="gemini">Gemini</option></select></div>
+      <div class="row"><div class="l">Transcrição da voz<small>A IA local roda no computador, sem internet e sem chave</small></div><select data-k="dictEngine"><option value="local">IA local Gemma 4 (grátis, offline)</option><option value="openai">OpenAI (sua chave)</option><option value="gemini">Gemini (sua chave)</option></select></div>
       <div class="row"><div class="l">Idioma</div><select data-k="dictLanguage">
         <option value="pt-BR">Português (Brasil)</option><option value="pt-PT">Português (Portugal)</option><option value="en-US">Inglês</option>
         <option value="es-ES">Espanhol</option><option value="fr-FR">Francês</option><option value="it-IT">Italiano</option><option value="de-DE">Alemão</option>
@@ -124,6 +124,10 @@ function build() {
         <option value="natural">Natural: limpo, com o seu jeito de falar</option><option value="formal">Formal: e-mails e documentos</option>
         <option value="casual">Descontraído: chats e mensagens</option><option value="literal">Literal: só a transcrição, sem IA</option></select></div>
       <div class="row"><div class="l">Vocabulário<small>Nomes, siglas e termos, separados por vírgula</small></div><input type="text" data-k="dictTerms" placeholder="Ex.: CopyPaste, Kubernetes, Dra. Ana Souza" style="width:260px"></div>
+    </div>
+    <div class="card"><h3>IA local (padrão, grátis e offline)</h3>
+      <div class="row"><div class="l"><b>Gemma 4 E2B</b><small id="localinfo">O modelo do Google roda no seu computador pelo llama.cpp: transcreve e ajusta o texto sem internet e sem chave. É usado quando nenhuma outra IA está ativa.</small><span class="err" id="localerr"></span></div><span id="localact"></span></div>
+      <div id="localbar" style="display:none;padding:0 0 12px"><div style="height:6px;border-radius:9px;background:var(--line);overflow:hidden"><div id="localfill" style="height:100%;width:0;background:var(--accent)"></div></div><small id="locallabel" style="color:var(--muted)"></small></div>
     </div>
     <div class="card" id="aicards"><h3>Conexões de IA</h3></div>
     <p style="color:var(--muted);font-size:12px">Use a sua própria chave de API: o CopyPaste não tem servidor e não cobra nada. A chave fica só neste computador, e o áudio e o texto vão direto para a IA escolhida, cobrados na sua conta dela.</p>
@@ -195,12 +199,62 @@ const PROVIDERS = [
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const openUrl = url => T.opener ? T.opener.openUrl(url) : invoke('plugin:opener|open_url', { url });
 
+const gb = b => (b / 1e9).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' GB';
+
+function renderLocal() {
+  const st = data.local || {};
+  const act = $('#localact'), bar = $('#localbar');
+  $('#localerr').textContent = '';
+  bar.style.display = st.downloading ? 'block' : 'none';
+  if (st.installed) {
+    act.innerHTML = `<small style="color:#16a34a;margin-right:10px">Pronta · ${gb(st.disk)}</small><button class="btn danger" id="localrm">Remover</button>`;
+    $('#localrm').onclick = async () => {
+      if (!confirm('Remover a IA local e liberar o espaço em disco?')) return;
+      const ns = await invoke('local_remove');
+      s.dictPolish = ns.dictPolish;
+      data.local = await invoke('local_status');
+      renderAI();
+    };
+  } else if (st.downloading) {
+    act.innerHTML = `<button class="btn" id="localcancel">Cancelar</button>`;
+    $('#localcancel').onclick = () => invoke('local_cancel');
+  } else {
+    act.innerHTML = `<button class="btn primary" id="localget">${st.hasModel ? 'Instalar (≈ 25 MB)' : `Baixar (≈ ${gb(st.total || 4.1e9)})`}</button>`;
+    $('#localget').onclick = async () => {
+      data.local = { ...st, downloading: true };
+      renderLocal();
+      await invoke('local_install');
+    };
+  }
+}
+
+T.event.listen('local-progress', async e => {
+  const p = e.payload;
+  if (!$('#localbar')) return;
+  if (p.done) {
+    data.local = await invoke('local_status');
+    if (p.error) { renderLocal(); $('#localerr').textContent = p.error; return; }
+    const fresh = await invoke('get_settings');
+    for (const k of ['dictPolish', 'dictEngine']) s[k] = fresh.settings[k];
+    const eng = document.querySelector('[data-k="dictEngine"]');
+    if (eng) eng.value = s.dictEngine;
+    renderAI();
+    return;
+  }
+  $('#localbar').style.display = 'block';
+  $('#localfill').style.width = (p.progress * 100).toFixed(1) + '%';
+  $('#locallabel').textContent = `${p.label} ${Math.round(p.progress * 100)}%`;
+});
+
 function renderAI() {
+  renderLocal();
   const connected = new Set(data.aiConnected || []);
+  const localOk = !!(data.local && data.local.installed);
   const polish = $('#polish');
   polish.innerHTML = `<option value="">Nenhuma (texto como foi transcrito)</option>` +
+    `<option value="local">IA local Gemma 4${localOk ? '' : ' (baixar abaixo)'}</option>` +
     PROVIDERS.filter(([p]) => connected.has(p)).map(([p, n]) => `<option value="${p}">${n}</option>`).join('');
-  polish.value = connected.has(s.dictPolish) ? s.dictPolish : '';
+  polish.value = s.dictPolish === 'local' || connected.has(s.dictPolish) ? s.dictPolish : '';
   polish.onchange = () => { s.dictPolish = polish.value; save(); };
   const box = $('#aicards');
   box.querySelectorAll('.row').forEach(r => r.remove());

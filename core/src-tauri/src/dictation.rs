@@ -115,21 +115,37 @@ struct Config {
     keys: std::collections::BTreeMap<String, String>,
     models: std::collections::BTreeMap<String, String>,
     stt_models: std::collections::BTreeMap<String, String>,
+    lists: std::collections::BTreeMap<String, Vec<String>>,
 }
 
 fn config(app: &AppHandle) -> Config {
     let st = app.state::<AppState>();
     let s = st.settings.lock().unwrap();
-    let keys = st.ai_keys.lock().unwrap().clone();
+    let mut keys = st.ai_keys.lock().unwrap().clone();
+    // The local AI needs no key: it counts as connected once downloaded (its "key" is resolved on use).
+    let local = crate::local::is_installed(app);
+    if local {
+        keys.insert("local".into(), String::new());
+    }
+    // Without the chosen AI, the local one is the default.
+    let engine = if keys.contains_key(&s.dict_engine) { s.dict_engine.clone() } else if local { "local".into() } else { s.dict_engine.clone() };
+    let polish = if keys.contains_key(&s.dict_polish) {
+        s.dict_polish.clone()
+    } else if local && (s.dict_polish == "local" || !s.dict_polish.is_empty()) {
+        "local".into()
+    } else {
+        String::new()
+    };
     let cfg = Config {
-        engine: s.dict_engine.clone(),
+        engine,
         language: s.dict_language.clone(),
         style: s.dict_style.clone(),
-        polish: s.dict_polish.clone(),
+        polish,
         terms: s.dict_terms.clone(),
         keys,
         models: s.ai_models.clone(),
         stt_models: s.ai_stt_models.clone(),
+        lists: s.ai_model_lists.clone(),
     };
     cfg
 }
@@ -137,12 +153,12 @@ fn config(app: &AppHandle) -> Config {
 pub fn start(app: &AppHandle, mode: Mode, by_press: bool) {
     let cfg = config(app);
     if !cfg.keys.contains_key(&cfg.engine) {
-        ui::toast(app, "Para ditar, conecte a sua chave da OpenAI ou do Gemini em Configurações › IA e ditado.");
+        ui::toast(app, "Para ditar, baixe a IA local (grátis) ou conecte a OpenAI ou o Gemini em Configurações › IA e ditado.");
         ui::open_settings(app, Some("ia"));
         return;
     }
     if mode == Mode::Command && !cfg.keys.contains_key(&cfg.polish) {
-        ui::toast(app, "Para comandos de voz, escolha uma IA conectada em Configurações › IA e ditado.");
+        ui::toast(app, "Para comandos de voz, baixe a IA local ou conecte uma IA em Configurações › IA e ditado.");
         ui::open_settings(app, Some("ia"));
         return;
     }
@@ -151,6 +167,10 @@ pub fn start(app: &AppHandle, mode: Mode, by_press: bool) {
     *SESSION.lock().unwrap() = Some(Session { mode, pressed_at: Instant::now(), by_press, hands_free: !by_press, processing: false, stop: tx });
     show_pill(app);
     emit_state(app, "listening", "");
+    // Loads the local model while the user talks, so the answer comes faster.
+    if cfg.engine == "local" || cfg.polish == "local" {
+        crate::local::prewarm(app);
+    }
     let app = app.clone();
     std::thread::spawn(move || {
         let result = record(&app, rx);
@@ -307,8 +327,15 @@ fn model_for(map: &std::collections::BTreeMap<String, String>, p: &str) -> Optio
 }
 
 fn process(app: &AppHandle, cfg: &Config, mode: Mode, wav: &[u8]) -> Result<Option<String>, String> {
-    emit_state(app, "processing", "Transcrevendo…");
-    let key = cfg.keys.get(&cfg.engine).ok_or("Conecte a chave da OpenAI ou do Gemini.")?;
+    emit_state(app, "processing", if cfg.engine == "local" { "Transcrevendo no computador…" } else { "Transcrevendo…" });
+    let key_for = |p: &str| -> Result<String, String> {
+        if p == "local" {
+            crate::local::ensure_running(app)
+        } else {
+            cfg.keys.get(p).cloned().ok_or_else(|| format!("Conecte a chave do {}.", ai::name(p)))
+        }
+    };
+    let key = &key_for(&cfg.engine)?;
     let stt = model_for(&cfg.stt_models, &cfg.engine).or_else(|| ai::preferred_stt(&cfg.engine, &[])).unwrap_or_else(|| {
         if cfg.engine == "openai" { "gpt-4o-transcribe".into() } else { "gemini-2.5-flash".into() }
     });
@@ -319,10 +346,16 @@ fn process(app: &AppHandle, cfg: &Config, mode: Mode, wav: &[u8]) -> Result<Opti
     if raw.is_empty() {
         return Ok(None);
     }
-    let polish = cfg.keys.get(&cfg.polish).map(|k| (cfg.polish.clone(), k.clone()));
-    let chat_model = |p: &str| model_for(&cfg.models, p);
+    let polish = if cfg.keys.contains_key(&cfg.polish) { Some(cfg.polish.clone()) } else { None };
+    let chat_model = |p: &str| {
+        if p == "local" {
+            return Some(crate::local::MODEL_NAME.to_string());
+        }
+        model_for(&cfg.models, p).filter(|m| ai::is_text_model(m)).or_else(|| ai::preferred_chat(p, cfg.lists.get(p).map(|v| &v[..]).unwrap_or(&[])))
+    };
     if mode == Mode::Command {
-        let (p, k) = polish.ok_or("Conecte uma IA para usar comandos de voz.")?;
+        let p = polish.ok_or("Conecte uma IA para usar comandos de voz.")?;
+        let k = key_for(&p)?;
         let model = chat_model(&p).ok_or("Escolha o modelo da IA em Configurações › IA e ditado.")?;
         emit_state(app, "processing", &format!("{} está escrevendo…", ai::name(&p)));
         let selected = platform::copy_selection().ok().and_then(|_| {
@@ -342,9 +375,16 @@ fn process(app: &AppHandle, cfg: &Config, mode: Mode, wav: &[u8]) -> Result<Opti
         let out = ai::complete(&p, &k, &model, &command_prompt(), &user)?;
         return Ok(Some(strip(&out)));
     }
-    let Some((p, k)) = polish.filter(|_| cfg.style != "literal") else { return Ok(Some(raw)) };
+    let Some(p) = polish.filter(|_| cfg.style != "literal") else { return Ok(Some(raw)) };
     let Some(model) = chat_model(&p) else { return Ok(Some(raw)) };
     emit_state(app, "processing", &format!("Ajustando com {}…", ai::name(&p)));
+    let k = match key_for(&p) {
+        Ok(k) => k,
+        Err(e) => {
+            ui::toast(app, &format!("{e} Colei o texto sem ajuste."));
+            return Ok(Some(raw));
+        }
+    };
     match ai::complete(&p, &k, &model, &cleanup_prompt(&cfg.style, &terms), &format!("<transcricao>\n{raw}\n</transcricao>")) {
         Ok(out) => Ok(Some(strip(&out))),
         Err(e) => {

@@ -35,6 +35,7 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     m.item(&PredefinedMenuItem::separator(app)?)
         .item(&MenuItem::with_id(app, "pause", if s.paused { "Retomar histórico" } else { "Pausar histórico" }, true, None::<&str>)?)
         .item(&MenuItem::with_id(app, "settings", "Configurações…", true, None::<&str>)?)
+        .item(&MenuItem::with_id(app, "updates", "Verificar atualizações…", true, None::<&str>)?)
         .item(&MenuItem::with_id(app, "donate", "Doar via Pix ♥", true, None::<&str>)?)
         .item(&PredefinedMenuItem::separator(app)?)
         .item(&MenuItem::with_id(app, "quit", "Sair do CopyPaste", true, None::<&str>)?)
@@ -52,6 +53,10 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
             match id.as_str() {
                 "quit" => app.exit(0),
                 "settings" => crate::ui::open_settings(app, None),
+                "updates" => {
+                    let app = app.clone();
+                    std::thread::spawn(move || crate::updates::check(&app, true));
+                }
                 "donate" => {
                     let _ = crate::set_clipboard_text(app, PIX_KEY);
                     crate::ui::open_settings(app, Some("apoie"));

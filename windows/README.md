@@ -22,7 +22,7 @@ Na primeira execução, o SmartScreen pode mostrar "O Windows protegeu o computa
 | Sem janela de console | `CREATE_NO_WINDOW` ao chamar o ffmpeg |
 | Comando de voz sobre a seleção | Envia `Ctrl+C` com `SendInput` para ler o texto selecionado |
 
-**Ditado por voz:** o microfone é lido pelo WASAPI (`cpal`, no núcleo), a transcrição usa a sua chave da OpenAI ou do Gemini e o texto é ajustado pela IA que você conectar (Claude, GPT, Gemini, DeepSeek ou Grok) em *Configurações › IA e ditado*. As chaves ficam em `%APPDATA%\io.github.jonathansfp.copypaste\ai-keys.json`, só no seu computador.
+**Ditado por voz:** o microfone é lido pelo WASAPI (`cpal`, no núcleo), a transcrição e o ajuste do texto usam a **IA local** (Gemma 4 E2B no llama.cpp, baixada em *Configurações*, grátis e offline) ou a IA que você conectar (Claude, GPT, Gemini, DeepSeek ou Grok) em *Configurações › IA e ditado*. As chaves ficam em `%APPDATA%\io.github.jonathansfp.copypaste\ai-keys.json`, só no seu computador.
 
 ## Compilar
 
