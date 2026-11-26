@@ -472,7 +472,7 @@ macos/Sources/CopyPaste/
 ## Privacidad
 
 - **Nada sale de tu Mac.** No hay telemetría ni cuenta. El OCR se ejecuta localmente con Vision.
-- **Actualizaciones:** una vez por semana la app consulta la página de versiones de GitHub; si hay una nueva, muestra un aviso con el botón para descargarla. No se envía nada más allá de esa consulta.
+- **Actualizaciones:** una vez por semana la app consulta la página de versiones de GitHub; si hay una nueva, te pregunta si quieres actualizar. Con tu **Actualizar ahora**, la app descarga la nueva versión, se instala y se vuelve a abrir sola (en Linux, en la versión AppImage; .deb y .rpm abren la página de descarga). No se envía nada más allá de esa consulta.
 - **Dictado por voz:** con la IA local o la transcripción de Apple, todo queda en la computadora. Al conectar una IA, solo el audio del dictado y el texto van, directo desde tu Mac, al proveedor que **tú** elegiste, con **tu** clave. No hay ningún servidor de CopyPaste en el medio.
 - El historial se guarda en `~/Library/Application Support/CopyPaste/`.
 - El contenido marcado como confidencial por los gestores de contraseñas **nunca se guarda**.

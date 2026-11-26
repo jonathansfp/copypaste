@@ -134,6 +134,7 @@ fn window_rects(mx: i32, my: i32, w: u32, h: u32) -> Vec<Rect> {
 
 fn show_editor(app: &AppHandle, mx: i32, my: i32, w: u32, h: u32, payload: EditorOpen) {
     let Some(ed) = app.get_webview_window("editor") else { return };
+    #[cfg(target_os = "linux")]
     let _ = ed.set_fullscreen(false);
     let _ = ed.set_position(PhysicalPosition::new(mx, my));
     let _ = ed.set_size(PhysicalSize::new(w, h));
@@ -161,19 +162,41 @@ pub fn reveal_editor(app: &AppHandle) {
     }
     let Some(ed) = app.get_webview_window("editor") else { return };
     let _ = ed.show();
-    #[cfg(not(target_os = "macos"))]
+    // On Windows the borderless window, sized to the monitor, already covers everything; leaving
+    // fullscreen there re-shows a hidden window (the black screen that Esc could not close).
+    #[cfg(target_os = "linux")]
     let _ = ed.set_fullscreen(true);
     let _ = ed.set_always_on_top(true);
     let _ = ed.set_focus();
 }
 
 pub fn hide_editor(app: &AppHandle) {
-    app.state::<AppState>().editor_shown.store(true, Ordering::SeqCst);
+    let state = app.state::<AppState>();
+    state.editor_shown.store(true, Ordering::SeqCst);
+    let gen = state.editor_gen.load(Ordering::SeqCst);
     if let Some(ed) = app.get_webview_window("editor") {
-        let _ = ed.hide();
-        #[cfg(not(target_os = "macos"))]
+        // Leave fullscreen before hiding: the other order can bring the window back.
+        #[cfg(target_os = "linux")]
         let _ = ed.set_fullscreen(false);
+        let _ = ed.hide();
     }
+    // Safety net: if the window manager shows it again and no new capture started, hide it again.
+    let app = app.clone();
+    std::thread::spawn(move || {
+        for _ in 0..3 {
+            std::thread::sleep(std::time::Duration::from_millis(150));
+            let state = app.state::<AppState>();
+            if state.editor_gen.load(Ordering::SeqCst) != gen {
+                return;
+            }
+            if let Some(ed) = app.get_webview_window("editor") {
+                if ed.is_visible().unwrap_or(false) {
+                    crate::diag(&app, "captura: janela reapareceu ao fechar; escondendo de novo");
+                    let _ = ed.hide();
+                }
+            }
+        }
+    });
 }
 
 /// Response of the `cpframe://` protocol at `/frame/<id>`: raw RGBA (fastest path, nothing to encode).
@@ -254,7 +277,9 @@ pub fn finish(app: &AppHandle, action: &str, png: Vec<u8>, pin_at: Option<(f64, 
                 .blocking_save_file();
             if keep {
                 // Board: comes back after the dialog.
-                app.state::<AppState>().editor_shown.store(false, Ordering::SeqCst);
+                let st = app.state::<AppState>();
+                st.editor_gen.fetch_add(1, Ordering::SeqCst);
+                st.editor_shown.store(false, Ordering::SeqCst);
                 reveal_editor(app);
             }
             let Some(path) = picked.and_then(|p| p.into_path().ok()) else { return Ok("cancel".into()) };

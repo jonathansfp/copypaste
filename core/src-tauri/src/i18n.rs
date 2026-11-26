@@ -155,6 +155,18 @@ fn table(pt: &str) -> Option<(&'static str, &'static str)> {
         "Nova versão do CopyPaste: {}" => ("New version of CopyPaste: {}", "Nueva versión de CopyPaste: {}"),
         "Baixar atualização" => ("Download update", "Descargar actualización"),
         "Depois" => ("Later", "Más tarde"),
+        "Atualizar agora" => ("Update now", "Actualizar ahora"),
+        "Clique em Atualizar agora: o CopyPaste baixa a nova versão, instala e abre de novo sozinho. O histórico e as configurações são mantidos." => (
+            "Click Update now: CopyPaste downloads the new version, installs it and reopens on its own. Your history and settings are kept.",
+            "Haz clic en Actualizar ahora: CopyPaste descarga la nueva versión, la instala y se vuelve a abrir solo. Tu historial y tu configuración se conservan.",
+        ),
+        "Não consegui atualizar sozinho ({}). Abrindo o download." => (
+            "Couldn't update automatically ({}). Opening the download.",
+            "No pude actualizar automáticamente ({}). Abriendo la descarga.",
+        ),
+        "o download veio incompleto" => ("the download is incomplete", "la descarga está incompleta"),
+        "Baixando a atualização {}…" => ("Downloading update {}…", "Descargando la actualización {}…"),
+        "Atualizando para a {} e reabrindo…" => ("Updating to {} and reopening…", "Actualizando a la {} y reabriendo…"),
 
         // ── general ──
         "área de transferência indisponível" => ("clipboard unavailable", "portapapeles no disponible"),

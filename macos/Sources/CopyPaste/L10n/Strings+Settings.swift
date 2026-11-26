@@ -1,5 +1,16 @@
 // Translations for settings, dictation, AI, updates and the menu bar: Portuguese → [English, Spanish].
 let l10nSettings: [String: [String]] = [
+    "Atualizar agora": ["Update Now", "Actualizar ahora"],
+    "Você está na %@. Clique em Atualizar agora: o CopyPaste baixa a nova versão, se substitui e abre de novo sozinho. Seu histórico e as configurações são mantidos.": ["You have %@. Click Update Now: CopyPaste downloads the new version, replaces itself and reopens on its own. Your history and settings are kept.", "Tienes la %@. Haz clic en Actualizar ahora: CopyPaste descarga la nueva versión, se reemplaza y se vuelve a abrir solo. Tu historial y tu configuración se conservan."],
+    "Sem permissão para trocar o app em %@.": ["No permission to replace the app in %@.", "Sin permiso para reemplazar la app en %@."],
+    "Baixando a atualização %@…": ["Downloading update %@…", "Descargando la actualización %@…"],
+    "O download falhou.": ["The download failed.", "La descarga falló."],
+    "O download veio incompleto.": ["The download is incomplete.", "La descarga está incompleta."],
+    "O pacote baixado não é a versão esperada.": ["The downloaded package is not the expected version.", "El paquete descargado no es la versión esperada."],
+    "Atualizando para a %@ e reabrindo…": ["Updating to %@ and reopening…", "Actualizando a la %@ y reabriendo…"],
+    "Não consegui atualizar sozinho": ["Couldn't update automatically", "No pude actualizar automáticamente"],
+    "%@ Vou abrir o download: abra o arquivo e arraste o CopyPaste para Aplicativos, substituindo o atual.": ["%@ I'll open the download: open the file and drag CopyPaste to Applications, replacing the current one.", "%@ Abriré la descarga: abre el archivo y arrastra CopyPaste a Aplicaciones, reemplazando el actual."],
+    "Falha ao preparar a atualização.": ["Couldn't prepare the update.", "No se pudo preparar la actualización."],
     "Como usar…": ["How to Use…", "Cómo usar…"],
     "Como usar o CopyPaste": ["How to Use CopyPaste", "Cómo usar CopyPaste"],
     "Automático (idioma do Mac)": ["Automatic (Mac language)", "Automático (idioma del Mac)"],
