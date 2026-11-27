@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Política de privacidade e termos de uso — CopyPaste</title>
+<meta name="description" content="Política de privacidade e termos de uso do CopyPaste: o app não tem servidores, não cria contas e não coleta dados pessoais.">
+<link rel="icon" href="icon.png">
+<link rel="stylesheet" href="page.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="index.html" data-keep-lang><img src="icon.png" alt="">CopyPaste</a>
+    <div class="links">
+      <a href="index.html" data-keep-lang data-nav="home">Início</a>
+      <a href="suporte.html" data-keep-lang data-nav="support">Suporte</a>
+      <a href="privacidade.html" data-keep-lang data-nav="privacy" aria-current="page">Privacidade e termos</a>
+    </div>
+    <div class="lang" id="lang"><button data-lang="pt">PT</button><button data-lang="en">EN</button><button data-lang="es">ES</button></div>
+    <button class="theme" id="theme" title="Alternar tema claro/escuro" aria-label="Alternar tema">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ═══════════════════════════════ PORTUGUÊS ═══════════════════════════════ -->
+<article data-lang="pt" data-title="Política de privacidade e termos de uso — CopyPaste">
+  <h1>Privacidade e termos de uso</h1>
+  <p class="updated">Última atualização: 27 de novembro de 2026</p>
+
+  <div class="summary"><p><b>Em resumo:</b> o CopyPaste não tem servidores, não pede cadastro e não coleta, vende nem compartilha dados pessoais. Não há anúncios, telemetria nem rastreamento. O que você copia, captura, grava e dita fica no seu computador. Só sai dele o que você mesmo mandar para um serviço que você escolheu, como a sua IA.</p></div>
+
+  <div class="toc"><b>Nesta página</b><ol>
+    <li><a href="#pt-privacidade">Política de privacidade</a></li>
+    <li><a href="#pt-termos">Termos de uso</a></li>
+  </ol></div>
+
+  <h2 id="pt-privacidade">Política de privacidade</h2>
+
+  <h3>Quem é o responsável</h3>
+  <p>O CopyPaste é um aplicativo gratuito e de código aberto desenvolvido por <b>Jonathan Felix</b>. Dúvidas sobre privacidade: <a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a>.</p>
+
+  <h3>O que fica só no seu computador</h3>
+  <ul>
+    <li><b>Histórico de cópias:</b> textos, links, imagens, cores, códigos e arquivos copiados, com o nome do app de origem.</li>
+    <li><b>Capturas, gravações e desenhos do quadro</b>, salvos na pasta que você escolher.</li>
+    <li><b>Configurações</b> e um <b>registro de diagnóstico</b> curto (<code>diagnostico.log</code>), que só serve para investigar problemas e só sai do computador se você mesmo enviar.</li>
+  </ul>
+  <p>Você pode apagar o histórico a qualquer momento pelo menu do app. Desinstalar o app e apagar a pasta de dados remove tudo. No Mac, conteúdo marcado como confidencial por gerenciadores de senha (como o 1Password) nunca é salvo no histórico.</p>
+
+  <h3>Quando o app usa a internet</h3>
+  <p>O CopyPaste só se conecta à internet nestes casos:</p>
+  <ul>
+    <li><b>Verificação de atualizações:</b> uma vez por semana o app consulta a lista de versões no GitHub. Se você aceitar uma atualização, o arquivo novo é baixado do GitHub. Nenhum dado seu é enviado; o GitHub recebe apenas os dados técnicos de qualquer acesso, como o endereço IP.</li>
+    <li><b>Instalação da IA local:</b> quando você clica em baixar, o modelo Gemma é baixado do Hugging Face e o programa que o executa (llama.cpp) é baixado do GitHub. Depois disso a IA local funciona sem internet: a sua voz e os seus textos não saem do computador.</li>
+    <li><b>IA com a sua chave (opcional):</b> se você conectar Claude (Anthropic), ChatGPT (OpenAI), Gemini (Google), DeepSeek ou Grok (xAI), o áudio do ditado, o texto transcrito e, no comando de voz, o texto selecionado vão <b>direto do seu computador</b> para o provedor escolhido, sem passar por nenhum servidor do CopyPaste. Esse envio segue os termos e a política de privacidade do provedor e é cobrado na sua conta dele. A chave fica guardada no Porta-chaves do Mac ou, no Windows e no Linux, num arquivo na sua pasta de configurações. Ela nunca é enviada ao desenvolvedor.</li>
+    <li><b>Transcrição da Apple (Mac):</b> quando o Mac permite, o reconhecimento de fala roda no próprio computador.</li>
+    <li><b>Links que você abre:</b> botões como “Pesquisar no Google Lens”, “Obter chave” ou os links do GitHub só abrem o navegador quando você clica. No Google Lens, a imagem fica copiada para você colar, se quiser.</li>
+  </ul>
+
+  <h3>Permissões do sistema</h3>
+  <p>O app pede apenas o necessário para cada recurso: <b>Acessibilidade</b> (colar no lugar do cursor e ler o texto selecionado no comando de voz), <b>Gravação de Tela</b> (capturas e vídeos) e <b>Microfone</b> e <b>Reconhecimento de Fala</b> (ditado e áudio das gravações). O microfone só é usado enquanto você está ditando ou gravando.</p>
+
+  <h3>Este site</h3>
+  <p>O site é hospedado no GitHub Pages. Ele não usa cookies, anúncios nem ferramentas de análise. Guarda no seu navegador (localStorage) só o idioma e o tema que você escolher. Como em qualquer site, o GitHub pode registrar dados técnicos de acesso, como o endereço IP, para segurança: veja a <a href="https://docs.github.com/pt/site-policy/privacy-policies/github-general-privacy-statement">declaração de privacidade do GitHub</a>.</p>
+
+  <h3>Doações via Pix</h3>
+  <p>Doações são voluntárias e processadas pelo seu banco. O desenvolvedor recebe apenas os dados que o próprio Pix mostra a quem recebe, como o nome de quem pagou, e não os usa para nenhuma outra finalidade.</p>
+
+  <h3>Seus direitos (LGPD)</h3>
+  <p>Como o desenvolvedor não recebe nem guarda seus dados de uso, o controle é todo seu, no seu próprio computador. Se você enviar um e-mail ou abrir um chamado no GitHub, o seu contato é usado só para responder; você pode pedir a exclusão a qualquer momento pelo e-mail acima.</p>
+
+  <h3>Crianças</h3>
+  <p>O CopyPaste não coleta dados de ninguém, incluindo crianças. O uso de IAs de terceiros por menores deve seguir as regras de idade de cada provedor.</p>
+
+  <h3>Mudanças nesta política</h3>
+  <p>Se algo mudar, esta página será atualizada com a nova data no topo. Mudanças importantes também serão citadas nas notas da versão.</p>
+
+  <h2 id="pt-termos">Termos de uso</h2>
+
+  <h3>1. Aceitação</h3>
+  <p>Ao baixar ou usar o CopyPaste você concorda com estes termos. Se não concordar, não use o app.</p>
+
+  <h3>2. Licença e código aberto</h3>
+  <p>O CopyPaste é distribuído sob a licença <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL versão 3</a>. Você pode usar, estudar, modificar e redistribuir o app conforme essa licença. O código está em <a href="https://github.com/jonathansfp/copypaste">github.com/jonathansfp/copypaste</a>.</p>
+
+  <h3>3. Gratuito, sem garantia</h3>
+  <p>O app é gratuito e fornecido <b>“no estado em que se encontra”</b>, sem garantias de qualquer tipo, nos termos das seções 15 e 16 da GPL. Na medida permitida pela lei, o desenvolvedor não responde por perdas de dados, lucros cessantes ou outros danos decorrentes do uso. Faça cópias de segurança do que for importante. Doações não criam obrigação de suporte, garantia ou recursos adicionais.</p>
+
+  <h3>4. Uso responsável</h3>
+  <p>Use o app de acordo com a lei. Você é responsável pelo que captura, grava, dita e compartilha: obtenha o consentimento das pessoas antes de gravar reuniões ou chamadas, respeite direitos autorais e a privacidade de terceiros e não use o app para vigiar ninguém sem autorização.</p>
+
+  <h3>5. Serviços de terceiros</h3>
+  <p>Recursos opcionais usam serviços de terceiros (provedores de IA, GitHub, Hugging Face, Google Lens), cada um com seus próprios termos, políticas e preços. O uso desses serviços é uma relação direta entre você e o provedor. Respostas de IA podem conter erros: revise o texto antes de enviar.</p>
+
+  <h3>6. IA local</h3>
+  <p>O modelo Gemma é fornecido pelo Google e está sujeito aos <a href="https://ai.google.dev/gemma/terms">termos de uso do Gemma</a>. O llama.cpp é distribuído sob a licença MIT. Ao baixar a IA local você concorda com esses termos.</p>
+
+  <h3>7. Marcas</h3>
+  <p>Apple, macOS, Windows, Linux, Claude, ChatGPT, Gemini, Gemma, DeepSeek, Grok, GitHub, Google Lens e outras marcas citadas pertencem aos seus donos. O CopyPaste não é afiliado a eles nem endossado por eles.</p>
+
+  <h3>8. Atualizações</h3>
+  <p>Recursos podem mudar entre versões. O app avisa quando há uma versão nova e só atualiza com a sua aprovação.</p>
+
+  <h3>9. Lei aplicável e contato</h3>
+  <p>Estes termos seguem as leis do Brasil. Dúvidas: <a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a>.</p>
+</article>
+
+<!-- ═══════════════════════════════ ENGLISH ═══════════════════════════════ -->
+<article data-lang="en" data-title="Privacy policy and terms of use — CopyPaste" hidden>
+  <h1>Privacy and terms of use</h1>
+  <p class="updated">Last updated: November 27, 2026</p>
+
+  <div class="summary"><p><b>In short:</b> CopyPaste has no servers, needs no account and does not collect, sell or share personal data. No ads, no telemetry, no tracking. What you copy, capture, record and dictate stays on your computer. Only what you choose to send to a service you picked, such as your AI, ever leaves it.</p></div>
+
+  <div class="toc"><b>On this page</b><ol>
+    <li><a href="#en-privacy">Privacy policy</a></li>
+    <li><a href="#en-terms">Terms of use</a></li>
+  </ol></div>
+
+  <h2 id="en-privacy">Privacy policy</h2>
+
+  <h3>Who is responsible</h3>
+  <p>CopyPaste is a free, open-source app developed by <b>Jonathan Felix</b>. Privacy questions: <a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a>.</p>
+
+  <h3>What stays on your computer only</h3>
+  <ul>
+    <li><b>Clipboard history:</b> copied text, links, images, colors, code and files, with the name of the app they came from.</li>
+    <li><b>Screenshots, recordings and board drawings</b>, saved in the folder you choose.</li>
+    <li><b>Settings</b> and a short <b>diagnostics log</b> (<code>diagnostico.log</code>), used only to investigate problems and never sent anywhere unless you send it yourself.</li>
+  </ul>
+  <p>You can clear the history at any time from the app menu. Uninstalling the app and deleting its data folder removes everything. On the Mac, content marked as confidential by password managers (such as 1Password) is never saved to the history.</p>
+
+  <h3>When the app uses the internet</h3>
+  <p>CopyPaste only connects to the internet in these cases:</p>
+  <ul>
+    <li><b>Update check:</b> once a week the app reads the list of releases on GitHub. If you accept an update, the new file is downloaded from GitHub. None of your data is sent; GitHub only receives the technical data of any request, such as your IP address.</li>
+    <li><b>Installing the local AI:</b> when you click download, the Gemma model is downloaded from Hugging Face and the program that runs it (llama.cpp) from GitHub. After that the local AI works offline: your voice and text never leave your computer.</li>
+    <li><b>AI with your own key (optional):</b> if you connect Claude (Anthropic), ChatGPT (OpenAI), Gemini (Google), DeepSeek or Grok (xAI), the dictation audio, the transcribed text and, for voice commands, the selected text go <b>straight from your computer</b> to the provider you chose, without passing through any CopyPaste server. This follows that provider's terms and privacy policy and is billed to your account with them. The key is stored in the Mac Keychain or, on Windows and Linux, in a file in your settings folder. It is never sent to the developer.</li>
+    <li><b>Apple transcription (Mac):</b> when the Mac supports it, speech recognition runs on the computer itself.</li>
+    <li><b>Links you open:</b> buttons such as “Search with Google Lens”, “Get a key” or the GitHub links only open your browser when you click them. With Google Lens, the image is copied so you can paste it if you want.</li>
+  </ul>
+
+  <h3>System permissions</h3>
+  <p>The app asks only for what each feature needs: <b>Accessibility</b> (pasting at the cursor and reading the selected text for voice commands), <b>Screen Recording</b> (screenshots and videos), and <b>Microphone</b> and <b>Speech Recognition</b> (dictation and recording audio). The microphone is only used while you are dictating or recording.</p>
+
+  <h3>This website</h3>
+  <p>The site is hosted on GitHub Pages. It uses no cookies, ads or analytics. It only stores the language and theme you pick in your browser (localStorage). As with any website, GitHub may log technical access data, such as your IP address, for security: see the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub privacy statement</a>.</p>
+
+  <h3>Donations via Pix</h3>
+  <p>Donations are voluntary and processed by your bank through Pix, Brazil's instant payment system. The developer only receives what Pix itself shows to the recipient, such as the payer's name, and uses it for nothing else.</p>
+
+  <h3>Your rights</h3>
+  <p>Since the developer neither receives nor stores your usage data, you are in full control on your own computer. If you send an email or open a GitHub issue, your contact details are used only to reply; you can ask for them to be deleted at any time at the email above. This policy follows Brazil's data protection law (LGPD).</p>
+
+  <h3>Children</h3>
+  <p>CopyPaste collects no data from anyone, including children. Minors using third-party AIs must follow each provider's age rules.</p>
+
+  <h3>Changes to this policy</h3>
+  <p>If anything changes, this page will be updated with the new date at the top. Important changes will also be mentioned in the release notes.</p>
+
+  <h2 id="en-terms">Terms of use</h2>
+
+  <h3>1. Acceptance</h3>
+  <p>By downloading or using CopyPaste you agree to these terms. If you do not agree, do not use the app.</p>
+
+  <h3>2. License and open source</h3>
+  <p>CopyPaste is distributed under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL version 3</a>. You may use, study, modify and redistribute the app under that license. The code is at <a href="https://github.com/jonathansfp/copypaste">github.com/jonathansfp/copypaste</a>.</p>
+
+  <h3>3. Free, no warranty</h3>
+  <p>The app is free and provided <b>“as is”</b>, without warranty of any kind, as stated in sections 15 and 16 of the GPL. To the extent permitted by law, the developer is not liable for data loss, lost profits or other damages arising from its use. Back up anything important. Donations do not create any obligation of support, warranty or extra features.</p>
+
+  <h3>4. Responsible use</h3>
+  <p>Use the app lawfully. You are responsible for what you capture, record, dictate and share: get people's consent before recording meetings or calls, respect copyright and other people's privacy, and do not use the app to monitor anyone without permission.</p>
+
+  <h3>5. Third-party services</h3>
+  <p>Optional features use third-party services (AI providers, GitHub, Hugging Face, Google Lens), each with its own terms, policies and prices. Using them is a direct relationship between you and the provider. AI answers may contain mistakes: review the text before sending it.</p>
+
+  <h3>6. Local AI</h3>
+  <p>The Gemma model is provided by Google and subject to the <a href="https://ai.google.dev/gemma/terms">Gemma terms of use</a>. llama.cpp is distributed under the MIT license. By downloading the local AI you agree to those terms.</p>
+
+  <h3>7. Trademarks</h3>
+  <p>Apple, macOS, Windows, Linux, Claude, ChatGPT, Gemini, Gemma, DeepSeek, Grok, GitHub, Google Lens and other names mentioned belong to their owners. CopyPaste is not affiliated with or endorsed by them.</p>
+
+  <h3>8. Updates</h3>
+  <p>Features may change between versions. The app tells you when a new version is out and only updates with your approval.</p>
+
+  <h3>9. Governing law and contact</h3>
+  <p>These terms are governed by the laws of Brazil. Questions: <a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a>.</p>
+</article>
+
+<!-- ═══════════════════════════════ ESPAÑOL ═══════════════════════════════ -->
+<article data-lang="es" data-title="Política de privacidad y términos de uso — CopyPaste" hidden>
+  <h1>Privacidad y términos de uso</h1>
+  <p class="updated">Última actualización: 27 de noviembre de 2026</p>
+
+  <div class="summary"><p><b>En resumen:</b> CopyPaste no tiene servidores, no pide registro y no recopila, vende ni comparte datos personales. No hay anuncios, telemetría ni rastreo. Lo que copias, capturas, grabas y dictas se queda en tu computadora. Solo sale de ella lo que tú envíes a un servicio que elegiste, como tu IA.</p></div>
+
+  <div class="toc"><b>En esta página</b><ol>
+    <li><a href="#es-privacidad">Política de privacidad</a></li>
+    <li><a href="#es-terminos">Términos de uso</a></li>
+  </ol></div>
+
+  <h2 id="es-privacidad">Política de privacidad</h2>
+
+  <h3>Quién es el responsable</h3>
+  <p>CopyPaste es una aplicación gratuita y de código abierto desarrollada por <b>Jonathan Felix</b>. Dudas sobre privacidad: <a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a>.</p>
+
+  <h3>Lo que se queda solo en tu computadora</h3>
+  <ul>
+    <li><b>Historial del portapapeles:</b> textos, enlaces, imágenes, colores, código y archivos copiados, con el nombre de la app de origen.</li>
+    <li><b>Capturas, grabaciones y dibujos de la pizarra</b>, guardados en la carpeta que elijas.</li>
+    <li><b>Configuración</b> y un <b>registro de diagnóstico</b> breve (<code>diagnostico.log</code>), que solo sirve para investigar problemas y solo sale de la computadora si tú lo envías.</li>
+  </ul>
+  <p>Puedes borrar el historial en cualquier momento desde el menú de la app. Desinstalar la app y borrar su carpeta de datos lo elimina todo. En el Mac, el contenido marcado como confidencial por gestores de contraseñas (como 1Password) nunca se guarda en el historial.</p>
+
+  <h3>Cuándo la app usa internet</h3>
+  <p>CopyPaste solo se conecta a internet en estos casos:</p>
+  <ul>
+    <li><b>Búsqueda de actualizaciones:</b> una vez por semana la app consulta la lista de versiones en GitHub. Si aceptas una actualización, el archivo nuevo se descarga de GitHub. No se envía ningún dato tuyo; GitHub solo recibe los datos técnicos de cualquier acceso, como la dirección IP.</li>
+    <li><b>Instalación de la IA local:</b> cuando haces clic en descargar, el modelo Gemma se descarga de Hugging Face y el programa que lo ejecuta (llama.cpp) de GitHub. Después la IA local funciona sin internet: tu voz y tus textos no salen de la computadora.</li>
+    <li><b>IA con tu clave (opcional):</b> si conectas Claude (Anthropic), ChatGPT (OpenAI), Gemini (Google), DeepSeek o Grok (xAI), el audio del dictado, el texto transcrito y, en el comando de voz, el texto seleccionado van <b>directo desde tu computadora</b> al proveedor elegido, sin pasar por ningún servidor de CopyPaste. Ese envío sigue los términos y la política de privacidad del proveedor y se cobra en tu cuenta. La clave se guarda en el Llavero del Mac o, en Windows y Linux, en un archivo de tu carpeta de configuración. Nunca se envía al desarrollador.</li>
+    <li><b>Transcripción de Apple (Mac):</b> cuando el Mac lo permite, el reconocimiento de voz se hace en la propia computadora.</li>
+    <li><b>Enlaces que abres:</b> botones como “Buscar en Google Lens”, “Obtener clave” o los enlaces de GitHub solo abren el navegador cuando haces clic. En Google Lens, la imagen queda copiada para que la pegues si quieres.</li>
+  </ul>
+
+  <h3>Permisos del sistema</h3>
+  <p>La app pide solo lo necesario para cada función: <b>Accesibilidad</b> (pegar donde está el cursor y leer el texto seleccionado en el comando de voz), <b>Grabación de pantalla</b> (capturas y videos) y <b>Micrófono</b> y <b>Reconocimiento de voz</b> (dictado y audio de las grabaciones). El micrófono solo se usa mientras dictas o grabas.</p>
+
+  <h3>Este sitio</h3>
+  <p>El sitio está alojado en GitHub Pages. No usa cookies, anuncios ni herramientas de análisis. Solo guarda en tu navegador (localStorage) el idioma y el tema que elijas. Como en cualquier sitio, GitHub puede registrar datos técnicos de acceso, como la dirección IP, por seguridad: consulta la <a href="https://docs.github.com/es/site-policy/privacy-policies/github-general-privacy-statement">declaración de privacidad de GitHub</a>.</p>
+
+  <h3>Donaciones por Pix</h3>
+  <p>Las donaciones son voluntarias y las procesa tu banco mediante Pix, el sistema de pagos instantáneos de Brasil. El desarrollador solo recibe los datos que el propio Pix muestra a quien recibe, como el nombre de quien pagó, y no los usa para nada más.</p>
+
+  <h3>Tus derechos</h3>
+  <p>Como el desarrollador no recibe ni guarda tus datos de uso, el control es totalmente tuyo, en tu propia computadora. Si envías un correo o abres un reporte en GitHub, tu contacto se usa solo para responder; puedes pedir que se borre en cualquier momento en el correo de arriba. Esta política sigue la ley brasileña de protección de datos (LGPD).</p>
+
+  <h3>Menores</h3>
+  <p>CopyPaste no recopila datos de nadie, incluidos los menores. El uso de IA de terceros por menores debe seguir las reglas de edad de cada proveedor.</p>
+
+  <h3>Cambios en esta política</h3>
+  <p>Si algo cambia, esta página se actualizará con la nueva fecha arriba. Los cambios importantes también se mencionarán en las notas de la versión.</p>
+
+  <h2 id="es-terminos">Términos de uso</h2>
+
+  <h3>1. Aceptación</h3>
+  <p>Al descargar o usar CopyPaste aceptas estos términos. Si no estás de acuerdo, no uses la app.</p>
+
+  <h3>2. Licencia y código abierto</h3>
+  <p>CopyPaste se distribuye bajo la licencia <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL versión 3</a>. Puedes usar, estudiar, modificar y redistribuir la app según esa licencia. El código está en <a href="https://github.com/jonathansfp/copypaste">github.com/jonathansfp/copypaste</a>.</p>
+
+  <h3>3. Gratuita, sin garantía</h3>
+  <p>La app es gratuita y se ofrece <b>“tal cual”</b>, sin garantías de ningún tipo, según las secciones 15 y 16 de la GPL. En la medida en que la ley lo permita, el desarrollador no responde por pérdidas de datos, lucro cesante ni otros daños derivados de su uso. Haz copias de seguridad de lo importante. Las donaciones no crean obligación de soporte, garantía ni funciones adicionales.</p>
+
+  <h3>4. Uso responsable</h3>
+  <p>Usa la app conforme a la ley. Eres responsable de lo que capturas, grabas, dictas y compartes: obtén el consentimiento de las personas antes de grabar reuniones o llamadas, respeta los derechos de autor y la privacidad de terceros y no uses la app para vigilar a nadie sin autorización.</p>
+
+  <h3>5. Servicios de terceros</h3>
+  <p>Las funciones opcionales usan servicios de terceros (proveedores de IA, GitHub, Hugging Face, Google Lens), cada uno con sus propios términos, políticas y precios. Su uso es una relación directa entre tú y el proveedor. Las respuestas de la IA pueden tener errores: revisa el texto antes de enviarlo.</p>
+
+  <h3>6. IA local</h3>
+  <p>El modelo Gemma lo proporciona Google y está sujeto a los <a href="https://ai.google.dev/gemma/terms">términos de uso de Gemma</a>. llama.cpp se distribuye bajo la licencia MIT. Al descargar la IA local aceptas esos términos.</p>
+
+  <h3>7. Marcas</h3>
+  <p>Apple, macOS, Windows, Linux, Claude, ChatGPT, Gemini, Gemma, DeepSeek, Grok, GitHub, Google Lens y las demás marcas citadas pertenecen a sus dueños. CopyPaste no está afiliado a ellos ni cuenta con su respaldo.</p>
+
+  <h3>8. Actualizaciones</h3>
+  <p>Las funciones pueden cambiar entre versiones. La app avisa cuando hay una versión nueva y solo se actualiza con tu aprobación.</p>
+
+  <h3>9. Ley aplicable y contacto</h3>
+  <p>Estos términos se rigen por las leyes de Brasil. Dudas: <a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a>.</p>
+</article>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>CopyPaste · Jonathan Felix (<a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a>) · GPL-3.0</span>
+    <span><a href="index.html" data-keep-lang data-nav="home">Início</a> · <a href="suporte.html" data-keep-lang data-nav="support">Suporte</a> · <a href="privacidade.html" data-keep-lang data-nav="privacy">Privacidade e termos</a> · <a href="https://github.com/jonathansfp/copypaste">GitHub</a></span>
+  </div>
+</footer>
+
+<script src="page.js"></script>
+</body>
+</html>

@@ -21,6 +21,8 @@ Desarrollado por **Jonathan Felix** · contacto: [jonathansfp@gmail.com](mailto:
 
 ### 🌐 [Sitio del proyecto](https://jonathansfp.github.io/copypaste/?lang=es) · ⬇️ [Descargar](#️-descarga) · 💚 [Donar con Pix](#-apoya-el-proyecto)
 
+📄 [Soporte](https://jonathansfp.github.io/copypaste/suporte.html?lang=es) · [Privacidad y términos de uso](https://jonathansfp.github.io/copypaste/privacidade.html?lang=es)
+
 <img src="docs/componentes.png" width="820" alt="Formas, componentes y estilos de anotación de CopyPaste">
 
 <sub>Todo lo que ves arriba lo dibuja el motor vectorial de la app: formas, componentes al estilo Excalidraw, trazo a mano, flechas, pasos numerados, desenfoque, resaltador y texto nítido.</sub>

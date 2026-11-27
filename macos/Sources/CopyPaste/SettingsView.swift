@@ -3,6 +3,11 @@ import AppKit
 import Combine
 
 struct SettingsView: View {
+    /// A page of the project site, in the language in use.
+    static func site(_ page: String) -> URL {
+        URL(string: "https://jonathansfp.github.io/copypaste/\(page)?lang=\(AppLanguage.current == .auto ? "pt" : AppLanguage.current.rawValue)")!
+    }
+
     @ObservedObject var settings = AppSettings.shared
     @ObservedObject var store = ClipboardStore.shared
     @State private var axTrusted = PasteService.isTrusted
@@ -27,6 +32,11 @@ struct SettingsView: View {
                     VStack(alignment: .trailing, spacing: 4) {
                         Button(L("Como usar…")) { WindowManager.shared.showManual() }
                         Link("jonathansfp@gmail.com", destination: URL(string: "mailto:jonathansfp@gmail.com")!).font(.caption)
+                        HStack(spacing: 6) {
+                            Link(L("Suporte"), destination: Self.site("suporte.html"))
+                            Text("·").foregroundStyle(.tertiary)
+                            Link(L("Privacidade e termos"), destination: Self.site("privacidade.html"))
+                        }.font(.caption)
                     }
                 }
             }

@@ -1,5 +1,7 @@
 // Translations for settings, dictation, AI, updates and the menu bar: Portuguese → [English, Spanish].
 let l10nSettings: [String: [String]] = [
+    "Suporte": ["Support", "Soporte"],
+    "Privacidade e termos": ["Privacy & Terms", "Privacidad y términos"],
     "Atualizar agora": ["Update Now", "Actualizar ahora"],
     "Você está na %@. Clique em Atualizar agora: o CopyPaste baixa a nova versão, se substitui e abre de novo sozinho. Seu histórico e as configurações são mantidos.": ["You have %@. Click Update Now: CopyPaste downloads the new version, replaces itself and reopens on its own. Your history and settings are kept.", "Tienes la %@. Haz clic en Actualizar ahora: CopyPaste descarga la nueva versión, se reemplaza y se vuelve a abrir solo. Tu historial y tu configuración se conservan."],
     "Sem permissão para trocar o app em %@.": ["No permission to replace the app in %@.", "Sin permiso para reemplazar la app en %@."],

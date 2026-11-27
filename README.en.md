@@ -21,6 +21,8 @@ Developed by **Jonathan Felix** · contact: [jonathansfp@gmail.com](mailto:jonat
 
 ### 🌐 [Project website](https://jonathansfp.github.io/copypaste/?lang=en) · ⬇️ [Download](#️-download) · 💚 [Donate via Pix](#-support-the-project)
 
+📄 [Support](https://jonathansfp.github.io/copypaste/suporte.html?lang=en) · [Privacy & terms of use](https://jonathansfp.github.io/copypaste/privacidade.html?lang=en)
+
 <img src="docs/componentes.png" width="820" alt="CopyPaste shapes, components and annotation styles">
 
 <sub>Everything above is drawn by the app's vector engine: shapes, Excalidraw-style components, freehand strokes, arrows, numbered steps, blur, highlighter and crisp text.</sub>

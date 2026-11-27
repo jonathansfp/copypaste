@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suporte — CopyPaste</title>
+<meta name="description" content="Suporte do CopyPaste: contato, como relatar um problema e respostas para as dúvidas mais comuns no Mac, Windows e Linux.">
+<link rel="icon" href="icon.png">
+<link rel="stylesheet" href="page.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="index.html" data-keep-lang><img src="icon.png" alt="">CopyPaste</a>
+    <div class="links">
+      <a href="index.html" data-keep-lang data-nav="home">Início</a>
+      <a href="suporte.html" data-keep-lang data-nav="support" aria-current="page">Suporte</a>
+      <a href="privacidade.html" data-keep-lang data-nav="privacy">Privacidade e termos</a>
+    </div>
+    <div class="lang" id="lang"><button data-lang="pt">PT</button><button data-lang="en">EN</button><button data-lang="es">ES</button></div>
+    <button class="theme" id="theme" title="Alternar tema claro/escuro" aria-label="Alternar tema">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ═══════════════════════════════ PORTUGUÊS ═══════════════════════════════ -->
+<article data-lang="pt" data-title="Suporte — CopyPaste">
+  <h1>Suporte</h1>
+  <p class="lead">Precisa de ajuda com o CopyPaste? Veja as dúvidas mais comuns abaixo ou fale com o desenvolvedor.</p>
+
+  <div class="contact">
+    <a href="mailto:jonathansfp@gmail.com?subject=CopyPaste%20-%20suporte"><b>E-mail</b><span>jonathansfp@gmail.com</span></a>
+    <a href="https://github.com/jonathansfp/copypaste/issues/new"><b>Relatar um problema</b><span>Abra um chamado no GitHub</span></a>
+    <a href="index.html#recursos" data-keep-lang><b>Manual de uso</b><span>No app: menu do ícone › Como usar…</span></a>
+  </div>
+
+  <h2>Como relatar um problema</h2>
+  <p>Para eu conseguir ajudar rápido, conte:</p>
+  <ol>
+    <li>O sistema e a versão (por exemplo, Windows 11 ou macOS 15) e a versão do CopyPaste (aparece em Configurações).</li>
+    <li>O que você fez, o que esperava e o que aconteceu. Uma foto ou captura da tela ajuda muito.</li>
+    <li>Se puder, anexe o registro de diagnóstico. Ele não tem o conteúdo das suas cópias, só eventos do app:
+      <ul>
+        <li><span class="os">Mac</span><code>~/Library/Application Support/CopyPaste/diagnostico.log</code></li>
+        <li><span class="os">Windows</span><code>%APPDATA%\io.github.jonathansfp.copypaste\diagnostico.log</code></li>
+        <li><span class="os">Linux</span><code>~/.local/share/io.github.jonathansfp.copypaste/diagnostico.log</code></li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>Dúvidas comuns</h2>
+
+  <h3>Instalação</h3>
+  <details><summary>O sistema não deixa abrir o app na primeira vez</summary>
+    <p>O CopyPaste não é distribuído por loja, então o sistema pede uma confirmação só na primeira vez.</p>
+    <p><span class="os">Windows</span>Em “O Windows protegeu o computador”, clique em <b>Mais informações</b> e depois em <b>Executar assim mesmo</b>.</p>
+    <p><span class="os">Mac</span>Clique com o botão direito no app › <b>Abrir</b>. Se não aparecer a opção, vá em <b>Ajustes do Sistema › Privacidade e Segurança</b> e clique em <b>Abrir mesmo assim</b>. Se o Mac disser que o app “está danificado”, rode no Terminal: <code>xattr -dr com.apple.quarantine /Applications/CopyPaste.app</code></p>
+  </details>
+  <details><summary>Como atualizo?</summary>
+    <p>O app verifica sozinho uma vez por semana e pergunta se você quer atualizar. Clique em <b>Atualizar agora</b>: ele baixa, instala e abre de novo. Para verificar na hora, use <b>Verificar atualizações…</b> no menu do ícone. O histórico e as configurações são mantidos.</p>
+    <p><span class="os">Mac</span>Depois de atualizar, o macOS pode pedir de novo as permissões de Acessibilidade e Gravação de Tela.</p>
+    <p><span class="os">Linux</span>A atualização automática funciona no AppImage. Com .deb ou .rpm, baixe o pacote novo e instale por cima.</p>
+  </details>
+
+  <h3>Atalhos e colagem</h3>
+  <details><summary>Escolho um item no histórico, mas ele não cola</summary>
+    <p><span class="os">Mac</span>Libere o CopyPaste em <b>Ajustes do Sistema › Privacidade e Segurança › Acessibilidade</b>.</p>
+    <p><span class="os">Windows</span>Programas abertos como administrador não aceitam colagem vinda de outro app. O item fica copiado: cole com <kbd>Ctrl</kbd>+<kbd>V</kbd>.</p>
+    <p><span class="os">Linux</span>Instale o <code>xdotool</code> (X11) ou o <code>wtype</code>/<code>ydotool</code> (Wayland).</p>
+  </details>
+  <details><summary>Um atalho não funciona ou aparece em vermelho</summary>
+    <p>Outro programa já usa a mesma combinação. Feche o outro programa ou escolha outra combinação em <b>Configurações › Atalhos</b>.</p>
+    <p><span class="os">Windows</span>Se o <kbd>PrtSc</kbd> abrir a Ferramenta de Captura, desligue em <b>Configurações › Acessibilidade › Teclado › Usar a tecla Print Screen para abrir a captura de tela</b>. O histórico abre com <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd>.</p>
+    <p><span class="os">Linux</span>No Wayland, crie um atalho do sistema que rode <code>copypaste --capture-area</code> (ou <code>--history</code>, <code>--board</code>…).</p>
+  </details>
+
+  <h3>Captura e gravação</h3>
+  <details><summary>Mac: o atalho de captura não faz nada ou fica pedindo “Abrir Ajustes”</summary>
+    <p>A permissão de Gravação de Tela ficou presa a uma versão antiga do app. No Terminal, rode <code>tccutil reset ScreenCapture local.copypaste.app</code>, abra o CopyPaste de novo, aperte o atalho e permita quando o macOS pedir.</p>
+  </details>
+  <details><summary>A gravação de tela não começa</summary>
+    <p><span class="os">Mac</span>A gravação precisa do macOS 15 ou mais recente.</p>
+    <p><span class="os">Windows</span>Instale o ffmpeg: <code>winget install Gyan.FFmpeg</code>. Para gravar o som do computador, ative a “Mixagem estéreo” nas configurações de som.</p>
+    <p><span class="os">Linux</span>Instale o ffmpeg e o <code>pulseaudio-utils</code> pelo gerenciador de pacotes.</p>
+  </details>
+
+  <h3>Ditado por voz e IA</h3>
+  <details><summary>O ditado demora ou fica em “Ajustando…”</summary>
+    <p>O ajuste do texto tem um limite de tempo: se a IA demorar, o app cola o texto sem ajuste para você não ficar esperando. Para ficar mais rápido, escolha um modelo rápido (no Gemini, o Flash‑Lite) ou use a IA local. A primeira vez da IA local depois de ligar o computador é mais lenta, porque o modelo precisa carregar.</p>
+  </details>
+  <details><summary>Aparece erro de limite, cota ou chave inválida</summary>
+    <p>Esses avisos vêm do provedor da IA, na sua conta. Confira no site dele se a chave está ativa, se há saldo ou crédito e se o limite por minuto foi atingido. Você também pode trocar para a IA local, que é grátis e não tem limite.</p>
+  </details>
+  <details><summary>Como uso a IA local?</summary>
+    <p>Em <b>Configurações</b>, na parte do ditado, clique em <b>Baixar</b> na IA local (cerca de 4 GB, uma vez só). Ela passa a ser usada quando nenhuma outra IA está ligada e libera a memória depois de 10 minutos sem uso. No Mac, o botão <b>Testar</b> mostra quanto tempo ela leva no seu computador.</p>
+  </details>
+  <details><summary>O microfone não é detectado</summary>
+    <p><span class="os">Mac</span>Libere o CopyPaste em <b>Ajustes do Sistema › Privacidade e Segurança › Microfone</b>.</p>
+    <p><span class="os">Windows</span>Em <b>Configurações › Privacidade e segurança › Microfone</b>, deixe ligado o acesso para aplicativos da área de trabalho.</p>
+  </details>
+
+  <h3>Dados</h3>
+  <details><summary>Onde ficam meus dados e como apago tudo?</summary>
+    <p>Tudo fica no seu computador (veja a <a href="privacidade.html" data-keep-lang>política de privacidade</a>). Para limpar o histórico: no Mac, <b>Limpar histórico…</b> no menu do ícone; no Windows e no Linux, <b>Configurações › Apagar o histórico</b>. Para remover tudo, desinstale o app e apague a pasta de dados:</p>
+    <ul>
+      <li><span class="os">Mac</span><code>~/Library/Application Support/CopyPaste</code></li>
+      <li><span class="os">Windows</span><code>%APPDATA%\io.github.jonathansfp.copypaste</code></li>
+      <li><span class="os">Linux</span><code>~/.local/share/io.github.jonathansfp.copypaste</code> e <code>~/.config/io.github.jonathansfp.copypaste</code></li>
+    </ul>
+  </details>
+
+  <h3>Linux</h3>
+  <details><summary>As janelas abrem em branco ou o ícone não aparece</summary>
+    <p>Com placas NVIDIA, rode <code>WEBKIT_DISABLE_COMPOSITING_MODE=1 copypaste</code>. No GNOME, instale a extensão <b>AppIndicator and KStatusNotifierItem Support</b> para ver o ícone.</p>
+  </details>
+
+  <p style="margin-top:30px">Não achou a resposta? Escreva para <a href="mailto:jonathansfp@gmail.com?subject=CopyPaste%20-%20suporte">jonathansfp@gmail.com</a> ou <a href="https://github.com/jonathansfp/copypaste/issues/new">abra um chamado no GitHub</a>. O CopyPaste é mantido por uma pessoa só: a resposta pode levar alguns dias.</p>
+</article>
+
+<!-- ═══════════════════════════════ ENGLISH ═══════════════════════════════ -->
+<article data-lang="en" data-title="Support — CopyPaste" hidden>
+  <h1>Support</h1>
+  <p class="lead">Need help with CopyPaste? Check the common questions below or contact the developer.</p>
+
+  <div class="contact">
+    <a href="mailto:jonathansfp@gmail.com?subject=CopyPaste%20-%20support"><b>Email</b><span>jonathansfp@gmail.com</span></a>
+    <a href="https://github.com/jonathansfp/copypaste/issues/new"><b>Report a problem</b><span>Open an issue on GitHub</span></a>
+    <a href="index.html#recursos" data-keep-lang><b>User guide</b><span>In the app: icon menu › How to Use…</span></a>
+  </div>
+
+  <h2>How to report a problem</h2>
+  <p>To help me help you quickly, please include:</p>
+  <ol>
+    <li>Your system and version (for example, Windows 11 or macOS 15) and the CopyPaste version (shown in Settings).</li>
+    <li>What you did, what you expected and what happened. A photo or screenshot helps a lot.</li>
+    <li>If you can, attach the diagnostics log. It does not contain what you copied, only app events:
+      <ul>
+        <li><span class="os">Mac</span><code>~/Library/Application Support/CopyPaste/diagnostico.log</code></li>
+        <li><span class="os">Windows</span><code>%APPDATA%\io.github.jonathansfp.copypaste\diagnostico.log</code></li>
+        <li><span class="os">Linux</span><code>~/.local/share/io.github.jonathansfp.copypaste/diagnostico.log</code></li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>Common questions</h2>
+
+  <h3>Installation</h3>
+  <details><summary>The system won't open the app the first time</summary>
+    <p>CopyPaste isn't distributed through a store, so the system asks for confirmation the first time only.</p>
+    <p><span class="os">Windows</span>On “Windows protected your PC”, click <b>More info</b> and then <b>Run anyway</b>.</p>
+    <p><span class="os">Mac</span>Right-click the app › <b>Open</b>. If that option isn't there, go to <b>System Settings › Privacy &amp; Security</b> and click <b>Open Anyway</b>. If the Mac says the app “is damaged”, run in Terminal: <code>xattr -dr com.apple.quarantine /Applications/CopyPaste.app</code></p>
+  </details>
+  <details><summary>How do I update?</summary>
+    <p>The app checks by itself once a week and asks whether you want to update. Click <b>Update now</b>: it downloads, installs and reopens. To check right away, use <b>Check for Updates…</b> in the icon menu. Your history and settings are kept.</p>
+    <p><span class="os">Mac</span>After updating, macOS may ask again for the Accessibility and Screen Recording permissions.</p>
+    <p><span class="os">Linux</span>Automatic updates work with the AppImage. With .deb or .rpm, download the new package and install it over the old one.</p>
+  </details>
+
+  <h3>Shortcuts and pasting</h3>
+  <details><summary>I pick an item in the history but it doesn't paste</summary>
+    <p><span class="os">Mac</span>Allow CopyPaste in <b>System Settings › Privacy &amp; Security › Accessibility</b>.</p>
+    <p><span class="os">Windows</span>Programs running as administrator don't accept pasting from another app. The item stays copied: paste with <kbd>Ctrl</kbd>+<kbd>V</kbd>.</p>
+    <p><span class="os">Linux</span>Install <code>xdotool</code> (X11) or <code>wtype</code>/<code>ydotool</code> (Wayland).</p>
+  </details>
+  <details><summary>A shortcut doesn't work or shows in red</summary>
+    <p>Another program already uses the same combination. Close that program or pick another combination in <b>Settings › Shortcuts</b>.</p>
+    <p><span class="os">Windows</span>If <kbd>PrtSc</kbd> opens the Snipping Tool, turn it off in <b>Settings › Accessibility › Keyboard › Use the Print screen key to open screen capture</b>. The history opens with <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd>.</p>
+    <p><span class="os">Linux</span>On Wayland, create a system shortcut that runs <code>copypaste --capture-area</code> (or <code>--history</code>, <code>--board</code>…).</p>
+  </details>
+
+  <h3>Screenshots and recording</h3>
+  <details><summary>Mac: the capture shortcut does nothing or keeps asking to “Open Settings”</summary>
+    <p>The Screen Recording permission got stuck on an old version of the app. In Terminal, run <code>tccutil reset ScreenCapture local.copypaste.app</code>, open CopyPaste again, press the shortcut and allow it when macOS asks.</p>
+  </details>
+  <details><summary>Screen recording doesn't start</summary>
+    <p><span class="os">Mac</span>Recording requires macOS 15 or later.</p>
+    <p><span class="os">Windows</span>Install ffmpeg: <code>winget install Gyan.FFmpeg</code>. To record the computer's sound, enable “Stereo Mix” in the sound settings.</p>
+    <p><span class="os">Linux</span>Install ffmpeg and <code>pulseaudio-utils</code> with your package manager.</p>
+  </details>
+
+  <h3>Voice dictation and AI</h3>
+  <details><summary>Dictation is slow or stays on “Polishing…”</summary>
+    <p>Text cleanup has a time limit: if the AI takes too long, the app pastes the text without cleanup so you are not left waiting. For more speed, pick a fast model (on Gemini, Flash‑Lite) or use the local AI. The first local AI use after turning on the computer is slower, because the model has to load.</p>
+  </details>
+  <details><summary>I get a limit, quota or invalid key error</summary>
+    <p>These messages come from the AI provider, on your account. Check on their site that the key is active, that you have balance or credit and whether the per-minute limit was reached. You can also switch to the local AI, which is free and has no limits.</p>
+  </details>
+  <details><summary>How do I use the local AI?</summary>
+    <p>In <b>Settings</b>, in the dictation section, click <b>Download</b> on the local AI (about 4 GB, only once). It is used whenever no other AI is on, and frees its memory after 10 minutes without use. On the Mac, the <b>Test</b> button shows how long it takes on your computer.</p>
+  </details>
+  <details><summary>The microphone isn't detected</summary>
+    <p><span class="os">Mac</span>Allow CopyPaste in <b>System Settings › Privacy &amp; Security › Microphone</b>.</p>
+    <p><span class="os">Windows</span>In <b>Settings › Privacy &amp; security › Microphone</b>, keep access for desktop apps turned on.</p>
+  </details>
+
+  <h3>Data</h3>
+  <details><summary>Where is my data and how do I delete everything?</summary>
+    <p>Everything stays on your computer (see the <a href="privacidade.html" data-keep-lang>privacy policy</a>). To clear the history: on the Mac, <b>Clear History…</b> in the icon menu; on Windows and Linux, <b>Settings › Clear the history</b>. To remove everything, uninstall the app and delete its data folder:</p>
+    <ul>
+      <li><span class="os">Mac</span><code>~/Library/Application Support/CopyPaste</code></li>
+      <li><span class="os">Windows</span><code>%APPDATA%\io.github.jonathansfp.copypaste</code></li>
+      <li><span class="os">Linux</span><code>~/.local/share/io.github.jonathansfp.copypaste</code> and <code>~/.config/io.github.jonathansfp.copypaste</code></li>
+    </ul>
+  </details>
+
+  <h3>Linux</h3>
+  <details><summary>Windows open blank or the icon doesn't show</summary>
+    <p>With NVIDIA cards, run <code>WEBKIT_DISABLE_COMPOSITING_MODE=1 copypaste</code>. On GNOME, install the <b>AppIndicator and KStatusNotifierItem Support</b> extension to see the icon.</p>
+  </details>
+
+  <p style="margin-top:30px">Didn't find the answer? Write to <a href="mailto:jonathansfp@gmail.com?subject=CopyPaste%20-%20support">jonathansfp@gmail.com</a> or <a href="https://github.com/jonathansfp/copypaste/issues/new">open an issue on GitHub</a>. CopyPaste is maintained by one person: a reply may take a few days. Support is offered in Portuguese, English and Spanish.</p>
+</article>
+
+<!-- ═══════════════════════════════ ESPAÑOL ═══════════════════════════════ -->
+<article data-lang="es" data-title="Soporte — CopyPaste" hidden>
+  <h1>Soporte</h1>
+  <p class="lead">¿Necesitas ayuda con CopyPaste? Revisa las dudas más comunes abajo o escribe al desarrollador.</p>
+
+  <div class="contact">
+    <a href="mailto:jonathansfp@gmail.com?subject=CopyPaste%20-%20soporte"><b>Correo</b><span>jonathansfp@gmail.com</span></a>
+    <a href="https://github.com/jonathansfp/copypaste/issues/new"><b>Reportar un problema</b><span>Abre un reporte en GitHub</span></a>
+    <a href="index.html#recursos" data-keep-lang><b>Manual de uso</b><span>En la app: menú del icono › Cómo usar…</span></a>
+  </div>
+
+  <h2>Cómo reportar un problema</h2>
+  <p>Para poder ayudarte rápido, cuéntame:</p>
+  <ol>
+    <li>El sistema y su versión (por ejemplo, Windows 11 o macOS 15) y la versión de CopyPaste (aparece en Configuración).</li>
+    <li>Qué hiciste, qué esperabas y qué pasó. Una foto o captura de pantalla ayuda mucho.</li>
+    <li>Si puedes, adjunta el registro de diagnóstico. No contiene lo que copiaste, solo eventos de la app:
+      <ul>
+        <li><span class="os">Mac</span><code>~/Library/Application Support/CopyPaste/diagnostico.log</code></li>
+        <li><span class="os">Windows</span><code>%APPDATA%\io.github.jonathansfp.copypaste\diagnostico.log</code></li>
+        <li><span class="os">Linux</span><code>~/.local/share/io.github.jonathansfp.copypaste/diagnostico.log</code></li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>Dudas comunes</h2>
+
+  <h3>Instalación</h3>
+  <details><summary>El sistema no deja abrir la app la primera vez</summary>
+    <p>CopyPaste no se distribuye por una tienda, así que el sistema pide una confirmación solo la primera vez.</p>
+    <p><span class="os">Windows</span>En “Windows protegió su PC”, haz clic en <b>Más información</b> y luego en <b>Ejecutar de todas formas</b>.</p>
+    <p><span class="os">Mac</span>Clic derecho en la app › <b>Abrir</b>. Si no aparece la opción, ve a <b>Ajustes del Sistema › Privacidad y seguridad</b> y haz clic en <b>Abrir igualmente</b>. Si el Mac dice que la app “está dañada”, ejecuta en la Terminal: <code>xattr -dr com.apple.quarantine /Applications/CopyPaste.app</code></p>
+  </details>
+  <details><summary>¿Cómo actualizo?</summary>
+    <p>La app comprueba sola una vez por semana y te pregunta si quieres actualizar. Haz clic en <b>Actualizar ahora</b>: descarga, instala y se vuelve a abrir. Para comprobar al momento, usa <b>Buscar actualizaciones…</b> en el menú del icono. El historial y la configuración se conservan.</p>
+    <p><span class="os">Mac</span>Después de actualizar, macOS puede pedir de nuevo los permisos de Accesibilidad y Grabación de pantalla.</p>
+    <p><span class="os">Linux</span>La actualización automática funciona en el AppImage. Con .deb o .rpm, descarga el paquete nuevo e instálalo encima.</p>
+  </details>
+
+  <h3>Atajos y pegado</h3>
+  <details><summary>Elijo un elemento del historial pero no se pega</summary>
+    <p><span class="os">Mac</span>Permite CopyPaste en <b>Ajustes del Sistema › Privacidad y seguridad › Accesibilidad</b>.</p>
+    <p><span class="os">Windows</span>Los programas abiertos como administrador no aceptan pegado desde otra app. El elemento queda copiado: pégalo con <kbd>Ctrl</kbd>+<kbd>V</kbd>.</p>
+    <p><span class="os">Linux</span>Instala <code>xdotool</code> (X11) o <code>wtype</code>/<code>ydotool</code> (Wayland).</p>
+  </details>
+  <details><summary>Un atajo no funciona o aparece en rojo</summary>
+    <p>Otro programa ya usa la misma combinación. Cierra ese programa o elige otra combinación en <b>Configuración › Atajos</b>.</p>
+    <p><span class="os">Windows</span>Si <kbd>ImpPant</kbd> abre la Herramienta Recortes, desactívalo en <b>Configuración › Accesibilidad › Teclado › Usar la tecla Imprimir pantalla para abrir la captura de pantalla</b>. El historial se abre con <kbd>Win</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd>.</p>
+    <p><span class="os">Linux</span>En Wayland, crea un atajo del sistema que ejecute <code>copypaste --capture-area</code> (o <code>--history</code>, <code>--board</code>…).</p>
+  </details>
+
+  <h3>Capturas y grabación</h3>
+  <details><summary>Mac: el atajo de captura no hace nada o pide “Abrir Ajustes” todo el tiempo</summary>
+    <p>El permiso de Grabación de pantalla quedó ligado a una versión antigua de la app. En la Terminal, ejecuta <code>tccutil reset ScreenCapture local.copypaste.app</code>, abre CopyPaste de nuevo, pulsa el atajo y permite cuando macOS lo pida.</p>
+  </details>
+  <details><summary>La grabación de pantalla no empieza</summary>
+    <p><span class="os">Mac</span>La grabación requiere macOS 15 o posterior.</p>
+    <p><span class="os">Windows</span>Instala ffmpeg: <code>winget install Gyan.FFmpeg</code>. Para grabar el sonido de la computadora, activa “Mezcla estéreo” en la configuración de sonido.</p>
+    <p><span class="os">Linux</span>Instala ffmpeg y <code>pulseaudio-utils</code> con tu gestor de paquetes.</p>
+  </details>
+
+  <h3>Dictado por voz e IA</h3>
+  <details><summary>El dictado tarda o se queda en “Ajustando…”</summary>
+    <p>El ajuste del texto tiene un límite de tiempo: si la IA tarda, la app pega el texto sin ajustar para que no te quedes esperando. Para ir más rápido, elige un modelo rápido (en Gemini, Flash‑Lite) o usa la IA local. El primer uso de la IA local después de encender la computadora es más lento, porque el modelo tiene que cargarse.</p>
+  </details>
+  <details><summary>Aparece un error de límite, cuota o clave inválida</summary>
+    <p>Esos avisos vienen del proveedor de la IA, en tu cuenta. Revisa en su sitio que la clave esté activa, que tengas saldo o crédito y si se alcanzó el límite por minuto. También puedes cambiar a la IA local, que es gratis y no tiene límites.</p>
+  </details>
+  <details><summary>¿Cómo uso la IA local?</summary>
+    <p>En <b>Configuración</b>, en la parte del dictado, haz clic en <b>Descargar</b> en la IA local (unos 4 GB, una sola vez). Se usa cuando no hay otra IA activa y libera la memoria tras 10 minutos sin uso. En el Mac, el botón <b>Probar</b> muestra cuánto tarda en tu computadora.</p>
+  </details>
+  <details><summary>No se detecta el micrófono</summary>
+    <p><span class="os">Mac</span>Permite CopyPaste en <b>Ajustes del Sistema › Privacidad y seguridad › Micrófono</b>.</p>
+    <p><span class="os">Windows</span>En <b>Configuración › Privacidad y seguridad › Micrófono</b>, deja activado el acceso para aplicaciones de escritorio.</p>
+  </details>
+
+  <h3>Datos</h3>
+  <details><summary>¿Dónde están mis datos y cómo borro todo?</summary>
+    <p>Todo se queda en tu computadora (consulta la <a href="privacidade.html" data-keep-lang>política de privacidad</a>). Para borrar el historial: en el Mac, <b>Borrar historial…</b> en el menú del icono; en Windows y Linux, <b>Configuración › Borrar el historial</b>. Para eliminar todo, desinstala la app y borra su carpeta de datos:</p>
+    <ul>
+      <li><span class="os">Mac</span><code>~/Library/Application Support/CopyPaste</code></li>
+      <li><span class="os">Windows</span><code>%APPDATA%\io.github.jonathansfp.copypaste</code></li>
+      <li><span class="os">Linux</span><code>~/.local/share/io.github.jonathansfp.copypaste</code> y <code>~/.config/io.github.jonathansfp.copypaste</code></li>
+    </ul>
+  </details>
+
+  <h3>Linux</h3>
+  <details><summary>Las ventanas se abren en blanco o el icono no aparece</summary>
+    <p>Con tarjetas NVIDIA, ejecuta <code>WEBKIT_DISABLE_COMPOSITING_MODE=1 copypaste</code>. En GNOME, instala la extensión <b>AppIndicator and KStatusNotifierItem Support</b> para ver el icono.</p>
+  </details>
+
+  <p style="margin-top:30px">¿No encontraste la respuesta? Escribe a <a href="mailto:jonathansfp@gmail.com?subject=CopyPaste%20-%20soporte">jonathansfp@gmail.com</a> o <a href="https://github.com/jonathansfp/copypaste/issues/new">abre un reporte en GitHub</a>. CopyPaste lo mantiene una sola persona: la respuesta puede tardar algunos días.</p>
+</article>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>CopyPaste · Jonathan Felix (<a href="mailto:jonathansfp@gmail.com">jonathansfp@gmail.com</a>) · GPL-3.0</span>
+    <span><a href="index.html" data-keep-lang data-nav="home">Início</a> · <a href="suporte.html" data-keep-lang data-nav="support">Suporte</a> · <a href="privacidade.html" data-keep-lang data-nav="privacy">Privacidade e termos</a> · <a href="https://github.com/jonathansfp/copypaste">GitHub</a></span>
+  </div>
+</footer>
+
+<script src="page.js"></script>
+</body>
+</html>

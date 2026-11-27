@@ -167,6 +167,7 @@ function build() {
     </div>
     <div class="card" style="padding:14px 16px">
       <p style="margin:0">${t('Código, novidades e downloads:')} <a href="#" id="repo">github.com/jonathansfp/copypaste</a></p>
+      <p style="margin:8px 0 0"><a href="#" data-url="https://jonathansfp.github.io/copypaste/suporte.html">${t('Suporte')}</a> · <a href="#" data-url="https://jonathansfp.github.io/copypaste/privacidade.html">${t('Privacidade e termos de uso')}</a></p>
     </div>
   </section>`;
 
@@ -238,7 +239,12 @@ const PROVIDERS = [
 ];
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const openUrl = url => T.opener ? T.opener.openUrl(url) : invoke('plugin:opener|open_url', { url });
-document.addEventListener('click', e => { const a = e.target.closest('a[href^="mailto:"]'); if (a) { e.preventDefault(); openUrl(a.getAttribute('href')); } });
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href^="mailto:"], a[data-url]');
+  if (!a) return;
+  e.preventDefault();
+  if (a.dataset.url) { const u = new URL(a.dataset.url); u.searchParams.set('lang', getLang()); openUrl(u.toString()); } else openUrl(a.getAttribute('href'));
+});
 
 const gb = b => (b / 1e9).toLocaleString(locale(), { maximumFractionDigits: 1 }) + ' GB';
 

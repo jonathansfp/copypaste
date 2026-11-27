@@ -149,6 +149,8 @@ const D = {
   'Útil ao copiar senhas': ['Useful when copying passwords', 'Útil al copiar contraseñas'],
   'Iniciar com o sistema': ['Start with the system', 'Iniciar con el sistema'],
   'Apagar o histórico': ['Clear the history', 'Borrar el historial'],
+  'Suporte': ['Support', 'Soporte'],
+  'Privacidade e termos de uso': ['Privacy & terms of use', 'Privacidad y términos de uso'],
   'Apagar (mantém os fixados)': ['Clear (keeps pinned items)', 'Borrar (conserva los fijados)'],
   'Apagar todo o histórico (exceto os fixados)?': ['Clear the whole history (except pinned items)?', '¿Borrar todo el historial (excepto los fijados)?'],
   'CopyPaste {0} para {1} · código aberto (GPL-3.0)': ['CopyPaste {0} for {1} · open source (GPL-3.0)', 'CopyPaste {0} para {1} · código abierto (GPL-3.0)'],
